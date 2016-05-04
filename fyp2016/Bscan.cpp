@@ -30,7 +30,7 @@ void Bscan::load(std::string filename) {
 	}
 
 
-	size = file.tellg();		//reports size in bytes?
+	size = (int)file.tellg();		//reports size in bytes?
 	memblock = new char[size];		// allocate enough space to store the file in RAM
 
 	file.seekg(0, std::ios::beg);
@@ -85,7 +85,7 @@ Ascan* Bscan::element(int index) {
 
 Ascan* Bscan::produceNormal(int firstXscans) {
 
-	if (scans.size() < firstXscans || scans.size() < 1) {
+	if ((int)scans.size() < firstXscans || scans.size() < 1) {
 		return NULL;
 	}
 
@@ -104,7 +104,7 @@ Ascan* Bscan::produceNormal(int firstXscans) {
 
 		sum /= firstXscans;
 
-		v[i] = sum;
+		v[i] = (int)sum;
 	}
 
 	Ascan* ret = new Ascan(size, v);
@@ -116,14 +116,14 @@ void Bscan::normalise(Ascan* normal) {
 	std::vector<Ascan*>::iterator it;
 	
 
-	for (int i = 0; i < scans.size(); i++) {
+	for (int i = 0; i < (int)scans.size(); i++) {
 		int size = scans.at(i)->getSize();
 		int* v = new int[size];
 
 		for (int j = 0; j < normal->getSize(); j++) {
 			int dif = scans.at(i)->getIndex(j) - normal->getIndex(j);
 
-			v[i] = (127*256 + dif);
+			v[j] = (127*256 + dif);
 		}
 		
 		Ascan* newScan = new Ascan(size, v);
