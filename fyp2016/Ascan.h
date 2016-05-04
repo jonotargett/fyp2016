@@ -3,13 +3,12 @@ class Ascan
 {
 private:
 	int offset;
-	int length;
-	int* values;
+	const int length;
+	const int *values;
 public:
-	Ascan(int);
+	Ascan(int, int*);
 	~Ascan();
 
-	void fill(int);
 	int getSize();
 	int getIndex(int);
 	int getPercent(float);

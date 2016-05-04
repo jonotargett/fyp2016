@@ -2,26 +2,24 @@
 
 
 
-Ascan::Ascan(int l)
-{
-	length = l;
+Ascan::Ascan(int l, int* v) : length(l), values(v) {
 	offset = 0;
-
+	/*
 	values = new int[length];
+
+	for (int i = 0; i < length; i++) {
+		values[i] = v[i];
+	}
+	*/
 }
 
 
 Ascan::~Ascan()
 {
+	delete values;
 }
 
 
-void Ascan::fill(int entry) {
-	if (offset < length) {
-		values[offset] = entry;
-		offset++;
-	}
-}
 
 int Ascan::getSize() {
 	return length;

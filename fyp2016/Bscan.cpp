@@ -20,9 +20,7 @@ void Bscan::load(std::string filename) {
 
 
 	file.open(filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-	//file.open("C:/HaxLogs.txt", std::ios::in | std::ios::binary | std::ios::ate);
-	//01011329.DAT
-	//file.open("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011348.DAT", std::ios::in | std::ios::binary | std::ios::ate);
+
 
 	if (!file.is_open()) {
 		char* buf = new char[256];
@@ -48,19 +46,20 @@ void Bscan::load(std::string filename) {
 
 	while (offset < size) {
 
-		Ascan* scan = new Ascan(ASCAN_STRIDE);
+		int* v = new int[ASCAN_STRIDE];
 		int count = 0;
 		
-		while ((count < (ASCAN_STRIDE*2)) && offset < size) {
+		while ((count < ASCAN_STRIDE) && offset < size) {
 
 			int e = (uint8_t)memblock[offset+1]*256 + (uint8_t)memblock[offset];
 
-			scan->fill(e);
+			v[count] = e;
 
-			count += 2;
+			count += 1;
 			offset += 2;
 		}
 
+		Ascan* scan = new Ascan(ASCAN_STRIDE, v);
 		scans.push_back(scan);
 	}
 	
@@ -90,9 +89,12 @@ Ascan* Bscan::produceNormal(int firstXscans) {
 		return NULL;
 	}
 
-	Ascan* ret = new Ascan(scans.at(0)->getSize());
 
-	for (int i = 0; i < ret->getSize(); i++) {
+	int size = scans.at(0)->getSize();
+	int* v = new int[size];
+	
+
+	for (int i = 0; i < size; i++) {
 
 		double sum = 0;
 
@@ -102,9 +104,10 @@ Ascan* Bscan::produceNormal(int firstXscans) {
 
 		sum /= firstXscans;
 
-		ret->fill((int)sum);
+		v[i] = sum;
 	}
 
+	Ascan* ret = new Ascan(size, v);
 	return ret;
 }
 
@@ -114,14 +117,16 @@ void Bscan::normalise(Ascan* normal) {
 	
 
 	for (int i = 0; i < scans.size(); i++) {
-		Ascan* newScan = new Ascan(scans.at(i)->getSize());
+		int size = scans.at(i)->getSize();
+		int* v = new int[size];
 
 		for (int j = 0; j < normal->getSize(); j++) {
 			int dif = scans.at(i)->getIndex(j) - normal->getIndex(j);
 
-			newScan->fill(127*256 + dif);
+			v[i] = (127*256 + dif);
 		}
 		
+		Ascan* newScan = new Ascan(size, v);
 		Ascan* old = scans.at(i);
 		it = scans.begin();
 		scans.erase(it + i);
