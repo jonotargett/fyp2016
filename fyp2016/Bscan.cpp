@@ -25,7 +25,7 @@ void Bscan::load(std::string filename) {
 	if (!file.is_open()) {
 		char* buf = new char[256];
 		strerror_s(buf, 256, errno);
-		std::cout << "Error: " << buf;
+		std::cout << "File Error: " << buf;
 		return;
 	}
 
@@ -39,7 +39,7 @@ void Bscan::load(std::string filename) {
 	file.close();
 
 
-	std::cout << size << std::endl;
+	std::cout << "Filesize: " << size << std::endl;
 
 
 	int ASCAN_STRIDE = 512;

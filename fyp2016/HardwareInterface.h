@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "Point.h"
 #include "Runnable.h"
 #include "Thread.h"
@@ -7,30 +9,41 @@
 class HardwareInterface
 {
 private:
+	bool alive;
 	/*
 	variables holding sensor data
 	*/
-	bool alive;
-
-	bool positionLock;
 	Point position;
+
+protected:
 	Thread* updater;
 
+	/*
+	Locks for each of the sensor variables
+	*/
+	bool positionLock;
+	
 public:
-	long count;
-
 	HardwareInterface();
-	~HardwareInterface();
-
+	virtual ~HardwareInterface();
 	bool isAlive();
-
-	void increment();
 
 	/*
 	Obtain a link with the microcontroller over the serial link.
 	Returns: true on success, false on failure
 	*/
-	bool initialise();
+	virtual bool initialise() = 0;
+
+	/* 
+	is declared public only so that it can be called on a
+	separate thread. there is no reason to call this method externally.
+	This method gets/sets all data to the microcontroller
+	each pass returns 'true' for success, or 'false' for error.
+	*/
+	virtual bool updateLoop() = 0;
+
+	bool start();
+	void stop();
 
 	/* 
 	Returns: the current position as determined by the GPS unit
@@ -48,3 +61,4 @@ public:
 	UpdaterRunnable(HardwareInterface* i) : hwi(i) {	}
 	virtual void* run();
 };
+

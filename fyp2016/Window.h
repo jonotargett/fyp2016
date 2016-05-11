@@ -28,6 +28,7 @@ public:
 
 	void handleEvents();
 
+
 	void update(SDL_Surface*);
 
 };

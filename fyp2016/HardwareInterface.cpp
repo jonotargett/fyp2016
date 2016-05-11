@@ -1,7 +1,11 @@
 #include "HardwareInterface.h"
 
 
-
+/* 
+Base class constructor will be called by default
+in inherited classes. All the stuff common to all hardwareInterface
+object types should be instantiated here
+*/
 HardwareInterface::HardwareInterface()
 {
 	// instantiate all the variables
@@ -9,7 +13,6 @@ HardwareInterface::HardwareInterface()
 	position = Point();
 
 	alive = true;
-	count = 0;
 }
 
 
@@ -19,15 +22,40 @@ HardwareInterface::~HardwareInterface()
 	alive = false;
 }
 
+bool HardwareInterface::isAlive() {
+	return alive;
+}
+
+bool HardwareInterface::start() {
+	// start the updater thread
+	delete updater;
+	updater = NULL;
+	alive = true;
+
+	std::auto_ptr<Runnable> r(new UpdaterRunnable(this));
+	updater = new Thread(r);
+	updater->start();
+
+	std::cout << "Hardware communication sub-thread started." << std::endl;
+
+	// return true if everything worked
+	return true;
+}
+
+void HardwareInterface::stop() {
+	// kills the subthread
+	alive = false;
+}
 
 void* UpdaterRunnable::run() {
-	// loop continuously
+
+	bool success = true;
+
 	while (hwi->isAlive()) {
-		hwi->count++;
 
+		success = hwi->updateLoop();
 
-		if (3 > 100) {	// example condition that will never evaluate::true.
-			//if anything ever goes wrong in this thread: exit with warning
+		if (!success) {
 			return (void*)false;
 		}
 	}
@@ -36,22 +64,8 @@ void* UpdaterRunnable::run() {
 }
 
 
-bool HardwareInterface::initialise() {
-	// TODO: init whatever
-	// start comms with the serial device
 
-	// start the updater thread
-	std::auto_ptr<Runnable> r(new UpdaterRunnable(this));
-	updater = new Thread(r);
-	updater->start();
-
-	// return true once everything is fixed
-	return false;
-}
-
-bool::HardwareInterface::isAlive() {
-	return alive;
-}
+/*********************************************************************************/
 
 
 

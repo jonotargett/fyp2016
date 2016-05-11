@@ -116,29 +116,40 @@
   <ItemGroup>
     <ClCompile Include="Ascan.cpp" />
     <ClCompile Include="Bscan.cpp" />
+    <ClCompile Include="Communications.cpp" />
+    <ClCompile Include="DummyHardware.cpp" />
     <ClCompile Include="FeatureDetector.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NavigationEdge.cpp" />
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="Runnable.cpp" />
+    <ClCompile Include="SimpleController.cpp" />
+    <ClCompile Include="SimpleNavigator.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
+    <Library Include="SDL2_net.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
+    <ClInclude Include="Communications.h" />
     <ClInclude Include="DriveController.h" />
+    <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="HRTimer.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="NavigationEdge.h" />
     <ClInclude Include="NavigationSystem.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="Runnable.h" />
+    <ClInclude Include="SimpleController.h" />
+    <ClInclude Include="SimpleNavigator.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

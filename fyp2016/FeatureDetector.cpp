@@ -31,12 +31,14 @@ bool FeatureDetector::initialise() {
 	*/
 	
 	empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
+	std::cout << "empty scan loaded." << std::endl;
 	scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
-
+	std::cout << "feature scan loaded." << std::endl;
 
 	Ascan* normal = scan->produceNormal(scan->length());
+	std::cout << "background noise identified." << std::endl;
 	scan->normalise(normal);
-
+	std::cout << "feature scan normalised for background noise." << std::endl;
 
 	return true;
 }
@@ -81,6 +83,8 @@ bool FeatureDetector::createImage(Visual displayMode) {
 			}
 		}
 	}
+
+	std::cout << "Visual scan image created." << std::endl;
 
 	return true;
 }

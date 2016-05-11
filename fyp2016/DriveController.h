@@ -4,12 +4,11 @@
 class DriveController
 {
 public:
-
 	/*
 	Initialise whatever
 	Returns: true on success, false on failure
 	*/
-	virtual bool initialise(HardwareInterface*);
+	virtual bool initialise(HardwareInterface*) = 0;
 
 	/*
 	Getters and setters of the controller enabler.
@@ -17,8 +16,8 @@ public:
 	using the inputs sent to it (heading and distance). if it is not
 	enabled, it will not react to inputs.
 	*/
-	virtual void setEnabled(bool);
-	virtual bool isEnabled();
+	virtual void setEnabled(bool) = 0;
+	virtual bool isEnabled() = 0;
 
 
 	/*
@@ -48,6 +47,6 @@ public:
 	distance will be negative if the vehicle is to be driving in reverse (such as for 3-point turns).
 
 	*/
-	virtual bool setInputs(double relativeHeading, double distance);
+	virtual bool setInputs(double relativeHeading, double distance) = 0;
 };
 

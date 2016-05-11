@@ -20,6 +20,8 @@ Window::Window()
 
 	SDL_UpdateWindowSurface(window);
 
+	std::cout << "SDL Window created." << std::endl;
+
 	// -----------------------------//
 
 }
@@ -41,6 +43,7 @@ void Window::update(SDL_Surface* newImage) {
 
 	SDL_UpdateWindowSurface(window);
 
+	std::cout << "Window frame changed." << std::endl;
 }
 
 
