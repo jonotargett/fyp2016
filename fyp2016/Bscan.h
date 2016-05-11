@@ -20,5 +20,8 @@ public:
 
 	Ascan* produceNormal(int);
 	void normalise(Ascan*);
+
+
+	int Kernel(int dimension, int h, int d);
 };
 

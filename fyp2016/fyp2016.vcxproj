@@ -116,7 +116,13 @@
   <ItemGroup>
     <ClCompile Include="Ascan.cpp" />
     <ClCompile Include="Bscan.cpp" />
+    <ClCompile Include="FeatureDetector.cpp" />
+    <ClCompile Include="HardwareInterface.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NavigationEdge.cpp" />
+    <ClCompile Include="Point.cpp" />
+    <ClCompile Include="Runnable.cpp" />
+    <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +132,14 @@
   <ItemGroup>
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
+    <ClInclude Include="DriveController.h" />
+    <ClInclude Include="FeatureDetector.h" />
+    <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="NavigationEdge.h" />
+    <ClInclude Include="NavigationSystem.h" />
+    <ClInclude Include="Point.h" />
+    <ClInclude Include="Runnable.h" />
+    <ClInclude Include="Thread.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

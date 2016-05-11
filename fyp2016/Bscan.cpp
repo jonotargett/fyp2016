@@ -135,5 +135,90 @@ void Bscan::normalise(Ascan* normal) {
 		delete old;
 		old = NULL;		
 		
+
 	}
+}
+
+
+
+
+int Bscan::Kernel(int dimension, int h, int d) {
+
+	if (h < 1 || h > scans.size() - 2)
+		return 0;
+	if (d < 1 || d > scans.at(0)->getSize() - 2)
+		return 0;
+
+	//hardcoded to only be 3x3
+
+	int yDif = 0;
+	int xDif = 0;
+	int items = 3 * 3;
+	int* v = new int[items];
+
+	
+	// Y AXIS -------------------------------------------------
+
+	/*					h
+
+	0	1	2		+1	+2	+1
+	3	4	5	->	 0	 0	 0		d
+	6	7	8		-1	-2	-1
+
+	*/
+
+	v[0] = +1 * scans.at(h - 1)->getIndex(d - 1);
+	v[1] = +2 * scans.at(h + 0)->getIndex(d - 1);
+	v[2] = +1 * scans.at(h + 1)->getIndex(d - 1);
+
+	v[3] = 0;
+	v[4] = 0;
+	v[5] = 0;
+
+	v[6] = -1 * scans.at(h - 1)->getIndex(d + 1);
+	v[7] = -2 * scans.at(h + 0)->getIndex(d + 1);
+	v[8] = -1 * scans.at(h + 1)->getIndex(d + 1);
+
+
+	for (int i = 0; i < items; i++) {
+		yDif += v[i];
+	}
+	yDif /= items;
+
+	// X AXIS --------------------------------------------------
+
+	/*					h
+
+	0	1	2		+1	 0	-1
+	3	4	5	->	+2	 0	-2		d
+	6	7	8		+1	 0	-1
+
+	*/
+
+	v[0] = +1 * scans.at(h - 1)->getIndex(d - 1);
+	v[1] =  0 * scans.at(h + 0)->getIndex(d - 1);
+	v[2] = -1 * scans.at(h + 1)->getIndex(d - 1);
+
+	v[3] = +2 * scans.at(h - 1)->getIndex(d + 0);
+	v[4] =  0 * scans.at(h + 0)->getIndex(d + 0);
+	v[5] = -2 * scans.at(h + 1)->getIndex(d + 0);
+
+	v[6] = +1 * scans.at(h - 1)->getIndex(d + 1);
+	v[7] =  0 * scans.at(h + 0)->getIndex(d + 1);
+	v[8] = -1 * scans.at(h + 1)->getIndex(d + 1);
+
+
+	for (int i = 0; i < items; i++) {
+		xDif += v[i];
+	}
+	xDif /= items;
+
+
+
+	yDif = std::sqrt(yDif * yDif + xDif * xDif) * 32;
+
+	delete v;
+	v = NULL;
+
+	return yDif;
 }

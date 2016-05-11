@@ -9,18 +9,14 @@
 #define SCREEN_HEIGHT 600;
 
 
+
 class Window
 {
 private:
 	SDL_Window* window;
 	SDL_Surface* surface;
-	SDL_Surface* image;
 
 	SDL_Event event;
-
-
-	Bscan* scan;
-
 
 	bool quit;
 
@@ -31,8 +27,8 @@ public:
 	bool shouldQuit();
 
 	void handleEvents();
-	void update();
 
-	void setBscan(Bscan* newScan);
+	void update(SDL_Surface*);
+
 };
 
