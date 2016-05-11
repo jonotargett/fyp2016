@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "SDL\SDL.h"
 
 #include "Point.h"
 #include "Runnable.h"
@@ -11,9 +12,15 @@ class HardwareInterface
 private:
 	bool alive;
 	/*
-	variables holding sensor data
+	variables holding sensor data, actuator data
 	*/
 	Point position;
+	double vehicleAbsoluteHeading;
+	double velocity;
+	double velocityAbsoluteHeading;
+
+	double steeringAngle;
+	double throttlePercentage;
 
 protected:
 	Thread* updater;
@@ -22,6 +29,11 @@ protected:
 	Locks for each of the sensor variables
 	*/
 	bool positionLock;
+	bool vehicleAbsoluteHeadingLock;
+	bool velocityLock;
+	bool velocityAbsoluteHeadingLock;
+	bool steeringAngleLock;
+	bool throttlePercentageLock;
 	
 public:
 	HardwareInterface();
@@ -49,8 +61,23 @@ public:
 	Returns: the current position as determined by the GPS unit
 	*/
 	Point getPosition();
-
 	void setPosition(Point p);
+
+	double getAbsoluteHeading();
+	void setAbsoluteHeading(double);
+
+	double getVelocity();
+	void setVelocity(double);
+
+	double getVelocityHeading();
+	void setVelocityHeading(double);
+
+	double getSteeringAngle();
+	void setSteeringAngle(double);
+
+	double getThrottlePercentage();
+	void setThrottlePercentage(double);
+
 };
 
 

@@ -52,6 +52,9 @@ void* UpdaterRunnable::run() {
 	bool success = true;
 
 	while (hwi->isAlive()) {
+		// no point in doing this as fast as humanly possible - the other end wont keep up
+		// CAP AT 1000Hz
+		SDL_Delay(1);
 
 		success = hwi->updateLoop();
 
@@ -67,7 +70,7 @@ void* UpdaterRunnable::run() {
 
 /*********************************************************************************/
 
-
+// GETTERS AND SETTERS FOR HW VARIABLES FOR THREAD SAFETY
 
 Point HardwareInterface::getPosition() {
 	while (positionLock) {
@@ -99,4 +102,84 @@ void HardwareInterface::setPosition(Point p) {
 	positionLock = true;
 	position = p;
 	positionLock = false;
+}
+
+
+double HardwareInterface::getAbsoluteHeading() {
+	while (vehicleAbsoluteHeadingLock) {
+		//wait
+	}
+	return vehicleAbsoluteHeading;
+}
+void HardwareInterface::setAbsoluteHeading(double x) {
+	while (vehicleAbsoluteHeadingLock) {
+		//wait
+	}
+	vehicleAbsoluteHeadingLock = true;
+	vehicleAbsoluteHeading = x;
+	vehicleAbsoluteHeadingLock = false;
+}
+
+
+double HardwareInterface::getVelocity() {
+	while (velocityLock) {
+		//wait
+	}
+	return velocity;
+}
+void HardwareInterface::setVelocity(double x) {
+	while (velocityLock) {
+		//wait
+	}
+	velocityLock = true;
+	velocity = x;
+	velocityLock = false;
+}
+
+
+double HardwareInterface::getVelocityHeading() {
+	while (velocityAbsoluteHeadingLock) {
+		//wait
+	}
+	return velocityAbsoluteHeading;
+}
+void HardwareInterface::setVelocityHeading(double x) {
+	while (velocityAbsoluteHeadingLock) {
+		//wait
+	}
+	velocityAbsoluteHeadingLock = true;
+	velocityAbsoluteHeading = x;
+	velocityAbsoluteHeadingLock = false;
+}
+
+
+double HardwareInterface::getSteeringAngle() {
+	while (steeringAngleLock) {
+		//wait
+	}
+	return steeringAngle;
+}
+void HardwareInterface::setSteeringAngle(double x) {
+	while (steeringAngleLock) {
+		//wait
+	}
+	steeringAngleLock = true;
+	steeringAngle = x;
+	steeringAngleLock = false;
+}
+
+
+double HardwareInterface::getThrottlePercentage() {
+	while (throttlePercentageLock) {
+		//wait
+	}
+	return throttlePercentage;
+}
+void HardwareInterface::setThrottlePercentage(double x) {
+	while (throttlePercentageLock) {
+		//wait
+	}
+	throttlePercentageLock = true;
+	throttlePercentage = x;
+	throttlePercentageLock = false;
 }

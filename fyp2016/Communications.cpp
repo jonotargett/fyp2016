@@ -89,6 +89,7 @@ bool Communications::communicationsLoop() {
 
 	if (result <= 0) {
 		std::cout << std::endl <<  "Communications Error: client is disconnected." << std::endl;
+		hasClient = false;
 		return false;
 	}
 
@@ -98,6 +99,7 @@ bool Communications::communicationsLoop() {
 
 	return true;
 }
+
 
 void* CommsUpdaterRunnable::run() {
 
@@ -110,10 +112,6 @@ void* CommsUpdaterRunnable::run() {
 		}
 		else {
 			success = comms->communicationsLoop();
-		}
-		
-		if (!success) {
-			return (void*)false;
 		}
 	}
 

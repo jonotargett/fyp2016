@@ -65,6 +65,8 @@ bool SimpleController::updateLoop() {
 
 	if (enabled) {
 		// implement discretised time PID controller in here
+
+
 	}
 
 	hrt.reset();
@@ -77,6 +79,9 @@ void* ControlUpdaterRunnable::run() {
 	bool success = true;
 
 	while (controller->isAlive()) {
+		// no point in doing this as fast as humanly possible - the other end wont keep up
+		// CAP AT 1000Hz
+		SDL_Delay(1);
 
 		success = controller->updateLoop();
 
