@@ -1,13 +1,7 @@
 language: cpp
 
-compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
+compiler: 
+	- g++
 
 script:
-	- cmake -DCMAKE_CXX_COMPILER=$COMPILER .. && make
+	- cmake .. && make
