@@ -1,13 +1,11 @@
 #pragma once
 
-#include <iostream>
 #include <algorithm>
 #include "SDL\SDL.h"
+
+#include "Log.h"
+
 #include "Bscan.h"
-
-#define SCREEN_WIDTH 800;
-#define SCREEN_HEIGHT 600;
-
 
 
 class Window

@@ -7,12 +7,12 @@ Window::Window()
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		std::cout << "SDL could not be initialised. " << SDL_GetError() << std::endl;
+		Log::e << "SDL could not be initialised. " << SDL_GetError() << std::endl;
 		return;
 	}
 
 	window = SDL_CreateWindow("Signal Processing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							1200, 800, SDL_WINDOW_SHOWN);
+							1200, 600, SDL_WINDOW_SHOWN);
 
 	surface = SDL_GetWindowSurface(window);
 
@@ -20,7 +20,7 @@ Window::Window()
 
 	SDL_UpdateWindowSurface(window);
 
-	std::cout << "SDL Window created." << std::endl;
+	Log::i << "SDL Window created." << std::endl;
 
 	// -----------------------------//
 
@@ -43,7 +43,7 @@ void Window::update(SDL_Surface* newImage) {
 
 	SDL_UpdateWindowSurface(window);
 
-	std::cout << "Window frame changed." << std::endl;
+	Log::d << "Window frame changed." << std::endl;
 }
 
 

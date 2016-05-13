@@ -1,9 +1,12 @@
 #pragma once
 
+
+
 #include <vector>
 #include <string>
-#include <iostream>
 #include <fstream>
+
+#include "Log.h"
 #include "Ascan.h"
 
 class Bscan

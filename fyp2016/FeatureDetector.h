@@ -3,6 +3,8 @@
 #include <vector>
 #include "SDL\SDL.h"
 
+#include "Log.h"
+
 #include "Ascan.h"
 #include "Bscan.h"
 #include "HardwareInterface.h"

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include "SDL\SDL_Net.h"
+
+#include "Log.h"
 
 #include "Thread.h"
 

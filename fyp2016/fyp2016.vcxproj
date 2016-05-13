@@ -120,8 +120,11 @@
     <ClCompile Include="DummyHardware.cpp" />
     <ClCompile Include="FeatureDetector.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NavigationEdge.cpp" />
+    <ClCompile Include="Overlord.cpp" />
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="Runnable.cpp" />
     <ClCompile Include="SimpleController.cpp" />
@@ -144,8 +147,10 @@
     <ClInclude Include="HardwareInterface.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="NavigationEdge.h" />
     <ClInclude Include="NavigationSystem.h" />
+    <ClInclude Include="Overlord.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="Runnable.h" />
     <ClInclude Include="SimpleController.h" />

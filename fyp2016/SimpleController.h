@@ -2,6 +2,8 @@
 
 #include "DriveController.h"
 
+#include "Log.h"
+
 #include "HRTimer.h"
 #include "Thread.h"
 

@@ -33,17 +33,17 @@ bool Communications::initialise() {
 	*/
 
 	if (SDLNet_ResolveHost(&ip, NULL, socket) == -1) {
-		printf("SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+		Log::e << "SDLNet_ResolveHost: " << SDLNet_GetError() << std::endl;
 		return false;
 	}
-	std::cout << "Localhost resolved... " << ip.host << std::endl;
+	Log::i << "Localhost resolved... " << ip.host << std::endl;
 
 	server = SDLNet_TCP_Open(&ip);
 	if (!server) {
-		printf("SDLNet_TCP_Open: %s\n", SDLNet_GetError());
+		Log::e << "SDLNet_TCP_Open: " << SDLNet_GetError() << std::endl;
 		return false;
 	}
-	std::cout << "Server socket opened... " << ip.port << std::endl;
+	Log::i << "Server socket opened... " << ip.port << std::endl;
 
 	// start the updater thread
 	delete updater;
@@ -53,7 +53,7 @@ bool Communications::initialise() {
 	std::auto_ptr<Runnable> r(new CommsUpdaterRunnable(this));
 	updater = new Thread(r);
 	updater->start();
-	std::cout << "Communiation sub-thread started." << std::endl;
+	Log::i << "Communiation sub-thread started." << std::endl;
 	
 	return true;
 }
@@ -75,7 +75,7 @@ bool Communications::acceptClient() {
 
 	if (client) {
 		hasClient = true;
-		std::cout << "Client connected to server socket." << std::endl;
+		Log::i << "Client connected to server socket." << std::endl;
 	}
 	return hasClient;
 }
@@ -88,7 +88,7 @@ bool Communications::communicationsLoop() {
 	result = SDLNet_TCP_Recv(client, &msg, 1);
 
 	if (result <= 0) {
-		std::cout << std::endl <<  "Communications Error: client is disconnected." << std::endl;
+		Log::e << std::endl <<  "Communications Error: client is disconnected." << std::endl;
 		hasClient = false;
 		return false;
 	}

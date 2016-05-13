@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <ctime>
 
+#include "Log.h"
+
 #include "HRTimer.h"
 
 class DummyHardware :

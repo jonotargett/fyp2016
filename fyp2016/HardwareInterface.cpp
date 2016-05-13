@@ -36,7 +36,7 @@ bool HardwareInterface::start() {
 	updater = new Thread(r);
 	updater->start();
 
-	std::cout << "Hardware communication sub-thread started." << std::endl;
+	Log::i << "Hardware communication sub-thread started." << std::endl;
 
 	// return true if everything worked
 	return true;

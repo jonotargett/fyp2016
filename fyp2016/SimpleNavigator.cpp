@@ -15,7 +15,7 @@ SimpleNavigator::~SimpleNavigator()
 bool SimpleNavigator::initialise(DriveController* controller) {
 	dc = controller;
 
-	std::cout << "Navigator initialised." << std::endl;
+	Log::i << "Navigator initialised." << std::endl;
 	return true;
 }
 

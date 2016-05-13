@@ -31,14 +31,14 @@ bool FeatureDetector::initialise() {
 	*/
 	
 	empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
-	std::cout << "empty scan loaded." << std::endl;
+	Log::i << "empty scan loaded." << std::endl;
 	scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
-	std::cout << "feature scan loaded." << std::endl;
+	Log::i << "feature scan loaded." << std::endl;
 
 	Ascan* normal = scan->produceNormal(scan->length());
-	std::cout << "background noise identified." << std::endl;
+	Log::i << "background noise identified." << std::endl;
 	scan->normalise(normal);
-	std::cout << "feature scan normalised for background noise." << std::endl;
+	Log::i << "feature scan normalised for background noise." << std::endl;
 
 	return true;
 }
@@ -48,7 +48,7 @@ bool FeatureDetector::createImage(Visual displayMode) {
 
 	SDL_FreeSurface(image);
 	image = NULL;
-	image = SDL_CreateRGBSurface(0, 1200, 800, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	image = SDL_CreateRGBSurface(0, 1200, 600, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	Uint32 *pixels = (Uint32*)image->pixels;
 
 	// initialise the surface to black
@@ -84,7 +84,7 @@ bool FeatureDetector::createImage(Visual displayMode) {
 		}
 	}
 
-	std::cout << "Visual scan image created." << std::endl;
+	Log::d << "Visual scan image created." << std::endl;
 
 	return true;
 }
