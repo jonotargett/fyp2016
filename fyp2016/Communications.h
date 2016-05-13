@@ -8,6 +8,7 @@
 #include "Thread.h"
 
 #define MAXLEN 1024
+#define TIMEOUT 1000	// milliseconds before connection deemed inactive
 
 class Communications
 {
@@ -20,6 +21,8 @@ private:
 	Thread* updater;
 	bool alive;
 	std::vector<char> receivedBuffer;
+
+	char* formatIP(Uint32);
 public:
 	Communications();
 	Communications(int);
@@ -28,6 +31,7 @@ public:
 	bool hasClient;
 
 	bool initialise();
+	void start();
 	void close();
 
 	bool acceptClient();

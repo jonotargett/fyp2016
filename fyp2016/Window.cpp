@@ -12,7 +12,7 @@ Window::Window()
 	}
 
 	window = SDL_CreateWindow("Signal Processing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							1200, 600, SDL_WINDOW_SHOWN);
+							1200, 600, SDL_WINDOW_HIDDEN);
 
 	surface = SDL_GetWindowSurface(window);
 
@@ -34,6 +34,21 @@ Window::~Window()
 
 	SDL_DestroyWindow(window);
 	window = NULL;
+}
+
+
+void Window::showWindow(bool b) {
+	visible = b;
+
+	if (visible) {
+		SDL_ShowWindow(window);
+		Log::d << "window made visible" << endl;
+	}
+	else {
+		SDL_HideWindow(window);
+		Log::d << "window hidden" << endl;
+
+	}
 }
 
 

@@ -17,12 +17,14 @@ private:
 	SDL_Event event;
 
 	bool quit;
+	bool visible;
 
 public:
 	Window();
 	~Window();
 
 	bool shouldQuit();
+	void showWindow(bool);
 
 	void handleEvents();
 

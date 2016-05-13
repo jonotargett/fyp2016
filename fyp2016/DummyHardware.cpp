@@ -19,7 +19,7 @@ double DummyHardware::random() {
 bool DummyHardware::initialise() {
 	// TODO: init whatever
 
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	hrt = HRTimer();
 
 	realPosition = Point();
@@ -32,6 +32,9 @@ bool DummyHardware::initialise() {
 	// seeing as there is no actual hardware here,
 	// just return true. oh yeah
 	Log::i << "DummyHardware initialised." << std::endl;
+
+	start();
+
 	return true;
 }
 

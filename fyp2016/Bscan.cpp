@@ -146,7 +146,7 @@ void Bscan::normalise(Ascan* normal) {
 
 int Bscan::Kernel(int dimension, int h, int d) {
 
-	if (h < 1 || h > scans.size() - 2)
+	if (h < 1 || h > (int)scans.size() - 2)
 		return 0;
 	if (d < 1 || d > scans.at(0)->getSize() - 2)
 		return 0;
@@ -217,7 +217,7 @@ int Bscan::Kernel(int dimension, int h, int d) {
 
 
 
-	yDif = std::sqrt(yDif * yDif + xDif * xDif) * 32;
+	yDif = (int)std::sqrt(yDif * yDif + xDif * xDif) * 32;
 
 	delete v;
 	v = NULL;

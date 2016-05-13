@@ -18,7 +18,7 @@ bool SimpleController::initialise(HardwareInterface* h) {
 	hwi = h;
 
 	hrt = HRTimer();
-	Log::i << "timer generated" << std::endl;
+	Log::i << "SimpleController initialised." << std::endl;
 
 	/*************************************************************/
 

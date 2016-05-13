@@ -9,6 +9,9 @@
 #include "HRTimer.h"
 #include "Logger.h"
 
+using std::endl;
+using std::cout;
+
 enum Verbosity {
 	LOG_ALL,
 	LOG_INFORMATIVE,

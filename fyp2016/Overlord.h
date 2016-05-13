@@ -16,6 +16,8 @@
 class Overlord
 {
 private:
+	bool initialised;
+
 	Window* window;
 	Communications* comms;
 	HardwareInterface* hwi;

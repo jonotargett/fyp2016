@@ -1,10 +1,9 @@
 #include "Overlord.h"
 
-using std::cout;
-using std::endl;
 
 Overlord::Overlord()
 {
+	initialised = false;
 }
 
 
@@ -24,7 +23,6 @@ bool Overlord::initialise() {
 
 	hwi = new DummyHardware();
 	hwi->initialise();
-	hwi->start();
 	Log::d << "-> HARDWARE INTERFACE DONE" << endl;
 
 	dc = new SimpleController();
@@ -37,16 +35,22 @@ bool Overlord::initialise() {
 
 	fd = new FeatureDetector(hwi);
 	fd->initialise();
-	fd->createImage(DISPLAY_KERNEL);
+	
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
+	initialised = true;
 	return true;
 }
 
 
 void Overlord::run() {
-	window->update(fd->retrieveImage());
+	
 
+	//fd->createImage(DISPLAY_KERNEL);
+
+	//window->showWindow(true);
+	//window->update(fd->retrieveImage());
+	
 
 
 
