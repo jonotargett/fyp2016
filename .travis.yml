@@ -1,7 +1,11 @@
 language: cpp
 
-compiler: 
-	- g++
+before_install:
+  - test -n $CC  && unset CC
+  - test -n $CXX && unset CXX
+
+compiler:
+  - g++
 
 script:
-	- cmake .. && make
+  - cmake .. && make
