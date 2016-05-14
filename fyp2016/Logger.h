@@ -54,7 +54,7 @@ inline const Logger& Logger::operator<<(const T& v) const {
 		std::chrono::duration<double> seconds = end - start;
 
 		char buf[20];
-		sprintf_s(buf, 20, "%12.6f", seconds.count());
+		sprintf(buf, "%12.6f", seconds.count());
 
 		if (Log::repostTime)
 			std::cout << "[" << buf << "] " << v;

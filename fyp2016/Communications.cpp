@@ -74,7 +74,7 @@ char* Communications::formatIP(Uint32 addr) {
 	b4 = (addr & 0xFF000000) >> 24;
 
 	char* buf = new char[16];
-	sprintf_s(buf, 16, "%i.%i.%i.%i", b1, b2, b3, b4);
+	sprintf(buf, "%i.%i.%i.%i", b1, b2, b3, b4);
 
 	return buf;
 }
