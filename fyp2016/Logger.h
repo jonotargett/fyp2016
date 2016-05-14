@@ -1,27 +1,34 @@
 #pragma once
 
 #ifdef _WIN32
-#define WINDOWS 1
-#else
-#define WINDOWS 0
+#define TERMINAL_COLORS
+#endif
+
+
+#ifdef TERMINAL_COLORS
+#define NOMINMAX
+#include <Windows.h>
 #endif
 
 
 #include <iostream>
-#include <Windows.h>
-#include "HRTimer.h"
+
+//#include "HRTimer.h"
+#include <chrono>
+
 
 class Logger {
 private:
 	bool suppressed;
 	short color;
-	HRTimer* timer;
+	//HRTimer* timer;
+	std::chrono::time_point<std::chrono::system_clock> start;
 
 public:
 
-	Logger() { timer = NULL; suppressed = false; color = 0x0a; }
-	Logger(HRTimer* t) : timer(t) { suppressed = false; color = 0x0a; }
-	Logger(HRTimer* t, short col) : timer(t), color(col) { suppressed = false; }
+	Logger() { start = std::chrono::system_clock::now(); suppressed = false; color = 0x0a; }
+	Logger(std::chrono::time_point<std::chrono::system_clock> s) : start(s) { suppressed = false; color = 0x0a; }
+	Logger(std::chrono::time_point<std::chrono::system_clock> s, short col) : start(s), color(col) { suppressed = false; }
 	void suppress(bool b) { suppressed = b; }
 	bool isSuppressed() { return suppressed; }
 
@@ -39,10 +46,15 @@ inline const Logger& Logger::operator<<(const T& v) const {
 
 	if (!suppressed) {
 
+#ifdef TERMINAL_COLORS
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)color);
+#endif
+
+		std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+		std::chrono::duration<double> seconds = end - start;
 
 		char buf[20];
-		sprintf_s(buf, 20, "%12.6f", timer->getElapsedTimeSeconds());
+		sprintf_s(buf, 20, "%12.6f", seconds.count());
 
 		if (Log::repostTime)
 			std::cout << "[" << buf << "] " << v;

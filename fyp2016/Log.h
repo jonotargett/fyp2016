@@ -5,8 +5,9 @@
 
 #include <iostream>
 #include <ostream>
+#include <chrono>
 
-#include "HRTimer.h"
+//#include "HRTimer.h"
 #include "Logger.h"
 
 using std::endl;
@@ -29,7 +30,8 @@ public:
 	static Logger e;	// error;
 	static Logger i;	// informative;
 	static Logger d;	// debug;
-	static HRTimer hrt;
+	//static HRTimer hrt;
+	static std::chrono::time_point<std::chrono::system_clock> start;
 	
 	Log();
 	static Verbosity getVerbosity();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include "SDL\SDL.h"
 
 #include "Log.h"

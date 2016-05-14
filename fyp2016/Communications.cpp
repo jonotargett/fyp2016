@@ -50,15 +50,13 @@ bool Communications::initialise() {
 	return true;
 }
 
-void Communications::start() {
-	// start the updater thread
-	delete updater;
-	updater = NULL;
-	alive = true;
 
-	std::auto_ptr<Runnable> r(new CommsUpdaterRunnable(this));
-	updater = new Thread(r);
-	updater->start();
+void Communications::start() {
+
+	//std::thread* thread = new std::thread(run, this);
+
+	updater = new std::thread(&Communications::communicationsLoop, this);
+
 	Log::i << "Communiation sub-thread started." << std::endl;
 }
 
@@ -85,12 +83,13 @@ bool Communications::acceptClient() {
 	if (hasClient)
 		return hasClient;
 
+	client = NULL;
 	client = SDLNet_TCP_Accept(server);
 
 	// prevent this from going overboard and pinging for clients
 	// unecessarily. hold ye horses o' computah
-	SDL_Delay(50);
-
+	//SDL_Delay(50);
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	if (client) {
 		hasClient = true;
@@ -102,49 +101,42 @@ bool Communications::acceptClient() {
 
 bool Communications::communicationsLoop() {
 
-	char msg = 'a';// 0x16;	// synchronous idle character, a keep-alive indicating no data
-	int result = -1;
+	while (isAlive()) {
 
-	SDLNet_SocketSet set;
-	set = SDLNet_AllocSocketSet(1);
-	SDLNet_TCP_AddSocket(set, client);
+		if (!hasClient) {
+			acceptClient();
+		}
+		else {
+			char msg = 0x16;	// synchronous idle character, a keep-alive indicating no data
+			int result = -1;
 
-	SDLNet_TCP_Send(client, &msg, 1);
-	result = SDLNet_CheckSockets(set, 5000);
+			SDLNet_SocketSet set;
+			set = SDLNet_AllocSocketSet(1);
+			SDLNet_TCP_AddSocket(set, client);
 
-	if (result <= 0) {
-		Log::e << endl << "Communications Error: client has reached unresponsive timeout" << endl;
-		hasClient = false;
-		return false;
+			SDLNet_TCP_Send(client, &msg, 1);
+			result = SDLNet_CheckSockets(set, TIMEOUT);
+
+			if (result <= 0) {
+				Log::e << endl << "Communications Error: client has reached unresponsive timeout" << endl;
+				hasClient = false;
+			}
+
+			result = SDLNet_TCP_Recv(client, &msg, 1);
+
+			if (result <= 0) {
+				Log::e << std::endl << "Communications Error: client has disconnected." << std::endl;
+				hasClient = false;
+			}
+
+			receivedBuffer.push_back(msg);
+		}
 	}
-
-	result = SDLNet_TCP_Recv(client, &msg, 1);
-
-	if (result <= 0) {
-		Log::e << std::endl <<  "Communications Error: client has disconnected." << std::endl;
-		hasClient = false;
-		return false;
-	}
-
-	receivedBuffer.push_back(msg);
 
 	return true;
 }
 
 
-void* CommsUpdaterRunnable::run() {
 
-	bool success = true;
 
-	while (comms->isAlive()) {
 
-		if (!comms->hasClient) {
-			comms->acceptClient();
-		}
-		else {
-			success = comms->communicationsLoop();
-		}
-	}
-
-	return (void*)true;
-}

@@ -33,9 +33,6 @@
     <ClCompile Include="Runnable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Thread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HardwareInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,9 +91,6 @@
     <ClInclude Include="Point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Runnable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -125,9 +119,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SimpleNavigator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HRTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Overlord.h">

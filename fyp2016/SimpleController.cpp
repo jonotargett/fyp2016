@@ -17,11 +17,13 @@ SimpleController::~SimpleController()
 bool SimpleController::initialise(HardwareInterface* h) {
 	hwi = h;
 
-	hrt = HRTimer();
+	//hrt = HRTimer();
+	start = std::chrono::high_resolution_clock::now();
+
 	Log::i << "SimpleController initialised." << std::endl;
 
 	/*************************************************************/
-
+	/*
 	delete updater;
 	updater = NULL;
 	alive = true;
@@ -29,6 +31,9 @@ bool SimpleController::initialise(HardwareInterface* h) {
 	std::auto_ptr<Runnable> r(new ControlUpdaterRunnable(this));
 	updater = new Thread(r);
 	updater->start();
+	*/
+
+	updater = new std::thread(&SimpleController::updateLoop, this);
 
 	Log::i << "Auto-controller sub-thread started." << std::endl;
 
@@ -37,7 +42,8 @@ bool SimpleController::initialise(HardwareInterface* h) {
 
 void SimpleController::setEnabled(bool b) {
 	enabled = b;
-	hrt.reset();
+	start = std::chrono::high_resolution_clock::now();
+	//hrt.reset();
 }
 
 bool SimpleController::isEnabled() {
@@ -60,20 +66,28 @@ bool SimpleController::setInputs(double relativeHeading, double distance) {
 }
 
 bool SimpleController::updateLoop() {
-	// access the discrete time interval between consective exections
-	double seconds = hrt.getElapsedTimeSeconds();
+	while (isAlive()) {
+		// access the discrete time interval between consective exections
+		//double seconds = hrt.getElapsedTimeSeconds();
+		end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> seconds = end - start;
 
-	if (enabled) {
-		// implement discretised time PID controller in here
+		if (enabled) {
+			// implement discretised time PID controller in here
 
 
+		}
+
+		//hrt.reset();
+		start = end;
+
+		//Cap at 1000Hz. no need for this to run any faster and chew cycles
+		std::this_thread::sleep_for(std::chrono::microseconds(1000));
 	}
-
-	hrt.reset();
 	return true;
 }
 
-
+/*
 void* ControlUpdaterRunnable::run() {
 
 	bool success = true;
@@ -81,7 +95,7 @@ void* ControlUpdaterRunnable::run() {
 	while (controller->isAlive()) {
 		// no point in doing this as fast as humanly possible - the other end wont keep up
 		// CAP AT 1000Hz
-		SDL_Delay(1);
+		//SDL_Delay(1);
 
 		success = controller->updateLoop();
 
@@ -92,3 +106,4 @@ void* ControlUpdaterRunnable::run() {
 
 	return (void*)true;
 }
+*/

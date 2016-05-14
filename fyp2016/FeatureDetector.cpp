@@ -59,11 +59,11 @@ bool FeatureDetector::createImage(Visual displayMode) {
 	// if a scan is paired to this window, push it to the screen
 	if (scan != NULL) {
 
-		int cols = min(image->w, scan->length());
+		int cols = std::min(image->w, scan->length());
 
 		for (int i = 0; i < cols; i++) {
 			Ascan* a = scan->element(i);
-			int rows = min(image->h, a->getSize());
+			int rows = std::min(image->h, a->getSize());
 
 
 			for (int j = 0; j < rows; j++) {

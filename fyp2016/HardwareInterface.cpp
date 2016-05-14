@@ -28,6 +28,7 @@ bool HardwareInterface::isAlive() {
 
 bool HardwareInterface::start() {
 	// start the updater thread
+	/*
 	delete updater;
 	updater = NULL;
 	alive = true;
@@ -35,6 +36,9 @@ bool HardwareInterface::start() {
 	std::auto_ptr<Runnable> r(new UpdaterRunnable(this));
 	updater = new Thread(r);
 	updater->start();
+	*/
+
+	updater = new std::thread(&HardwareInterface::updateLoop, this);
 
 	Log::i << "Hardware communication sub-thread started." << std::endl;
 
@@ -47,6 +51,7 @@ void HardwareInterface::stop() {
 	alive = false;
 }
 
+/*
 void* UpdaterRunnable::run() {
 
 	bool success = true;
@@ -65,7 +70,7 @@ void* UpdaterRunnable::run() {
 
 	return (void*)true;
 }
-
+*/
 
 
 /*********************************************************************************/

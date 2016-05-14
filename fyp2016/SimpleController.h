@@ -4,8 +4,10 @@
 
 #include "Log.h"
 
-#include "HRTimer.h"
-#include "Thread.h"
+//#include "HRTimer.h"
+//#include "Thread.h"
+#include <thread>
+#include <chrono>
 
 class SimpleController :
 	public DriveController
@@ -17,9 +19,12 @@ private:
 	double heading;
 	double dist;
 	double timeLast;
-	HRTimer hrt;
+	//HRTimer hrt;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start;
+	std::chrono::time_point<std::chrono::high_resolution_clock> end;
 
-	Thread* updater;
+	//Thread* updater;
+	std::thread* updater;
 	bool alive;
 public:
 	SimpleController();
@@ -34,7 +39,7 @@ public:
 	bool updateLoop();
 };
 
-
+/*
 class ControlUpdaterRunnable : public Runnable {
 private:
 	SimpleController* controller;
@@ -42,3 +47,4 @@ public:
 	ControlUpdaterRunnable(SimpleController* c) : controller(c) {	}
 	virtual void* run();
 };
+*/

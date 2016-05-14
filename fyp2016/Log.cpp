@@ -4,15 +4,17 @@ Verbosity Log::v = LOG_ALL;
 Logger Log::e;
 Logger Log::i;
 Logger Log::d;
-HRTimer Log::hrt;
+//HRTimer Log::hrt;
+std::chrono::time_point<std::chrono::system_clock> Log::start;
 bool Log::repostTime = true;
 
 
 Log::Log() {
-	hrt.startTimer();
-	e = Logger(&hrt, 0xEC);
-	i = Logger(&hrt, 0x0A);
-	d = Logger(&hrt, 0x0F);
+	//hrt.startTimer();
+	start = std::chrono::system_clock::now();
+	e = Logger(start, 0xEC);
+	i = Logger(start, 0x0A);
+	d = Logger(start, 0x0F);
 }
 
 Verbosity Log::getVerbosity() {

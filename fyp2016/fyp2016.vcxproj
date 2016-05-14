@@ -129,7 +129,6 @@
     <ClCompile Include="Runnable.cpp" />
     <ClCompile Include="SimpleController.cpp" />
     <ClCompile Include="SimpleNavigator.cpp" />
-    <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +144,6 @@
     <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />
     <ClInclude Include="HardwareInterface.h" />
-    <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="NavigationEdge.h" />
@@ -155,7 +153,6 @@
     <ClInclude Include="Runnable.h" />
     <ClInclude Include="SimpleController.h" />
     <ClInclude Include="SimpleNavigator.h" />
-    <ClInclude Include="Thread.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

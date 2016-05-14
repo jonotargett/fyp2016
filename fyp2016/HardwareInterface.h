@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Log.h"
-#include "SDL\SDL.h"
 
 #include "Point.h"
-#include "Runnable.h"
-#include "Thread.h"
+//#include "Thread.h"
+
+#include <thread>
+#include <chrono>
 
 class HardwareInterface
 {
@@ -23,7 +24,8 @@ private:
 	double throttlePercentage;
 
 protected:
-	Thread* updater;
+	//Thread* updater;
+	std::thread* updater;
 
 	/*
 	Locks for each of the sensor variables
@@ -80,7 +82,7 @@ public:
 
 };
 
-
+/*
 class UpdaterRunnable : public Runnable {
 private:
 	HardwareInterface* hwi;
@@ -88,4 +90,4 @@ public:
 	UpdaterRunnable(HardwareInterface* i) : hwi(i) {	}
 	virtual void* run();
 };
-
+*/

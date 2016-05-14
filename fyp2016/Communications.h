@@ -5,7 +5,9 @@
 
 #include "Log.h"
 
-#include "Thread.h"
+//#include "Thread.h"
+#include <thread>
+#include <chrono>
 
 #define MAXLEN 1024
 #define TIMEOUT 1000	// milliseconds before connection deemed inactive
@@ -18,7 +20,8 @@ private:
 	TCPsocket server;
 	TCPsocket client;
 
-	Thread* updater;
+	//Thread* updater;
+	std::thread* updater;
 	bool alive;
 	std::vector<char> receivedBuffer;
 
@@ -39,7 +42,7 @@ public:
 	bool communicationsLoop();
 };
 
-
+/*
 class CommsUpdaterRunnable : public Runnable {
 private:
 	Communications* comms;
@@ -47,3 +50,4 @@ public:
 	CommsUpdaterRunnable(Communications* c) : comms(c) {	}
 	virtual void* run();
 };
+*/
