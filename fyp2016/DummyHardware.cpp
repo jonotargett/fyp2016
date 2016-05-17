@@ -23,7 +23,7 @@ bool DummyHardware::initialise() {
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
-	realPosition = Point();
+	realPosition = Point(0, 0);
 	realHeading = 0.0;
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
@@ -61,11 +61,11 @@ bool DummyHardware::updateLoop() {
 		double wheelbase = 1.2166;		// 47.9 inches
 		double turningRadius = 3.2004;	// 10.5 feet
 
-		realVelocity = (realVelocity + (realThrottlePercentage / 2.0))*(1 - seconds.count());
+		realVelocity = 0.1 * (realVelocity + (realThrottlePercentage / 2.0))*(1 - seconds.count());
+		realPosition = Point(realPosition.x, realPosition.y + realVelocity * seconds.count());
 
 		// return values back to the hardware interface, as if theyd been measured.
-
-		setPosition(realPosition + Point(random()*0.5, random()*0.5));
+		setPosition(Point(realPosition.x + random()*0.5, realPosition.y + random()*0.5));
 		setAbsoluteHeading(realHeading + 5 * random());
 		setVelocity(realVelocity + 0.2*random());
 

@@ -1,5 +1,6 @@
 #include "Overlord.h"
 
+#include "Graph.h"
 
 Overlord::Overlord()
 {
@@ -30,7 +31,7 @@ bool Overlord::initialise() {
 	Log::d << "-> DRIVE CONTROLLER DONE" << endl;
 
 	ns = new SimpleNavigator();
-	ns->initialise(dc);
+	ns->initialise(dc, hwi);
 	Log::d << "-> NAVIGATION SYSTEM DONE" << endl;
 
 	fd = new FeatureDetector(hwi);
@@ -46,17 +47,28 @@ bool Overlord::initialise() {
 void Overlord::run() {
 	
 
-	//fd->createImage(DISPLAY_KERNEL);
+	fd->createImage(DISPLAY_KERNEL);
 
-	//window->showWindow(true);
-	//window->update(fd->retrieveImage());
+	window->showWindow(true);
+	window->update(fd->retrieveImage());
+
+	ns->addPoint(Point(0, 100));
+	ns->startPath();
+	dc->setEnabled(true);
+
+	Log::setVerbosity(LOG_INFORMATIVE);
 	
-
-
+	Graph* g = new Graph(400, 200, -10, 110);
+	window->showWindow(true);
 
 	while (!window->shouldQuit()) {
 
 		window->handleEvents();
 		// waste time
+
+		g->post(hwi->getThrottlePercentage());
+		//window->update(g->getTexture());
+
+		SDL_Delay(50);
 	}
 }

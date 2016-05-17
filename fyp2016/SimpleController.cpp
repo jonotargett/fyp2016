@@ -75,6 +75,15 @@ bool SimpleController::updateLoop() {
 		if (enabled) {
 			// implement discretised time PID controller in here
 
+			if (dist > 25) {
+				hwi->setThrottlePercentage(100.0);
+			}
+			else if (dist > 1) {
+				hwi->setThrottlePercentage(dist * 4);
+			}
+			else {
+				hwi->setThrottlePercentage(0);
+			}
 
 		}
 

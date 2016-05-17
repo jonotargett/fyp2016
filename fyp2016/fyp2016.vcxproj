@@ -121,6 +121,7 @@
     <ClCompile Include="Communications.cpp" />
     <ClCompile Include="DummyHardware.cpp" />
     <ClCompile Include="FeatureDetector.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="DriveController.h" />
     <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />
+    <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />
