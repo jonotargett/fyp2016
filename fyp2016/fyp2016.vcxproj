@@ -140,6 +140,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="GPRDLL.LIB" />
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
     <Library Include="SDL2_net.lib" />
@@ -151,6 +152,7 @@
     <ClInclude Include="DriveController.h" />
     <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />
+    <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
     <ClInclude Include="Log.h" />
@@ -166,6 +168,10 @@
   <ItemGroup>
     <None Include="..\.travis.yml" />
     <None Include="..\makefile" />
+    <None Include="csirousb.inf" />
+    <None Include="csirousb.sys" />
+    <None Include="gprdll.dll" />
+    <None Include="GPRDLL.EXP" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

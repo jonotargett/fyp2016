@@ -1,0 +1,72 @@
+; Installation inf for the CSIRO USB Bulk mode interface
+;
+;
+
+[Version]
+Signature="$CHICAGO$"
+Class=USB
+ClassGUID={36FC9E60-C465-11CF-8056-444553540000}
+provider=%MSFT%
+DriverVer=08/05/1999
+
+[SourceDisksNames]
+1="Csirousbins",,,
+
+[SourceDisksFiles]
+csirousb.sys = 1
+csirousb.inf = 1
+
+[Manufacturer]
+%MfgName%=CSIRO
+
+[CSIRO]
+%USB\VID_0eff&PID_0200.DeviceDesc%=csirousb.Dev, USB\VID_0eff&PID_0200
+
+;[PreCopySection]
+;HKR,,NoSetupUI,,1
+
+[DestinationDirs]
+csirousb.Files.Ext = 10,System32\Drivers
+csirousb.Files.Inf = 10,INF
+
+[csirousb.Dev]
+CopyFiles=csirousb.Files.Ext, csirousb.Files.Inf
+AddReg=csirousb.AddReg
+
+[csirousb.Dev.NT]
+CopyFiles=csirousb.Files.Ext, csirousb.Files.Inf
+AddReg=csirousb.AddReg
+
+[csirousb.Dev.NT.Services]
+Addservice = csirousb, 0x00000002, csirousb.AddService
+
+[csirousb.AddService]
+DisplayName    = %csirousb.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\csirousb.sys
+LoadOrderGroup = Base
+
+[csirousb.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,csirousb.sys
+HKLM,"System\Currentcontrolset\Services\csirousb\Parameters","MaximumTransferSize",0x10001,4096
+HKLM,"System\Currentcontrolset\Services\csirousb\Parameters","DebugLevel",0x10001,2
+
+
+[csirousb.Files.Ext]
+csirousb.sys
+
+[csirousb.Files.Inf]
+csirousb.Inf
+
+
+;---------------------------------------------------------------;
+
+[Strings]
+MSFT="CSIRO"
+MfgName="CSIRO"
+USB\VID_0eff&PID_0200.DeviceDesc="Ground Probing Radar"
+csirousb.SvcDesc="csirousb.Sys CSIRO Bulk USB Interface driver"
+

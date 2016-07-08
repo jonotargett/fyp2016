@@ -74,6 +74,9 @@
     <Library Include="SDL2main.lib">
       <Filter>Resource Files</Filter>
     </Library>
+    <Library Include="GPRDLL.LIB">
+      <Filter>Resource Files</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -127,12 +130,27 @@
     <ClInclude Include="Graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GPR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\makefile">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\.travis.yml">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="csirousb.inf">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="csirousb.sys">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="gprdll.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="GPRDLL.EXP">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
