@@ -7,7 +7,7 @@
 class NavigationSystem
 {
 public:
-
+//hllo
 	/* Initialises the navigation system.
 	Returns: true on success, false on failure
 	*/
