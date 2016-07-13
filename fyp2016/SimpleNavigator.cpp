@@ -15,6 +15,9 @@ SimpleNavigator::~SimpleNavigator()
 bool SimpleNavigator::initialise(DriveController* controller, HardwareInterface* hardware) {
 	dc = controller;
 	hwi = hardware;
+	
+	// subdivide() here for testing purposes at the moment
+	subdivide();
 
 	Log::i << "Navigator initialised." << std::endl;
 	return true;
@@ -35,6 +38,31 @@ void SimpleNavigator::addPoint(Point p) {
 }
 
 bool SimpleNavigator::subdivide() {
+
+	//filling path with dummy points for testing purposes:
+	Point p = Point(30, 10);
+	addPoint(p);
+	p = Point(20, 50);
+	addPoint(p);
+	p = Point(60, 80);
+	addPoint(p);
+	p = Point(80, 20);
+	addPoint(p);
+
+	Log::i << "Path subdivision starting" << endl;
+	Log::i << "Path size: " << path.size() << endl;
+
+	std::vector<Point*> subdividedPath;	
+
+	Point directionVector = Point(path.at(1)->x - path.at(0)->x, path.at(1)->y - path.at(0)->y);
+	Log::i << "Lenght: " << directionVector.x << endl;
+
+
+	Log::i << "Path subdivision Completed" << endl;
+	
+	
+
+
 	return false;
 }
 
