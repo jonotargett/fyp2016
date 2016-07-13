@@ -39,30 +39,70 @@ void SimpleNavigator::addPoint(Point p) {
 
 bool SimpleNavigator::subdivide() {
 
+	////// 1 unit here is equivalent to 10cm, will need to be adjusted when more info on GPS is available.
+
+	double distanceBetweenWaypoints = 2;
+
 	//filling path with dummy points for testing purposes:
-	Point p = Point(30, 10);
-	addPoint(p);
-	p = Point(20, 50);
-	addPoint(p);
-	p = Point(60, 80);
-	addPoint(p);
-	p = Point(80, 20);
-	addPoint(p);
+	Point dummyPoints = Point(30, 10);
+	addPoint(dummyPoints);
+	dummyPoints = Point(20, 50);
+	addPoint(dummyPoints);
+	dummyPoints = Point(60, 80);
+	addPoint(dummyPoints);
+	dummyPoints = Point(80, 20);
+	addPoint(dummyPoints);
 
-	Log::i << "Path subdivision starting" << endl;
-	Log::i << "Path size: " << path.size() << endl;
+	std::vector<Point*> subdividedPath;
 
-	std::vector<Point*> subdividedPath;	
+	// for each line segment (each line between two 'ultimate' waypoints)
+	for (int i = 0; i < path.size() - 1; i++) {
+		///
+		///	subdividing straight line segments:
+		/// get a unit vector in the direction from the start point to the finish point. place a waypoint at each specified distance using the unit vector.
+		///
+		Point directionVector = Point(path.at(i + 1)->x - path.at(i)->x, path.at(i + 1)->y - path.at(i)->y);
+		directionVector.normalise();
 
-	Point directionVector = Point(path.at(1)->x - path.at(0)->x, path.at(1)->y - path.at(0)->y);
-	Log::i << "Lenght: " << directionVector.x << endl;
+		// intermediate holds the current intermediate waypoint
+		Point intermediate = Point(path.at(i)->x, path.at(i)->y);
 
+		// FactorXY used for determining whether intermediate point is still within boundary points.
+		double FactorX = directionVector.x / abs(directionVector.x);
+		double FactorY = directionVector.y / abs(directionVector.y);
+		int k = 0;
+		//while our intermediate point is still between the two 'ultimate' waypoints
+		while (intermediate.x * FactorX <= path.at(i + 1)->x * FactorX && intermediate.y * FactorY <= path.at(i + 1)->y * FactorY) {
+			Point* p = new Point(intermediate.x, intermediate.y);
+			subdividedPath.push_back(p);
+			// add to initial point rather than incrementing 'intermediate' to remove accumulative error
+			k ++;
+			intermediate.x = path.at(i)->x + k * (directionVector.x * distanceBetweenWaypoints);
+			intermediate.y = path.at(i)->y + k * (directionVector.y * distanceBetweenWaypoints);
+		}
 
-	Log::i << "Path subdivision Completed" << endl;
-	
-	
+		///
+		/// waypoints for turn subdivision below: see document on google drive for more information on how this is calculated
+		/// the turn will orient the quadbike such that its heading matches the new heading of the next line segment.  The main for loop can then iterate to work on the next line segment.
+		///
 
+		// turn code goes here!!!!!
 
+	}
+
+	/*int k = 0;
+	while (k < subdividedPath.size()) {
+		cout << subdividedPath.at(k)->x << endl;
+		k++;
+	}
+	k = 0;
+	cout << endl;
+	while (k < subdividedPath.size()) {
+		cout << subdividedPath.at(k)->y << endl;
+		k++;
+	}*/
+
+	Log::i << "Path subdivision completed" << endl;
 	return false;
 }
 
