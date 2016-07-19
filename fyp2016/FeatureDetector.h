@@ -27,6 +27,7 @@ public:
 	~FeatureDetector();
 
 	bool initialise();
+	bool loadScan();
 
 	//debug programs
 	bool createImage(Visual);
