@@ -63,6 +63,9 @@
     <ClCompile Include="Graph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GPR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="SDL2.lib">
@@ -131,6 +134,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GPR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="csirousb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,6 +9,7 @@
 #include "Ascan.h"
 #include "Bscan.h"
 #include "HardwareInterface.h"
+#include "GPR.h"
 
 enum Visual {
 	DISPLAY_RAW,
@@ -21,6 +22,8 @@ private:
 	Bscan* scan;
 	HardwareInterface* hwi;
 	SDL_Surface* image;
+
+	GPR* gpr;
 
 public:
 	FeatureDetector(HardwareInterface*);

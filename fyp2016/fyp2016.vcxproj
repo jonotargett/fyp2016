@@ -127,6 +127,7 @@
     <ClCompile Include="Communications.cpp" />
     <ClCompile Include="DummyHardware.cpp" />
     <ClCompile Include="FeatureDetector.cpp" />
+    <ClCompile Include="GPR.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
     <ClInclude Include="Communications.h" />
+    <ClInclude Include="csirousb.h" />
     <ClInclude Include="DriveController.h" />
     <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />

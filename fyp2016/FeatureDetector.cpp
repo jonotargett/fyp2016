@@ -1,5 +1,4 @@
 #include "FeatureDetector.h"
-#include "GPR.h"
 
 
 FeatureDetector::FeatureDetector(HardwareInterface* interf) : hwi(interf)
@@ -15,10 +14,12 @@ FeatureDetector::~FeatureDetector()
 
 bool FeatureDetector::initialise() {
 
-	//nothing to initialise
+	bool success;
 
+	gpr = new GPR();
 
-	set_parameters();
+	success = gpr->initialise();
+	if (!success) return false;
 
 
 	return true;
