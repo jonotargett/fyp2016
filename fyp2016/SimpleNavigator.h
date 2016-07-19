@@ -12,10 +12,12 @@ private:
 	HardwareInterface* hwi;
 	std::vector<Point*> path;
 
+
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
 
 	std::thread* updater;
+
 public:
 	SimpleNavigator();
 	~SimpleNavigator();
