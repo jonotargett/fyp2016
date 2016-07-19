@@ -32,6 +32,31 @@ bool GPR::is_bit_set(unsigned int val, unsigned int bit) {
 
 bool GPR::initialise() {
 
+	// GENERATE PARAMETERS ---------------------------//
+
+	//BUF0
+	bool fullParam = true;
+	char DA_Delay = 0;						// range [0, 255]
+
+	//BUF1
+	short timeBase = 0;						// range [0, 4095]
+
+	//BUF2
+	char cable_Delay = 0;					// range [0, 7]
+	GPR_FRAMERATE framerate = GPR_FRAMERATE_254Hz;
+
+	//BUF3
+	char analogGain = 15;					// range [0, 127]
+
+	//BUF4
+	char singleAntennaGain = 1;				// range [0, 3]
+	char differentialAntennaGain = 0;		// range [0, 3]
+	GPR_SPI_UPDATING spi = GPR_SPI_UPDATING_ENABLE;
+	GPR_PRF prf = GPR_PRF_65kHz;
+	GPR_AD_AVERAGING ad_av = GPR_AD_AVERAGING_DISABLE;
+	GPR_AD_CALIBRATION ad_cal = GPR_AD_CALIBRATION_DISABLE;
+
+	// TODO: flesh out this step
 
 	unsigned int buf[5];
 	buf[0] = 0x80000000;
@@ -39,6 +64,8 @@ bool GPR::initialise() {
 	buf[2] = 0x00000000;
 	buf[3] = 0x0000000F;
 	buf[4] = 0x00000000;
+
+	//------------------------------------------------//
 
 	int ret = 0x0;
 									// connect to the GPR and attempt to set scanning parameters
