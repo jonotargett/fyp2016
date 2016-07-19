@@ -56,7 +56,7 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point*> subdividedPath;
 
 	// for each line segment (each line between two 'ultimate' waypoints)
-	for (int i = 0; i < path.size() - 1; i++) {
+	for (int i = 0; i < (int)path.size() - 1; i++) {
 		///
 		///	subdividing straight line segments:
 		/// get a unit vector in the direction from the start point to the finish point. place a waypoint at each specified distance using the unit vector.

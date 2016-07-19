@@ -8,6 +8,7 @@ GPR::GPR() {
 
 	status = 0x0;
 
+	ids = new id_struct();
 	ids->antenna_id = 0xDEADBEEF;
 	ids->low_battery = 0x1;
 	ids->pga_id[0] = 'a';

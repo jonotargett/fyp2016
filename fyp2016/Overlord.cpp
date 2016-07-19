@@ -49,16 +49,16 @@ void Overlord::run() {
 
 	//fd->createImage(DISPLAY_KERNEL);
 
-	window->showWindow(true);
+	Window::showWindow(true);
 	//window->update(fd->retrieveImage());
 
 
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 	
-	while (!window->shouldQuit()) {
+	while (!Window::shouldQuit()) {
 
-		window->handleEvents();
+		Window::handleEvents();
 		// waste time
 
 

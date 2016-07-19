@@ -11,25 +11,25 @@
 class Window
 {
 private:
-	SDL_Window* window;
-	SDL_Surface* surface;
+	static SDL_Window* window;
+	static SDL_Surface* surface;
 
-	SDL_Event event;
+	static SDL_Event event;
 
-	bool quit;
-	bool visible;
+	static bool quit;
+	static bool visible;
 
 public:
 	Window();
 	~Window();
 
-	bool shouldQuit();
-	void showWindow(bool);
+	static bool shouldQuit();
+	static void showWindow(bool);
 
-	void handleEvents();
+	static void handleEvents();
 
 
-	void update(SDL_Surface*);
+	static void update(SDL_Surface*);
 
 };
 

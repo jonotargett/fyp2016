@@ -1,5 +1,12 @@
 #include "Window.h"
 
+SDL_Window* Window::window = NULL;
+SDL_Surface* Window::surface = NULL;
+
+SDL_Event Window::event;
+
+bool Window::quit = false;
+bool Window::visible = false;
 
 
 Window::Window()
