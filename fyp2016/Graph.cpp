@@ -46,7 +46,7 @@ void Graph::post(double val) {
 		pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
 		pixels[j*image->w + offset + 1] = SDL_MapRGB(image->format, 0xFF, 0x00, 0x00);
 
-		int pos = 0 + (height - 0)*((val-yMax)/(yMin-yMax));
+		int pos = (int)(0 + (height - 0)*((val-yMax)/(yMin-yMax)));
 
 		if (j == pos) {
 			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0x00);

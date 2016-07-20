@@ -1,7 +1,6 @@
 #include "FeatureDetector.h"
 
 
-
 FeatureDetector::FeatureDetector(HardwareInterface* interf) : hwi(interf)
 {
 }
@@ -15,6 +14,19 @@ FeatureDetector::~FeatureDetector()
 
 bool FeatureDetector::initialise() {
 
+	bool success;
+
+	gpr = new GPR();
+
+	success = gpr->initialise();
+	if (!success) return false;
+
+
+	return true;
+}
+
+
+bool FeatureDetector::loadScan() {
 
 	scan = new Bscan();
 	Bscan* empty = new Bscan();
@@ -29,7 +41,7 @@ bool FeatureDetector::initialise() {
 	01031453.DAT	- filledPepsi-perp-at0.5cm Pepsi-flat(upright)-at0.5cm
 	01021000.DAT	- PVC10x15-para-at0.5cm SS10x05-at0.5cm
 	*/
-	
+
 	empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
 	Log::i << "empty scan loaded." << std::endl;
 	scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
@@ -42,7 +54,6 @@ bool FeatureDetector::initialise() {
 
 	return true;
 }
-
 
 bool FeatureDetector::createImage(Visual displayMode) {
 
