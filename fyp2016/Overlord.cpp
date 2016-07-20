@@ -36,6 +36,8 @@ bool Overlord::initialise() {
 
 	fd = new FeatureDetector(hwi);
 	fd->initialise();
+
+	vp = new VirtualPlatform();
 	
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
@@ -49,8 +51,10 @@ void Overlord::run() {
 
 	//fd->createImage(DISPLAY_KERNEL);
 
+
 	Window::showWindow(true);
 	//window->update(fd->retrieveImage());
+	window->update(vp->getTexture());
 
 
 

@@ -59,7 +59,7 @@ bool FeatureDetector::createImage(Visual displayMode) {
 
 	SDL_FreeSurface(image);
 	image = NULL;
-	image = SDL_CreateRGBSurface(0, 1200, 600, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	image = SDL_CreateRGBSurface(0, 1000, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	Uint32 *pixels = (Uint32*)image->pixels;
 
 	// initialise the surface to black
