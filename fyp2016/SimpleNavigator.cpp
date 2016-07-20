@@ -96,12 +96,12 @@ bool SimpleNavigator::subdivide() {
 			double angle2 = atan2(path.at(i+1)->y - path.at(i+2)->y, path.at(i+1)->x - path.at(i+2)->x);
 			double turnAngle = (angle1 - angle2);
 			if (turnAngle<0) {
-				turnAngle += 360 * 3.14159265/180;
+				turnAngle += 2 * 3.14159265;
 			}
-			
-			//cout << result * 180 / 3.14159265 << endl;
+			double deltaY = 0.5843*pow(turnAngle, 4) - 3.1669*pow(turnAngle, 3) + 5.968*pow(turnAngle, 2) - 4.047*turnAngle + 0.1295;
 		}
 		
+
 
 	}
 

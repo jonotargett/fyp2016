@@ -138,6 +138,7 @@
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="SimpleController.cpp" />
     <ClCompile Include="SimpleNavigator.cpp" />
+    <ClCompile Include="VirtualPlatform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="NavigationEdge.h" />
