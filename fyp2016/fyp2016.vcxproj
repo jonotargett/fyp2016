@@ -158,6 +158,7 @@
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="SimpleTexture.h" />
     <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />

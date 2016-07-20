@@ -12,6 +12,7 @@
 #include "NavigationSystem.h"
 #include "SimpleNavigator.h"
 #include "Communications.h"
+#include "VirtualPlatform.h"
 
 class Overlord
 {
@@ -24,6 +25,7 @@ private:
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;
+	VirtualPlatform* vp;
 
 public:
 	Overlord();
