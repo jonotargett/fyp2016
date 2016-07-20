@@ -39,28 +39,30 @@ void SimpleNavigator::addPoint(Point p) {
 
 bool SimpleNavigator::subdivide() {
 
-	////// 1 unit here is equivalent to 10cm, will need to be adjusted when more info on GPS is available.
+	////// 1 unit here is equivalent to 1m, will need to be adjusted when more info on GPS is available.
 
 	double distanceBetweenWaypoints = 2;
 
 	//filling path with dummy points for testing purposes:
 	Point dummyPoints = Point(30, 10);
 	addPoint(dummyPoints);
-	dummyPoints = Point(20, 50);
+	dummyPoints = Point(0, 80);
 	addPoint(dummyPoints);
-	dummyPoints = Point(60, 80);
+	dummyPoints = Point(30, 50);
 	addPoint(dummyPoints);
-	dummyPoints = Point(80, 20);
+	dummyPoints = Point(80, 60);
 	addPoint(dummyPoints);
 
 	std::vector<Point*> subdividedPath;
 
 	// for each line segment (each line between two 'ultimate' waypoints)
 	for (int i = 0; i < path.size() - 1; i++) {
+		
 		///
 		///	subdividing straight line segments:
 		/// get a unit vector in the direction from the start point to the finish point. place a waypoint at each specified distance using the unit vector.
 		///
+		
 		Point directionVector = Point(path.at(i + 1)->x - path.at(i)->x, path.at(i + 1)->y - path.at(i)->y);
 		directionVector.normalise();
 
@@ -85,8 +87,21 @@ bool SimpleNavigator::subdivide() {
 		/// waypoints for turn subdivision below: see document on google drive for more information on how this is calculated
 		/// the turn will orient the quadbike such that its heading matches the new heading of the next line segment.  The main for loop can then iterate to work on the next line segment.
 		///
-
 		// turn code goes here!!!!!
+		//angle between 2 lines:
+
+		// if we still have turns to calculate:
+		if (i + 2 < path.size()) {
+			double angle1 = atan2(path.at(i)->y - path.at(i+1)->y, path.at(i)->x - path.at(i+1)->x);
+			double angle2 = atan2(path.at(i+1)->y - path.at(i+2)->y, path.at(i+1)->x - path.at(i+2)->x);
+			double turnAngle = (angle1 - angle2);
+			if (turnAngle<0) {
+				turnAngle += 360 * 3.14159265/180;
+			}
+			
+			//cout << result * 180 / 3.14159265 << endl;
+		}
+		
 
 	}
 
