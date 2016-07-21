@@ -1,21 +1,19 @@
 #pragma once
 
 #include "SDL\SDL.h"
+#include "Window.h"
+#include "SimpleTexture.h"
 
 class VirtualPlatform
 {
 private:
-	SDL_Surface* image;
-	Uint32* pixels;
-	int width;
-	int height;
 
-	double yMax;
-	double yMin;
 public:
+	SimpleTexture* texture;
 	VirtualPlatform();
 	~VirtualPlatform();
 
-	SDL_Surface* getTexture();
+	void updateNew();
+	SDL_Texture* getTexture();
 };
 

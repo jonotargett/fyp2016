@@ -54,17 +54,16 @@ void Overlord::run() {
 
 	Window::showWindow(true);
 	//window->update(fd->retrieveImage());
-	window->update(vp->getTexture());
-
-
+	//window->update(vp->getTexture());
 
 	Log::setVerbosity(LOG_INFORMATIVE);
+
+	vp->updateNew();
 	
 	while (!Window::shouldQuit()) {
 
 		Window::handleEvents();
 		// waste time
-
 
 		SDL_Delay(50);
 	}

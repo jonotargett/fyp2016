@@ -1,16 +1,18 @@
 #include "Window.h"
+#include "SimpleTexture.h"
 
 SDL_Window* Window::window = NULL;
 SDL_Surface* Window::surface = NULL;
+SDL_Renderer* Window::renderer = NULL;
 
 SDL_Event Window::event;
 
 bool Window::quit = false;
 bool Window::visible = false;
 
-
 Window::Window()
 {
+	
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -21,6 +23,12 @@ Window::Window()
 	window = SDL_CreateWindow("Signal Processing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 							1200, 600, SDL_WINDOW_HIDDEN);
 
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+
+
+	/*
 	surface = SDL_GetWindowSurface(window);
 
 	SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF));
@@ -30,6 +38,7 @@ Window::Window()
 	Log::i << "SDL Window created." << std::endl;
 
 	// -----------------------------//
+	*/
 
 }
 
@@ -58,7 +67,6 @@ void Window::showWindow(bool b) {
 	}
 }
 
-
 void Window::update(SDL_Surface* newImage) {
 
 	SDL_BlitSurface(newImage, NULL, surface, NULL);
@@ -75,7 +83,6 @@ void Window::handleEvents() {
 			quit = true;
 		}
 	}
-
 	SDL_Delay(10);
 }
 
@@ -83,4 +90,3 @@ void Window::handleEvents() {
 bool Window::shouldQuit() {
 	return quit;
 }
-

@@ -4,25 +4,36 @@
 
 VirtualPlatform::VirtualPlatform()
 {
-	width = 100;
-	height = 100;
-	yMin = 0;
-	yMax = 10;
+	texture = new SimpleTexture();
+	
 
-	image = SDL_CreateRGBSurface(0, width, height, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-	pixels = (Uint32*)image->pixels;
+}
 
-	// initialise the surface to black
-	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0x00);
-	}
+void VirtualPlatform::updateNew() {
+	texture->createBlank(60, 60);
+
+	//set self as render target
+	texture->setAsRenderTarget();
+	//clear screen
+	SDL_SetRenderDrawColor(Window::renderer, 0xFF, 0xFF, 0x00, 0xFF);
+	SDL_RenderClear(Window::renderer);
+	//render red filled quad
+	SDL_Rect fillRect = { 30, 30, 10, 10 };
+	SDL_SetRenderDrawColor(Window::renderer, 0xFF, 0x00, 0x00, 0xFF);
+	SDL_RenderFillRect(Window::renderer, &fillRect);
+	//reset render target
+	SDL_SetRenderTarget(Window::renderer, NULL);
+
+	texture->render(20, 20, 100, 100, 0);
+	
 }
 
 
 VirtualPlatform::~VirtualPlatform()
 {
+
 }
 
-SDL_Surface* VirtualPlatform::getTexture() {
-	return image;
+SDL_Texture* VirtualPlatform::getTexture() {
+	return texture->getTexture();
 }
