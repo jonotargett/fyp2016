@@ -104,15 +104,13 @@ bool GPR::setDifferentialAntennaGain(unsigned int p) {
 	return true;
 }
 
+/*
+Place all of the parameter data into the correct bit format,
+in a buffer of 5 unsigned ints. The correct bit format is explained
+in the csirousb.h file. This format was created by the CSIRO.
+*/
 bool GPR::processParams() {
 
-	// GENERATE PARAMETERS ---------------------------//
-	/*
-	Place all of the data collected into the correct bit format,
-	in a buffer of 5 unsigned ints. The correct bit format is explained
-	in the csirousb.h file. This format was created by the CSIRO.
-	*/
-	
 	unsigned int mask = 0x0;
 
 	// BUFFER 0
@@ -170,23 +168,23 @@ bool GPR::processParams() {
 	return true;
 }
 
-bool GPR::initialise() {
-
+/*
+This is the bit of code that actually sends the configuration data down
+to the GPR hardware. It sends a snapshot of all of the parameter settings
+at the current point in time and updates the GPR with that. Setting each
+individual parameter will have no effect on the GPR until this is called.
+*/
+bool GPR::flushParams() {
+	
 	int attempts = 0;
-	int maxattempts = 3;
 	int ret = 0xF;			//anything non-zero
-	bool success = false;
 
-
-	//generate the configuration parameters that will
-	// be sent to initialise the hardware
 	processParams();
-
 
 	// connect to the GPR and attempt to set scanning parameters
 	// attempt a connection up to MAXATTEMPTS many times before failing and
 	// returning false.
-	while (ret != 0x00 && attempts < maxattempts) {
+	while (ret != 0x00 && attempts < MAX_ATTEMPTS) {
 		ret = set_parameters(params);
 
 		if (ret == 0x01) {
@@ -198,47 +196,87 @@ bool GPR::initialise() {
 			attempts++;
 		}
 		else {
-			Log::i << "GPR appears to be connected. code: " << ret << endl;
-			success = true;
+			Log::i << "Configuration updated. code: " << ret << endl;
+			return true;
 		}
 	}
 
-	if (!success)
-		return false;
-
-	success = false;
-	attempts = 0;
-
-	// synchronise data stream
-	Log::i << "synchronising data stream..." << endl;
-	status = read_data(buffer, -1, ids);
-
-	// read status data    
-	Log::i << "reading status data..." << endl;
+	return false;
+}
 
 
-	status = 1;	//anything non-zero
+bool GPR::processStatusCode() {
 
-	while (status != 0x0 && attempts < maxattempts) {
-		status = read_data(buffer, 0, ids);
+	unsigned int mask = ((1 << 8) - 1) << 16;
+	samples = (status & mask) >> 16;
 
-		if (status == 0x0) {
-			Log::i << "GPR status all okay. Code: " << status << endl;
+	bool hasErrored = false;
 
-			int antenna_id = ids->antenna_id;
-			int low_batt = ids->low_battery;
-			char* fpga_id = new char[31];
-			char* firmware_ver = new char[31];
+	if (is_bit_set(status, 31)) {
+		Log::d << "not enough data in DLL buffer" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 30)) {
+		Log::d << "synch operation succeeded (why is this an error?)" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 11)) {
+		Log::d << "micro buffer overflow" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 0)) {
+		Log::d << "device offline" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 1)) {
+		Log::d << "radar is off" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 9)) {
+		Log::d << "dll buffer got full" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 8)) {
+		Log::d << "invalid buffer size" << endl;
+		hasErrored = true;
+	}
+	if (is_bit_set(status, 10)) {
+		Log::d << "bad sequence number" << endl;
+		hasErrored = true;
+	}
 
-			strncpy(fpga_id, ids->pga_id, 30);
-			fpga_id[30] = '\0';
-			strncpy(firmware_ver, ids->pgm_id, 30);
-			firmware_ver[30] = '\0';
+	return hasErrored;
+}
 
-			Log::i << "\tAntenna ID:       " << antenna_id << endl;
-			Log::i << "\tLow battery?      " << low_batt << endl;
-			Log::i << "\tFPGA ID:          " << fpga_id << endl;
-			Log::i << "\tfirmware version: " << firmware_ver << endl;
+
+bool GPR::checkStatus(bool verbose) {
+	bool success = false;
+	unsigned int attempts = 0;
+
+	while (!success && attempts < MAX_ATTEMPTS) {
+
+		status = read_data(NULL, 0, ids);
+		success = processStatusCode();
+
+		if (success) {
+			if (verbose) {
+				Log::i << "GPR status all okay. Code: " << status << endl;
+
+				int antenna_id = ids->antenna_id;
+				int low_batt = ids->low_battery;
+				char* fpga_id = new char[31];
+				char* firmware_ver = new char[31];
+
+				strncpy(fpga_id, ids->pga_id, 30);
+				fpga_id[30] = '\0';
+				strncpy(firmware_ver, ids->pgm_id, 30);
+				firmware_ver[30] = '\0';
+
+				Log::i << "\tAntenna ID:       " << antenna_id << endl;
+				Log::i << "\tLow battery?      " << low_batt << endl;
+				Log::i << "\tFPGA ID:          " << fpga_id << endl;
+				Log::i << "\tfirmware version: " << firmware_ver << endl;
+			}
 		}
 		else {
 			Log::e << "GPR status error. Code: " << status << endl;
@@ -246,9 +284,38 @@ bool GPR::initialise() {
 		}
 	}
 
+	return success;
+}
+
+bool GPR::initialise() {
+
+	int attempts = 0;	
+	bool success = false;
+
+	//generate the configuration parameters that will
+	// be sent to initialise the hardware
+	Log::i << "Initialising hardware parameters..." << endl;
+	setFlushMode(GPR_PARAM_UPDATE_FLUSH_ALL);
+
+	success = flushParams();
 	if (!success)
 		return false;
 
+	setFlushMode(GPR_PARAM_UPDATE_CHANGES_ONLY);
+
+	// synchronise data stream
+	// not sure if this is necessary or if it even does anything.
+	// but it was mentioned in the supplied header so ill do it regardless
+	Log::i << "Synchronising data stream..." << endl;
+	status = read_data(NULL, -1, ids);
+	processStatusCode();
+
+	// read status data
+	Log::i << "Reading status data..." << endl;
+	success = checkStatus(true);
+	
+	if (!success)
+		return false;
 
 	return true;
 }
@@ -256,82 +323,40 @@ bool GPR::initialise() {
 
 bool GPR::getData() {
 	Log::i << "wait for data..." << endl;
+	bool success = false;
 
-	unsigned int mask = ((1 << 8) - 1) << 16;
-	unsigned int samples = 0;
-	int error_chances = 2000;
+	while (samples == 0) {
 
-	while (samples == 0 && error_chances > 0) {
-
-		status = read_data(buffer, 1, ids);
-		samples = (status & mask) >> 16;
-		bool hasErrored = false;
+		success = checkStatus(false);
+		
+		if (!success) {
+			samples = 0;
+			Log::d << "Error. code: " << status << endl;
+			break;
+		}
+		
 		if (samples == 0) {
 			continue;
 		}
-		Log::i << "---" << endl;
-		printf("%x\n", status);
-		printf("%x\n", samples);
+		
 		Log::i << "---" << endl;
 		Log::i << "SAMPLES: " << samples << endl;
 
+		// read some data from the buffer
+		Log::i << "retrieve data..." << endl;
+		Log::i << "\t\t RETRIEVED DATA" << endl;
 
+		status = read_data(buffer, 64 * samples, ids);
 
+		for (unsigned int i = 0; i<64 * samples; i++) {
+			Log::i << buffer[i] << " | ";
+		}
+		Log::i << endl;
+		samples = 0;
 
-		if (is_bit_set(status, 31)) {
-			Log::d << "not enough data in DLL buffer" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 30)) {
-			Log::d << "synch operation succeeded (why is this an error?)" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 11)) {
-			Log::d << "micro buffer overflow" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 0)) {
-			Log::d << "device offline" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 1)) {
-			Log::d << "radar is off" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 9)) {
-			Log::d << "dll buffer got full" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 8)) {
-			Log::d << "invalid buffer size" << endl;
-			hasErrored = true;
-		}
-		if (is_bit_set(status, 10)) {
-			Log::d << "bad sequence number" << endl;
-			hasErrored = true;
-		}
-
-
-		if (hasErrored) {
-			samples = 0;
-			Log::d << "Error. code: " << status << endl;
-		}
-		else {
-
-			// read some data from the buffer
-			Log::i << "retrieve data..." << endl;
-
-			Log::i << "\t\t RETRIEVED DATA" << endl;
-			status = read_data(buffer, 64 * samples, ids);
-			for (unsigned int i = 0; i<64 * samples; i++) {
-				Log::i << buffer[i] << " | ";
-			}
-			Log::i << endl;
-			samples = 0;
-		}
 
 
 	}
 
-	return true;
+	return success;
 }

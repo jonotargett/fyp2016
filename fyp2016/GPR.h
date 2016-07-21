@@ -1,6 +1,8 @@
 #pragma once
 #include "csirousb.h"
 
+#define MAX_ATTEMPTS 10
+
 enum GPR_PARAM_UPDATE {
 	GPR_PARAM_UPDATE_CHANGES_ONLY,
 	GPR_PARAM_UPDATE_FLUSH_ALL
@@ -53,6 +55,7 @@ private:
 	unsigned int* params;
 	unsigned int* buffer;
 	unsigned int status;
+	unsigned int samples;
 	id_struct* ids;
 
 	bool is_bit_set(unsigned int, unsigned int);
@@ -70,6 +73,7 @@ private:
 	bool setDifferentialAntennaGain(unsigned int);
 
 	bool processParams();
+	bool processStatusCode();
 
 public:
 	GPR();
@@ -79,4 +83,5 @@ public:
 	bool flushParams();
 
 	bool getData();
+	bool checkStatus(bool);
 };
