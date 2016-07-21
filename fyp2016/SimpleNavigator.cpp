@@ -108,17 +108,36 @@ bool SimpleNavigator::subdivide() {
 			
 			//currentAngle, clockwise from positive y (note, we are using cartesian coordinates +y is up, +x is right).
 			double currentAngle = (atan2(path.at(i+1)->y - path.at(i)->y, path.at(i+1)->x - path.at(i)->x) - 3.14159265/2) * -1;
-			cout << "turn angle: " << subdividedPath.at(36).x << endl;
+
+			Point dirVector = Point(path.at(i + 1)->x - path.at(i)->x, path.at(i + 1)->y - path.at(i)->y);
+			dirVector.normalise();
+			dirVector.x *= 3.14;	// turn radius
+			dirVector.y *= 3.14;	// turn radius
+
+			// first turn arc, left turn has negative y
+			double tempX = dirVector.x;
+			dirVector.x = dirVector.y;
+			dirVector.y = -tempX;
+
+			
+
+			double centreX = path.at(i+1)->x - dirVector.x;
+			double centreY = path.at(i+1)->y - dirVector.y;
+
+			double newVecX = cos(26) * dirVector.x + sin(26) * dirVector.y;
+			double newVecY = -sin(26) * dirVector.x + cos(26) * dirVector.y;
+
+			Point pp = Point(centreX + newVecX, centreY + newVecY);
 
 			// this is the first point of the N-point turn
 			double oldX = -0.32;
 			double oldY = -1.38;
-			double newX = cos(currentAngle) * oldX + sin(currentAngle) * oldY;
-			double newY = -sin(currentAngle) * oldX + cos(currentAngle) * oldY;
+			double newwX = cos(currentAngle) * oldX + sin(currentAngle) * oldY;
+			double newwY = -sin(currentAngle) * oldX + cos(currentAngle) * oldY;
 
-			Point p = Point(subdividedPath.at(subdividedPath.size()-1).x + newX, subdividedPath.at(subdividedPath.size()-1).y + newY);
-			subdividedPath.push_back(p);
-
+			Point p = Point(path.at(i+1)->x + newwX, path.at(i+1)->y + newwY);
+			subdividedPath.push_back(pp);
+			
 
 
 			// this is the distance that needs to be corrected for in the y direction to make the quad colinear with the next line segment
