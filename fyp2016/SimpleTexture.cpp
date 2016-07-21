@@ -46,21 +46,13 @@ void SimpleTexture::setAlpha(Uint8 alpha)
 	SDL_SetTextureAlphaMod(texture, alpha);
 }
 
-void SimpleTexture::render(int x, int y, int centerX, int centerY, double angle, SDL_Rect* clip)
+void SimpleTexture::render(int x, int y)
 {
 	//Set rendering space and render to screen
 	SDL_Rect renderQuad = {x, y, width, height};
 
-	//Set clip rendering dimensions
-	if (clip != NULL)
-	{
-		renderQuad.w = clip->w;
-		renderQuad.h = clip->h;
-	}
-
 	//Render to screen
-	SDL_Point center = { centerX, centerY };
-	SDL_RenderCopyEx(Window::renderer, texture, clip, &renderQuad, angle, &center, SDL_FLIP_NONE);
+	SDL_RenderCopy(Window::renderer, texture, NULL, &renderQuad);
 	SDL_RenderPresent(Window::renderer);
 }
 

@@ -59,6 +59,7 @@ void Overlord::run() {
 	Log::setVerbosity(LOG_INFORMATIVE);
 
 	vp->updateNew();
+	fd->retrieveImage();
 	
 	while (!Window::shouldQuit()) {
 

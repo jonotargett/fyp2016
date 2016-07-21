@@ -17,7 +17,7 @@ public:
 	void setColor(Uint8 red, Uint8 green, Uint8 blue);
 	void setAlpha(Uint8 alpha);
 	void setAsRenderTarget();
-	void render(int x, int y,  int centerX, int centerY, double angle, SDL_Rect* clip = NULL);
+	void render(int x, int y);
 	SDL_Renderer* renderer;
 
 	int getWidth();
