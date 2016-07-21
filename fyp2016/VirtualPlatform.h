@@ -13,7 +13,8 @@ public:
 	VirtualPlatform();
 	~VirtualPlatform();
 
-	void updateNew();
+	void drawTexture();
+	void renderTexture();
 	SDL_Texture* getTexture();
 };
 

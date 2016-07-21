@@ -103,22 +103,5 @@ bool FeatureDetector::createImage(Visual displayMode) {
 
 
 SDL_Surface* FeatureDetector::retrieveImage() {
-	SimpleTexture texture = SimpleTexture();
-	texture.createBlank(60, 60);
-
-	//set self as render target
-	texture.setAsRenderTarget();
-	//clear screen
-	SDL_SetRenderDrawColor(Window::renderer, 0x00, 0x00, 0xFF, 0xFF);
-	SDL_RenderClear(Window::renderer);
-	//render red filled quad
-	SDL_Rect fillRect = {30, 30, 10, 10 };
-	SDL_SetRenderDrawColor(Window::renderer, 0xFF, 0x00, 0x00, 0xFF);
-	SDL_RenderFillRect(Window::renderer, &fillRect);
-	//reset render target
-	SDL_SetRenderTarget(Window::renderer, NULL);
-
-	texture.render(80, 80);
-
 	return image;
 }

@@ -58,8 +58,8 @@ void Overlord::run() {
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
-	vp->updateNew();
-	fd->retrieveImage();
+	vp->drawTexture();
+	vp->renderTexture();
 	
 	while (!Window::shouldQuit()) {
 
