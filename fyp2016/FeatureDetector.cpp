@@ -26,7 +26,6 @@ bool FeatureDetector::initialise() {
 	return true;
 }
 
-
 bool FeatureDetector::loadScan() {
 
 	scan = new Bscan();
