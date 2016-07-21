@@ -41,16 +41,16 @@ bool SimpleNavigator::subdivide() {
 
 	////// 1 unit here is equivalent to 1m, will need to be adjusted when more info on GPS is available.
 
-	double distanceBetweenWaypoints = 4;
+	double distanceBetweenWaypoints = 2;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(30, 10);
+	Point dummyPoints = Point(50, 10);
 	addPoint(dummyPoints);
-	dummyPoints = Point(0, 80);
+	dummyPoints = Point(30, 80);
 	addPoint(dummyPoints);
-	dummyPoints = Point(30, 50);
+	dummyPoints = Point(60, 50);
 	addPoint(dummyPoints);
-	dummyPoints = Point(400, 260);
+	dummyPoints = Point(130, 100);
 	addPoint(dummyPoints);
 
 	std::vector<Point> subdividedPath;
@@ -96,14 +96,33 @@ bool SimpleNavigator::subdivide() {
 			// figure out the turn angle
 			double angle1 = atan2(path.at(i)->y - path.at(i + 1)->y, path.at(i)->x - path.at(i + 1)->x);
 			double angle2 = atan2(path.at(i + 1)->y - path.at(i + 2)->y, path.at(i + 1)->x - path.at(i + 2)->x);
+			
+			// positive is clockwise. turn angle from -180 to 180
 			double turnAngle = (angle1 - angle2);
 			if (turnAngle<0) {
 				turnAngle += 2 * 3.14159265;
 			}
+			if (turnAngle > 3.14159265) {
+				turnAngle -= 2 * 3.14159265;
+			}
+			
+			//currentAngle, clockwise from positive y (note, we are using cartesian coordinates +y is up, +x is right).
+			double currentAngle = (atan2(path.at(i+1)->y - path.at(i)->y, path.at(i+1)->x - path.at(i)->x) - 3.14159265/2) * -1;
+			cout << "turn angle: " << subdividedPath.at(36).x << endl;
+
+			// this is the first point of the N-point turn
+			double oldX = -0.32;
+			double oldY = -1.38;
+			double newX = cos(currentAngle) * oldX + sin(currentAngle) * oldY;
+			double newY = -sin(currentAngle) * oldX + cos(currentAngle) * oldY;
+
+			Point p = Point(subdividedPath.at(subdividedPath.size()-1).x + newX, subdividedPath.at(subdividedPath.size()-1).y + newY);
+			subdividedPath.push_back(p);
+
+
 
 			// this is the distance that needs to be corrected for in the y direction to make the quad colinear with the next line segment
 			double deltaY = 0.5843*pow(turnAngle, 4) - 3.1669*pow(turnAngle, 3) + 5.968*pow(turnAngle, 2) - 4.047*turnAngle + 0.1295;
-
 		}
 
 
