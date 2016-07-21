@@ -1,6 +1,10 @@
 #pragma once
 #include "csirousb.h"
 
+enum GPR_PARAM_UPDATE {
+	GPR_PARAM_UPDATE_CHANGES_ONLY,
+	GPR_PARAM_UPDATE_FLUSH_ALL
+};
 
 enum GPR_PRF {
 	GPR_PRF_65kHz,
@@ -32,15 +36,47 @@ enum GPR_AD_CALIBRATION {
 class GPR
 {
 private:
+	GPR_PARAM_UPDATE updateMode;
+	GPR_SPI_UPDATING spi;
+	GPR_FRAMERATE framerate;
+	GPR_PRF prf;
+	GPR_AD_AVERAGING ad_av;
+	GPR_AD_CALIBRATION ad_cal;
+
+	unsigned int DA_Delay;					// range [0, 255]
+	unsigned int timeBase;					// range [0, 4095]
+	unsigned int cableDelay;				// range [0, 7]
+	unsigned int analogGain;				// range [0, 127]
+	unsigned int singleAntennaGain;			// range [0, 3]
+	unsigned int differentialAntennaGain;	// range [0, 3]
+	
+	unsigned int* params;
 	unsigned int* buffer;
 	unsigned int status;
 	id_struct* ids;
 
 	bool is_bit_set(unsigned int, unsigned int);
+
+	void setFlushMode(GPR_PARAM_UPDATE);
+	void enableSPIUpdate(GPR_SPI_UPDATING);
+	void setGPR_PRF(GPR_PRF);
+	void enableADAveraging(GPR_AD_AVERAGING);
+	void enableADAutoCalibration(GPR_AD_CALIBRATION);
+	bool setDADelay(unsigned int);
+	bool setCableDelay(unsigned int);
+	bool setTimeBase(unsigned int);
+	bool setAnalogGain(unsigned int);
+	bool setSingleAntennaGain(unsigned int);
+	bool setDifferentialAntennaGain(unsigned int);
+
+	bool processParams();
+
 public:
 	GPR();
 	~GPR();
 
 	bool initialise();
+	bool flushParams();
+
 	bool getData();
 };
