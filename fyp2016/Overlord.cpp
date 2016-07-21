@@ -54,6 +54,7 @@ void Overlord::run() {
 
 	Window::showWindow(true);
 	//window->update(fd->retrieveImage());
+	window->update(vp->getTexture());
 
 
 
