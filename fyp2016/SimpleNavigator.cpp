@@ -123,11 +123,15 @@ bool SimpleNavigator::subdivide() {
 
 			double centreX = path.at(i+1)->x - dirVector.x;
 			double centreY = path.at(i+1)->y - dirVector.y;
+			for (int k = 0; k < 360; k++) {
+				double newVecX = cos(k * 3.14159265/180) * dirVector.x + sin(k * 3.14159265 / 180) * dirVector.y;
+				double newVecY = -sin(k * 3.14159265 / 180) * dirVector.x + cos(k * 3.14159265 / 180) * dirVector.y;
 
-			double newVecX = cos(26) * dirVector.x + sin(26) * dirVector.y;
-			double newVecY = -sin(26) * dirVector.x + cos(26) * dirVector.y;
+				Point pp = Point(centreX + newVecX, centreY + newVecY);
+				subdividedPath.push_back(pp);
+			}
 
-			Point pp = Point(centreX + newVecX, centreY + newVecY);
+			
 
 			// this is the first point of the N-point turn
 			double oldX = -0.32;
@@ -136,7 +140,7 @@ bool SimpleNavigator::subdivide() {
 			double newwY = -sin(currentAngle) * oldX + cos(currentAngle) * oldY;
 
 			Point p = Point(path.at(i+1)->x + newwX, path.at(i+1)->y + newwY);
-			subdividedPath.push_back(pp);
+			//subdividedPath.push_back(p);
 			
 
 
