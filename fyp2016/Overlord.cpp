@@ -36,11 +36,12 @@ bool Overlord::initialise() {
 
 	fd = new FeatureDetector(hwi);
 	fd->initialise();
-
-	vp = new VirtualPlatform();
-	
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
+	vp = new VirtualPlatform();
+	vp->initialise(ns);
+	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
+	
 	initialised = true;
 	return true;
 }

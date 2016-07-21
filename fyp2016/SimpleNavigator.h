@@ -26,6 +26,7 @@ public:
 	void clear();
 
 	void setPath(std::vector<Point*>);
+	std::vector<Point*> getPath();
 	void addPoint(Point);
 
 	bool subdivide();

@@ -28,7 +28,11 @@ public:
 	*/
 	virtual void addPoint(Point) = 0;
 
-
+	/*
+	returns the navigation path
+	*/
+	virtual std::vector<Point*> getPath() = 0;
+	
 	/*
 	Prepares the list of points into a path that can be followed by the actual vehicle.
 	This is a preprocess (happens before vehicle starts moving) so that errors can be found
