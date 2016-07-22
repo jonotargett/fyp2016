@@ -23,6 +23,12 @@ bool FeatureDetector::initialise() {
 	if (!success) return false;
 
 
+
+	while (!gpr->getData()) {
+
+	}
+
+
 	return true;
 }
 

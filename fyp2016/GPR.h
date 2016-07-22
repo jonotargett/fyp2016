@@ -1,7 +1,13 @@
 #pragma once
+#include <iomanip>
+#include <bitset>
+#include <fstream>
+
 #include "csirousb.h"
 
+
 #define MAX_ATTEMPTS 10
+
 
 enum GPR_PARAM_UPDATE {
 	GPR_PARAM_UPDATE_CHANGES_ONLY,
@@ -48,6 +54,11 @@ public:
 	bool checkStatus(bool);
 
 private:
+	bool green_button;
+	bool red_button;
+	bool yellow_button;
+	bool blue_button;
+
 	GPR_PARAM_UPDATE updateMode;
 	GPR_SPI_UPDATING serialUpdating;
 	GPR_FRAMERATE framerate;

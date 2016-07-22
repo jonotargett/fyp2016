@@ -15,13 +15,17 @@ GPR::GPR() {
 	adAveraging = GPR_AD_AVERAGING_ENABLE;
 	adCalibration = GPR_AD_CALIBRATION_DISABLE;
 
-	daDelay = 16;					// range [0, 255]
+	daDelay = 0;					// range [0, 255]
 	timeBase = 0;					// range [0, 4095]
 	cableDelay = 1;					// range [0, 7]
 	analogGain = 15;					// range [0, 127]
 	singleAntennaGain = 1;				// range [0, 3]
 	differentialAntennaGain = 0;		// range [0, 3]
 	
+	green_button = false;
+	red_button = false;
+	yellow_button = false;
+	blue_button = false;
 
 	// initialise ID values to something non-default
 	ids->antenna_id = 0xDEADBEEF;
@@ -182,15 +186,15 @@ bool GPR::flushParams() {
 		ret = set_parameters(params);
 
 		if (ret == 0x01) {
-			Log::e << "GPR device is offline. Code: " << ret << endl;
+			Log::e << "GPR device is offline. Code: " << std::hex << ret << std::dec << endl;
 			attempts++;
 		}
 		else if (ret == 0x10) {
-			Log::e << "GPR device write queue is full. Code: " << ret << endl;
+			Log::e << "GPR device write queue is full. Code: " << std::hex << ret << std::dec << endl;
 			attempts++;
 		}
 		else {
-			Log::i << "Configuration updated. code: " << ret << endl;
+			Log::i << "Configuration updated. code: " << std::hex << ret << std::dec << endl;
 			return true;
 		}
 	}
@@ -200,6 +204,7 @@ bool GPR::flushParams() {
 
 /*
 Read the status code (member variable) and returns whether an error has occured.
+True means success, false means failure.
 Does not recheck the status of the hardware to ensure validity of the status code.
 */
 bool GPR::processStatusCode() {
@@ -210,39 +215,43 @@ bool GPR::processStatusCode() {
 	bool hasErrored = false;
 
 	if (is_bit_set(status, 31)) {
-		Log::d << "not enough data in DLL buffer" << endl;
+		Log::d << "\tnot enough data in DLL buffer" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 30)) {
-		Log::d << "synch operation succeeded (why is this an error?)" << endl;
+		Log::d << "\tsynch operation succeeded (why is this an error?)" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 11)) {
-		Log::d << "micro buffer overflow" << endl;
+		Log::d << "\tmicro buffer overflow" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 0)) {
-		Log::d << "device offline" << endl;
+		Log::d << "\tdevice offline" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 1)) {
-		Log::d << "radar is off" << endl;
+		Log::d << "\tradar is off" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 9)) {
-		Log::d << "dll buffer got full" << endl;
+		Log::d << "\tdll buffer got full" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 8)) {
-		Log::d << "invalid buffer size" << endl;
+		Log::d << "\tinvalid buffer size" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 10)) {
-		Log::d << "bad sequence number" << endl;
+		Log::d << "\tbad sequence number" << endl;
 		hasErrored = true;
 	}
 
-	return hasErrored;
+	if (hasErrored) {
+		Log::d << "Error code: " << std::hex << status << std::dec << endl;
+	}
+
+	return !hasErrored;
 }
 
 /*
@@ -256,12 +265,12 @@ bool GPR::checkStatus(bool verbose) {
 
 	while (!success && attempts < MAX_ATTEMPTS) {
 
-		status = read_data(NULL, 0, ids);
+		status = read_data(dataBuffer, 0, ids);
 		success = processStatusCode();
 
 		if (success) {
 			if (verbose) {
-				Log::i << "GPR status all okay. Code: " << status << endl;
+				Log::i << "GPR status all okay. Code: " << std::hex << status << std::dec << endl;
 
 				int antenna_id = ids->antenna_id;
 				int low_batt = ids->low_battery;
@@ -280,7 +289,7 @@ bool GPR::checkStatus(bool verbose) {
 			}
 		}
 		else {
-			Log::e << "GPR status error. Code: " << status << endl;
+			Log::e << "GPR status error. Code: " << std::hex << status << std::dec << endl;
 			attempts++;
 		}
 	}
@@ -296,7 +305,7 @@ completed successfully, false otherwise.
 */
 bool GPR::initialise() {
 
-	int attempts = 0;	
+	int attempts = 0;
 	bool success = false;
 
 	//generate the configuration parameters that will
@@ -314,11 +323,14 @@ bool GPR::initialise() {
 	// not sure if this is necessary or if it even does anything.
 	// but it was mentioned in the supplied header so ill do it regardless
 	Log::i << "Synchronising data stream..." << endl;
-	status = read_data(NULL, -1, ids);
-	processStatusCode();
+	success = false;
+	while (!success) {
+		status = read_data(dataBuffer, -1, ids);
+		success = processStatusCode();
+	}
 
 	// read status data
-	Log::i << "Reading status data..." << endl;
+	Log::i << "Checking synchronisation and reading status data..." << endl;
 	success = checkStatus(true);
 	
 	if (!success)
@@ -332,41 +344,118 @@ bool GPR::initialise() {
 TODO(Jono) : this is incomplete
 */
 bool GPR::getData() {
-	Log::i << "wait for data..." << endl;
+	Log::i << "Wait for data..." << endl;
 	bool success = false;
 
-	while (samples == 0) {
-
-		success = checkStatus(false);
+	// this checks whether the GPR is ready, and calculates the number of 
+	// samples available to be read from the device. the number of samples
+	// is calculated everytime processStatusCode is called, which is called
+	// automatically by check-status.
+	success = checkStatus(false);
 		
-		if (!success) {
-			samples = 0;
-			Log::d << "Error. code: " << status << endl;
-			break;
-		}
-		
-		if (samples == 0) {
-			continue;
-		}
-		
-		Log::i << "---" << endl;
-		Log::i << "SAMPLES: " << samples << endl;
-
-		// read some data from the buffer
-		Log::i << "retrieve data..." << endl;
-		Log::i << "\t\t RETRIEVED DATA" << endl;
-
-		status = read_data(dataBuffer, 64 * samples, ids);
-
-		for (unsigned int i = 0; i<64 * samples; i++) {
-			Log::i << dataBuffer[i] << " | ";
-		}
-		Log::i << endl;
+	if (!success) {
 		samples = 0;
+		Log::e << "Cannot retreive data. Error code: " << std::hex << status << std::dec << endl;
+		return false;
+	}
+		
+	if (samples == 0) {
+		Log::i << "No samples available" << endl;
+		return false;
+	}
+	
+	// read some data from the buffer
+	Log::i << "Attemptint to retrieve data..." << endl;
+	Log::i << "Samples: " << samples << endl;
 
 
+	status = read_data(dataBuffer, 64 * samples, ids);
+
+	unsigned int valuesMask = 0x0000FFFF;
+	unsigned int switchesMask = 0x000F0000;
+	unsigned int positionMask = 0x00300000;
+	unsigned int antennasMask = 0x00C00000;
+	unsigned int blueSwitchMask = 0x1;
+	unsigned int greenSwitchMask = 0x2;
+	unsigned int redSwitchMask = 0x4;
+	unsigned int yellowSwitchMask = 0x8;
+	unsigned int value, switches, position, antennas;
+
+
+	std::ofstream myfile;
+	myfile.open("output.csv");
+	//write headers
+	myfile << "ID, Antenna, Switches, Position, Value\n";
+
+
+	for (unsigned int i = 0; i<64 * samples; i++) {
+
+		//dataBuffer[i] = 0xFFFFFFFF;
+
+		value = dataBuffer[i] & valuesMask;
+		switches = (dataBuffer[i] & switchesMask) >> 16;
+		position = (dataBuffer[i] & positionMask) >> 20;
+		antennas = (dataBuffer[i] & antennasMask) >> 22;
+
+		
+		if ((switches & 0b0001) == 0b0000) {
+			//Log::d << "blue button pressed" << endl;
+			blue_button = true;
+		} else {
+			blue_button = false;
+		}
+
+		if ((switches & 0b0010) == 0b0000) {
+			//Log::d << "green button pressed" << endl;
+			green_button = true;
+		} else {
+			green_button = false;
+		}
+		
+		if ((switches & 0b0100) == 0b0000) {
+			//Log::d << "red button pressed" << endl;
+			red_button = true;
+		}
+		else {
+			red_button = false;
+		}
+
+		if ((switches & 0b1000) == 0b0000) {
+			//Log::d << "yellow button pressed" << endl;
+			yellow_button = true;
+		}
+		else {
+			yellow_button = false;
+		}
+
+
+
+		//Log::i << "Value:\t" << std::hex << value << std::dec << endl;
+		//Log::i << "Switches:\t" << std::bitset<4>(switches) << endl;
+		//Log::i << "Position:\t" << std::bitset<2>(position) << endl;
+		//Log::i << "Antenna:\t" << std::bitset<2>(antennas) << endl;
+
+		//Log::i << std::bitset<2>(antennas) << "-" << value << " | ";
+
+		myfile << i << ", " << std::bitset<2>(antennas) 
+			<< ", " << std::bitset<4>(switches) 
+			<< ", " << std::bitset<2>(position) 
+			<< ", " << std::bitset<16>(value) << "\n";
 
 	}
+	Log::i << endl;
+
+	
+	myfile.close();
 
 	return success;
 }
+
+/*
+data word bits (d31,d30... d0)
+
+d15-d0	- 16 bit A/D converter value; two's compliment
+d23-d22	-	Antenna code(11 - differential ;10/01 - antenna1 / antenna2)
+d21-d20	- Position sensor data
+d19-d16	- switch data ( the four switches on the antenna/base unit)
+*/
