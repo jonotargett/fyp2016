@@ -45,14 +45,14 @@ bool SimpleNavigator::subdivide() {
 	double distanceBetweenTurnWaypoints = 0.2;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(50, 10);
-	addPoint(dummyPoints);
-	dummyPoints = Point(30, 80);
+	Point dummyPoints = Point(30, 80);
 	addPoint(dummyPoints);
 	dummyPoints = Point(60, 100);
 	addPoint(dummyPoints);
-	dummyPoints = Point(130, 100);
-	//addPoint(dummyPoints);
+	dummyPoints = Point(60, 60);
+	addPoint(dummyPoints);
+	dummyPoints = Point(30, 50);
+	addPoint(dummyPoints);
 
 	std::vector<Point> subdividedPath;
 
@@ -71,17 +71,18 @@ bool SimpleNavigator::subdivide() {
 		Point intermediate = Point(path.at(i)->x, path.at(i)->y);
 
 		// FactorXY used for determining whether intermediate point is still within boundary points.
-		double FactorX = directionVector.x / abs(directionVector.x);
-		double FactorY = directionVector.y / abs(directionVector.y);
-		int k = 0;
+		double FactorX = (directionVector.x != 0) ? directionVector.x / abs(directionVector.x) : 0;
+		double FactorY = (directionVector.y != 0) ? directionVector.y / abs(directionVector.y) : 0;
+
+		int index = 0;
 		//while our intermediate point is still between the two 'ultimate' waypoints
 		while (intermediate.x * FactorX <= path.at(i + 1)->x * FactorX && intermediate.y * FactorY <= path.at(i + 1)->y * FactorY) {
 			Point p = Point(intermediate.x, intermediate.y);
 			subdividedPath.push_back(p);
 			// add to initial point rather than incrementing 'intermediate' to remove accumulative error
-			k++;
-			intermediate.x = path.at(i)->x + k * (directionVector.x * distanceBetweenWaypoints);
-			intermediate.y = path.at(i)->y + k * (directionVector.y * distanceBetweenWaypoints);
+			index++;
+			intermediate.x = path.at(i)->x + index * (directionVector.x * distanceBetweenWaypoints);
+			intermediate.y = path.at(i)->y + index * (directionVector.y * distanceBetweenWaypoints);
 		}
 		subdividedPath.push_back(Point(path.at(i+1)->x, path.at(i+1)->y));
 
