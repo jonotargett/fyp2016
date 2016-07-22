@@ -2,48 +2,39 @@
 #include "Log.h"
 
 GPR::GPR() {
-	//BUF0
-	GPR_PARAM_UPDATE updateMode = GPR_PARAM_UPDATE_FLUSH_ALL;
-	unsigned int DA_Delay = 16;					// range [0, 255]
-
-	//BUF1
-	unsigned int timeBase = 0;					// range [0, 4095]
-
-	//BUF2
-	unsigned int cableDelay = 1;					// range [0, 7]
-	GPR_FRAMERATE framerate = GPR_FRAMERATE_127Hz;
-
-	//BUF3
-	unsigned int analogGain = 15;					// range [0, 127]
-
-	//BUF4
-	unsigned int singleAntennaGain = 1;				// range [0, 3]
-	unsigned int differentialAntennaGain = 0;		// range [0, 3]
-	GPR_SPI_UPDATING spi = GPR_SPI_UPDATING_ENABLE;
-	GPR_PRF prf = GPR_PRF_65kHz;
-	GPR_AD_AVERAGING ad_av = GPR_AD_AVERAGING_ENABLE;
-	GPR_AD_CALIBRATION ad_cal = GPR_AD_CALIBRATION_DISABLE;
-
-	//----------------------------------------------------------------------
-
 	params = new unsigned int[5];
-	buffer = new unsigned int[8192];
+	dataBuffer = new unsigned int[8192];
 	ids = new id_struct();
 	status = 0x0;
 
+	// set default GPR configuration parameters
+	updateMode = GPR_PARAM_UPDATE_FLUSH_ALL;
+	serialUpdating = GPR_SPI_UPDATING_ENABLE;
+	framerate = GPR_FRAMERATE_127Hz;
+	prf = GPR_PRF_65kHz;
+	adAveraging = GPR_AD_AVERAGING_ENABLE;
+	adCalibration = GPR_AD_CALIBRATION_DISABLE;
+
+	daDelay = 16;					// range [0, 255]
+	timeBase = 0;					// range [0, 4095]
+	cableDelay = 1;					// range [0, 7]
+	analogGain = 15;					// range [0, 127]
+	singleAntennaGain = 1;				// range [0, 3]
+	differentialAntennaGain = 0;		// range [0, 3]
 	
+
+	// initialise ID values to something non-default
 	ids->antenna_id = 0xDEADBEEF;
 	ids->low_battery = 0x1;
 	ids->pga_id[0] = 'a';
-	ids->pgm_id[0] = 'a';		// just set to anything non-default
+	ids->pgm_id[0] = 'a';
 
 	return;
 }
 
 GPR::~GPR() {
-	//nothing to clear
 
-	delete buffer;
+	delete dataBuffer;
 	delete params;
 	delete ids;
 
@@ -51,10 +42,13 @@ GPR::~GPR() {
 }
 
 
+/*
+Checks the value of a certain bit in an integer value.
+returns true if bit is set, false if otherwise
+*/
 bool GPR::is_bit_set(unsigned int val, unsigned int bit) {
 	return !!((val) & (1 << (bit)));
 }
-
 
 
 
@@ -62,20 +56,20 @@ void GPR::setFlushMode(GPR_PARAM_UPDATE p) {
 	updateMode = p;
 }
 void GPR::enableSPIUpdate(GPR_SPI_UPDATING p) {
-	spi = p;
+	serialUpdating = p;
 }
 void GPR::setGPR_PRF(GPR_PRF p) {
 	prf = p;
 }
 void GPR::enableADAveraging(GPR_AD_AVERAGING p) {
-	ad_av = p;
+	adAveraging = p;
 }
 void GPR::enableADAutoCalibration(GPR_AD_CALIBRATION p) {
-	ad_cal = p;
+	adCalibration = p;
 }
 bool GPR::setDADelay(unsigned int p) {
 	if (p > 255) return false;
-	DA_Delay = p;
+	daDelay = p;
 	return true;
 }
 bool GPR::setCableDelay(unsigned int p) {
@@ -118,8 +112,8 @@ bool GPR::processParams() {
 	if (updateMode == GPR_PARAM_UPDATE_FLUSH_ALL) params[0] = 0x1;
 	params[0] = params[0] << 31;
 	mask = 0x000000FF;
-	DA_Delay = DA_Delay & mask;
-	params[0] = params[0] + DA_Delay;
+	daDelay = daDelay & mask;
+	params[0] = params[0] + daDelay;
 
 	// BUFFER 1
 	mask = 0x00000FFF;
@@ -150,7 +144,7 @@ bool GPR::processParams() {
 	params[4] = params[4] << 2;
 	params[4] += differentialAntennaGain;
 	params[4] = params[4] << 1;
-	if (spi == GPR_SPI_UPDATING_DISABLE) params[4] += 0x1;
+	if (serialUpdating == GPR_SPI_UPDATING_DISABLE) params[4] += 0x1;
 	params[4] = params[4] << 2;
 	switch (prf) {
 	default:
@@ -160,9 +154,9 @@ bool GPR::processParams() {
 	case GPR_PRF_1MHz:		params[4] += 0x11;	break;
 	}
 	params[4] = params[4] << 2;
-	if (ad_av == GPR_AD_AVERAGING_ENABLE) params[4] += 0x01;
+	if (adAveraging == GPR_AD_AVERAGING_ENABLE) params[4] += 0x01;
 	params[4] = params[4] << 2;
-	if (ad_cal == GPR_AD_CALIBRATION_ENABLE) params[4] += 0x01;
+	if (adCalibration == GPR_AD_CALIBRATION_ENABLE) params[4] += 0x01;
 	params[4] = params[4] << 11;
 	
 	return true;
@@ -204,7 +198,10 @@ bool GPR::flushParams() {
 	return false;
 }
 
-
+/*
+Read the status code (member variable) and returns whether an error has occured.
+Does not recheck the status of the hardware to ensure validity of the status code.
+*/
 bool GPR::processStatusCode() {
 
 	unsigned int mask = ((1 << 8) - 1) << 16;
@@ -248,7 +245,11 @@ bool GPR::processStatusCode() {
 	return hasErrored;
 }
 
-
+/*
+checks the status of the device by reading the status data from the hardware.
+returns true if status is okay, false if otherwise. if verbose is set, will 
+dump the data contained in the IDs struct to the informative log.
+*/
 bool GPR::checkStatus(bool verbose) {
 	bool success = false;
 	unsigned int attempts = 0;
@@ -287,6 +288,12 @@ bool GPR::checkStatus(bool verbose) {
 	return success;
 }
 
+/*
+Must be run prior to any use of the GPR hardware. Performs first-run
+connection and initialisation of the hardware, synchronises the data stream,
+and checks the operation status of the device. returns true if all processes
+completed successfully, false otherwise.
+*/
 bool GPR::initialise() {
 
 	int attempts = 0;	
@@ -321,6 +328,9 @@ bool GPR::initialise() {
 }
 
 
+/*
+TODO(Jono) : this is incomplete
+*/
 bool GPR::getData() {
 	Log::i << "wait for data..." << endl;
 	bool success = false;
@@ -346,10 +356,10 @@ bool GPR::getData() {
 		Log::i << "retrieve data..." << endl;
 		Log::i << "\t\t RETRIEVED DATA" << endl;
 
-		status = read_data(buffer, 64 * samples, ids);
+		status = read_data(dataBuffer, 64 * samples, ids);
 
 		for (unsigned int i = 0; i<64 * samples; i++) {
-			Log::i << buffer[i] << " | ";
+			Log::i << dataBuffer[i] << " | ";
 		}
 		Log::i << endl;
 		samples = 0;

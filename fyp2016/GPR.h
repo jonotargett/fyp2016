@@ -35,17 +35,27 @@ enum GPR_AD_CALIBRATION {
 	GPR_AD_CALIBRATION_ENABLE
 };
 
-class GPR
-{
+class GPR {
+
+public:
+	GPR();
+	~GPR();
+
+	bool initialise();
+	bool flushParams();
+
+	bool getData();
+	bool checkStatus(bool);
+
 private:
 	GPR_PARAM_UPDATE updateMode;
-	GPR_SPI_UPDATING spi;
+	GPR_SPI_UPDATING serialUpdating;
 	GPR_FRAMERATE framerate;
 	GPR_PRF prf;
-	GPR_AD_AVERAGING ad_av;
-	GPR_AD_CALIBRATION ad_cal;
+	GPR_AD_AVERAGING adAveraging;
+	GPR_AD_CALIBRATION adCalibration;
 
-	unsigned int DA_Delay;					// range [0, 255]
+	unsigned int daDelay;					// range [0, 255]
 	unsigned int timeBase;					// range [0, 4095]
 	unsigned int cableDelay;				// range [0, 7]
 	unsigned int analogGain;				// range [0, 127]
@@ -53,7 +63,7 @@ private:
 	unsigned int differentialAntennaGain;	// range [0, 3]
 	
 	unsigned int* params;
-	unsigned int* buffer;
+	unsigned int* dataBuffer;
 	unsigned int status;
 	unsigned int samples;
 	id_struct* ids;
@@ -74,14 +84,4 @@ private:
 
 	bool processParams();
 	bool processStatusCode();
-
-public:
-	GPR();
-	~GPR();
-
-	bool initialise();
-	bool flushParams();
-
-	bool getData();
-	bool checkStatus(bool);
 };
