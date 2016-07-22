@@ -13,7 +13,7 @@ public:
 	
 	SDL_Texture* getTexture();
 	void createBlank(int width, int height);
-	void free();
+	void freeSimpleTexture();
 	void setColor(Uint8 red, Uint8 green, Uint8 blue);
 	void setAlpha(Uint8 alpha);
 	void setAsRenderTarget();

@@ -4,6 +4,8 @@
 #include <thread>
 #include <chrono>
 
+#define PI 3.1415926535
+
 class SimpleNavigator :
 	public NavigationSystem
 {

@@ -25,7 +25,6 @@ public:
 	~Window();
 
 	static SDL_Window* window;
-	static int myinteger;
 	static bool shouldQuit();
 	static void showWindow(bool);
 	static SDL_Renderer* renderer;

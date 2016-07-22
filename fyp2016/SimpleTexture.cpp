@@ -10,7 +10,7 @@ SimpleTexture::SimpleTexture()
 
 SimpleTexture::~SimpleTexture()
 {
-	free();
+	freeSimpleTexture();
 }
 
 SDL_Texture* SimpleTexture::getTexture() {
@@ -24,7 +24,7 @@ void SimpleTexture::createBlank(int w, int h)
 	height = h;
 }
 
-void SimpleTexture::free()
+void SimpleTexture::freeSimpleTexture()
 {
 	//Free texture if it exists
 	if (texture != NULL)
