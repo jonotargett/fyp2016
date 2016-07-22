@@ -49,7 +49,7 @@ bool SimpleNavigator::subdivide() {
 	addPoint(dummyPoints);
 	dummyPoints = Point(30, 80);
 	addPoint(dummyPoints);
-	dummyPoints = Point(60, 50);
+	dummyPoints = Point(60, 100);
 	addPoint(dummyPoints);
 	dummyPoints = Point(130, 100);
 	//addPoint(dummyPoints);
@@ -57,7 +57,7 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	// for each line segment (each line between two 'ultimate' waypoints)
-	for (int i = 0; i < path.size() - 1; i++) {
+	for (unsigned int i = 0; i < path.size() - 1; i++) {
 
 		///
 		///	subdividing straight line segments:
@@ -118,7 +118,7 @@ bool SimpleNavigator::subdivide() {
 			std::vector<double> turnAngleListDegrees = {
 				0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
 			std::vector<double> turnAngleListRads;
-			for (int m = 0; m < turnAngleListDegrees.size(); m++) {
+			for (unsigned int m = 0; m < turnAngleListDegrees.size(); m++) {
 				turnAngleListRads.push_back(turnAngleListDegrees.at(m) * PI/180);
 			}
 			
@@ -200,11 +200,11 @@ bool SimpleNavigator::subdivide() {
 	/*
 	TODO (JONO could you please check that ive done this right or correct it if i havnt:)
 	*/
-	for (int i = 0; i < path.size(); i++) {
+	for (unsigned int i = 0; i < path.size(); i++) {
 		delete path.at(i);
 	}
 	path.clear();
-	for (int i = 0; i < subdividedPath.size(); i++) {
+	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
 		addPoint(subdividedPath.at(i));
 	}
 	subdividedPath.clear();

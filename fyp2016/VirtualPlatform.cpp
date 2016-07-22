@@ -27,12 +27,12 @@ void VirtualPlatform::drawTexture() {
 
 	SDL_SetRenderDrawColor(Window::renderer, 0xFF, 0xFF, 0x00, 0xFF);
 	int scale = 15;
-	for (int i = 0; i < ns->getPath().size() - 1; i++) {
-		SDL_RenderDrawLine(Window::renderer, ns->getPath().at(i)->x * scale, ns->getPath().at(i)->y * scale * -1 + 1300, ns->getPath().at(i+1)->x * scale, ns->getPath().at(i+1)->y * scale * -1 + 1300);
+	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
+		SDL_RenderDrawLine(Window::renderer, (int) ns->getPath().at(i)->x * scale, (int) ns->getPath().at(i)->y * scale * -1 + 1300, (int)ns->getPath().at(i+1)->x * scale, (int)ns->getPath().at(i+1)->y * scale * -1 + 1300);
 	}
 	SDL_SetRenderDrawColor(Window::renderer, 0x00, 0x00, 0x00, 0xFF);
-	for (int i = 0; i < ns->getPath().size(); i++) {	
-		SDL_RenderDrawPoint(Window::renderer, ns->getPath().at(i)->x * scale, ns->getPath().at(i)->y * scale * -1 + 1300);
+	for (int i = 0; i < (int)ns->getPath().size(); i++) {
+		SDL_RenderDrawPoint(Window::renderer, (int)ns->getPath().at(i)->x * scale, (int)ns->getPath().at(i)->y * scale * -1 + 1300);
 	}
 	
 	/*
