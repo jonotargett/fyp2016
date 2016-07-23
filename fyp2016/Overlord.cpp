@@ -51,16 +51,16 @@ void Overlord::run() {
 	
 
 	//fd->createImage(DISPLAY_KERNEL);
+	
+	Window::showWindow(true);
 
-
-	//Window::showWindow(false);
 	//window->update(fd->retrieveImage());
 	//window->update(vp->getTexture());
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
-	//vp->drawTexture();
-	//vp->renderTexture();
+	vp->drawTexture();
+	vp->renderTexture();
 	
 	while (!Window::shouldQuit()) {
 
