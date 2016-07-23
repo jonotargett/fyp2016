@@ -2,46 +2,45 @@
 #include "Window.h"
 #include "SimpleTexture.h"
 
-FeatureDetector::FeatureDetector(HardwareInterface* interf) : hwi(interf)
+FeatureDetector::FeatureDetector(HardwareInterface* interf, SDL_Renderer* r) : hwi(interf), renderer(r)
 {
 }
 
 
 FeatureDetector::~FeatureDetector()
 {
-	SDL_FreeSurface(image);
-	image = NULL;
+	SDL_DestroyTexture(texture);
+	texture = NULL;
 }
 
 bool FeatureDetector::initialise() {
 
 	bool success;
-	return false;
 
 	gpr = new GPR();
 
 	success = gpr->initialise();
 	if (!success) return false;
 
-	int samples = 0;
 
-	
+	scan = gpr->getBscan(GPR_DIFFERENTIAL);
 
-	while (samples < 100) {
-		bool received = gpr->getData();
-		
-		if (received) {
-			++samples;
-			Log::d << "Sample " << samples << " taken." << endl;
-		}
+	return true;
+}
+
+bool FeatureDetector::runScan() {
+	bool received = false;
+
+	while (!received) {
+		received = gpr->getData();
 	}
-
 
 	return true;
 }
 
 bool FeatureDetector::loadScan() {
 
+	delete scan;
 	scan = new Bscan();
 	Bscan* empty = new Bscan();
 
@@ -71,14 +70,16 @@ bool FeatureDetector::loadScan() {
 
 bool FeatureDetector::createImage(Visual displayMode) {
 
-	SDL_FreeSurface(image);
-	image = NULL;
+	SDL_DestroyTexture(texture);
+	texture = NULL;
+
+	
 	image = SDL_CreateRGBSurface(0, 1000, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	Uint32 *pixels = (Uint32*)image->pixels;
 
-	// initialise the surface to black
+	// initialise the surface to blue
 	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
+		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0xFF);
 	}
 
 	// if a scan is paired to this window, push it to the screen
@@ -101,20 +102,36 @@ bool FeatureDetector::createImage(Visual displayMode) {
 					v = scan->Kernel(3, i, j);
 				}
 
-				int h = v / 256;
-				int l = v - h * 256;
+				//int h = v / 256;
+				//int l = v - h * 256;
 
-				pixels[j*image->w + i] = SDL_MapRGB(image->format, h, h, h);
+				int16_t n = (int16_t)(v);
+
+				uint8_t h = ((int)(v) / 256);
+				uint8_t l = ((int8_t)v);
+
+				pixels[j*image->w + i] = SDL_MapRGB(image->format, h, l, n);
 			}
 		}
+
+
+		Log::d << "Visual scan image created." << std::endl; 
+		texture = SDL_CreateTextureFromSurface(renderer, image);
+
+		if (texture == NULL) {
+			Log::e << "Could not create texture from scan image. " << SDL_GetError() << endl;
+		}
+	}
+	else {
+		Log::d << "Scan is NULL" << endl;
 	}
 
-	Log::d << "Visual scan image created." << std::endl;
+	SDL_FreeSurface(image);
 
 	return true;
 }
 
 
-SDL_Surface* FeatureDetector::retrieveImage() {
-	return image;
+SDL_Texture* FeatureDetector::retrieveImage() {
+	return texture;
 }

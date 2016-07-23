@@ -7,6 +7,8 @@
 #include "Log.h"
 #include "Ascan.h"
 
+#define MAX_LENGTH 800
+
 class Bscan
 {
 private:

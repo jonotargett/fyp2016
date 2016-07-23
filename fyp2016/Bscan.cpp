@@ -95,6 +95,11 @@ bool Bscan::add(Ascan* a) {
 
 	if (a->getSize() == scans.at(0)->getSize()) {
 		scans.push_back(a);
+
+		if (scans.size() > MAX_LENGTH) {
+			scans.erase(scans.begin(), scans.begin() + (scans.size() - MAX_LENGTH));
+		}
+
 		return true;
 	}
 

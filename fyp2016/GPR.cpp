@@ -2,6 +2,8 @@
 #include "Log.h"
 
 GPR::GPR() {
+	properly_initialised = false;
+
 	params = new unsigned int[5];
 	dataBuffer = new unsigned int[8192];
 	ids = new id_struct();
@@ -11,14 +13,14 @@ GPR::GPR() {
 	updateMode = GPR_PARAM_UPDATE_FLUSH_ALL;
 	serialUpdating = GPR_SPI_UPDATING_ENABLE;
 	framerate = GPR_FRAMERATE_127Hz;
-	prf = GPR_PRF_65kHz;
-	adAveraging = GPR_AD_AVERAGING_ENABLE;
+	prf = GPR_PRF_130kHz;
+	adAveraging = GPR_AD_AVERAGING_DISABLE;
 	adCalibration = GPR_AD_CALIBRATION_DISABLE;
 
-	daDelay = 24;					// range [0, 255]
-	timeBase = 255;					// range [0, 4095]
-	cableDelay = 3;					// range [0, 7]
-	analogGain = 44;					// range [0, 127]
+	daDelay = 127;						// range [0, 255]
+	timeBase = 2048;					// range [0, 4095]
+	cableDelay = 3;						// range [0, 7]
+	analogGain = 64;					// range [0, 127]
 	singleAntennaGain = 2;				// range [0, 3]
 	differentialAntennaGain = 2;		// range [0, 3]
 	
@@ -223,31 +225,31 @@ bool GPR::processStatusCode() {
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 30)) {
-		Log::d << "\tsynch operation succeeded (why is this an error?)" << endl;
+		Log::d << "\tSync operation succeeded (error?)" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 11)) {
-		Log::d << "\tmicro buffer overflow" << endl;
+		Log::d << "\tMicro buffer overflow" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 0)) {
-		Log::d << "\tdevice offline" << endl;
+		Log::d << "\tDevice offline" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 1)) {
-		Log::d << "\tradar is off" << endl;
+		Log::d << "\tRadar is off" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 9)) {
 		Log::d << "\tdll buffer got full" << endl;
-		hasErrored = true;
+		//hasErrored = true;
 	}
 	if (is_bit_set(status, 8)) {
-		Log::d << "\tinvalid buffer size" << endl;
+		Log::d << "\tInvalid buffer size" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 10)) {
-		Log::d << "\tbad sequence number" << endl;
+		Log::d << "\tBad sequence number" << endl;
 		hasErrored = true;
 	}
 
@@ -320,6 +322,10 @@ bool GPR::initialise() {
 	while (!success) {
 		status = read_data(dataBuffer, -1, ids);
 		success = processStatusCode();
+		attempts++;
+
+		if (attempts > MAX_ATTEMPTS)
+			return false;
 	}
 
 	// read status data
@@ -341,6 +347,8 @@ bool GPR::initialise() {
 	if (!success)
 		return false;
 
+	properly_initialised = true;
+
 	return true;
 }
 
@@ -349,8 +357,26 @@ bool GPR::initialise() {
 TODO(Jono) : this is incomplete
 */
 bool GPR::getData() {
-	Log::d << "Wait for data..." << endl;
+
+	if (!properly_initialised)
+		return false;
+
+	//Log::d << "Wait for data..." << endl;
 	bool success = false;
+	unsigned int attempts = 0;
+
+	while (!success) {
+		status = read_data(dataBuffer, -1, ids);
+		success = processStatusCode();
+		attempts++;
+
+		if (attempts > MAX_ATTEMPTS)
+			return false;
+	}
+
+
+	
+
 
 	// this checks whether the GPR is ready, and calculates the number of 
 	// samples available to be read from the device. the number of samples
@@ -370,15 +396,15 @@ bool GPR::getData() {
 	}
 
 	// read some data from the buffer
-	Log::d << "Attemptint to retrieve data..." << endl;
-	Log::d << "Samples: " << samples << endl;
+	//Log::d << "Attemptint to retrieve data..." << endl;
+	//Log::d << "Samples: " << samples << endl;
 
 	if (samples < 24) {
-		Log::i << "Not enough samples available (3x512 for all channels)" << endl;
+		Log::d << "Not enough samples available (3x512 for all channels)" << endl;
 		return false;
 	}
 
-	Log::d << "Reading 24 samples [64 chunks, 24x64 == 512x3 channels" << endl;
+	//Log::d << "Reading 24 samples [64 chunks, 24x64 == 512x3 channels" << endl;
 
 	unsigned int reading = 24;
 	status = read_data(dataBuffer, 64 * reading, ids);
@@ -416,28 +442,28 @@ bool GPR::getData() {
 
 
 		if ((switches & 0b0001) == 0b0000) {
-			//Log::d << "blue button pressed" << endl;
+			Log::d << "blue button pressed" << endl;
 			blue_button = true;
 		} else {
 			blue_button = false;
 		}
 
 		if ((switches & 0b0010) == 0b0000) {
-			//Log::d << "green button pressed" << endl;
+			Log::d << "green button pressed" << endl;
 			green_button = true;
 		} else {
 			green_button = false;
 		}
 		
 		if ((switches & 0b0100) == 0b0000) {
-			//Log::d << "red button pressed" << endl;
+			Log::d << "red button pressed" << endl;
 			red_button = true;
 		} else {
 			red_button = false;
 		}
 
 		if ((switches & 0b1000) == 0b0000) {
-			//Log::d << "yellow button pressed" << endl;
+			Log::d << "yellow button pressed" << endl;
 			yellow_button = true;
 		} else {
 			yellow_button = false;
@@ -462,14 +488,14 @@ bool GPR::getData() {
 
 	}
 
-	Log::d << "Ascan counts: " << dif_count << " " << ch1_count << " " << ch2_count << endl;
+	//Log::d << "Ascan counts: " << dif_count << " " << ch1_count << " " << ch2_count << endl;
 
 	if (dif_count == 512) {
 		Ascan* dif_scan = new Ascan(dif_count, dif_vals);
 		differential->add(dif_scan);
 	}
 	else {
-		delete dif_vals;
+		//delete dif_vals;
 		Log::e << "GPR comms sync mismatch detected" << endl;
 	}
 	if (ch1_count == 512) {
@@ -477,7 +503,7 @@ bool GPR::getData() {
 		channel1->add(ch1_scan);
 	}
 	else {
-		delete ch1_vals;
+		//delete ch1_vals;
 		Log::e << "GPR comms sync mismatch detected" << endl;
 	}
 	if (ch2_count == 512) {
@@ -485,11 +511,11 @@ bool GPR::getData() {
 		channel2->add(ch2_scan);
 	}
 	else {
-		delete ch2_vals;
+		//delete ch2_vals;
 		Log::e << "GPR comms sync mismatch detected" << endl;
 	}
 
-	Log::i << endl;
+	//Log::i << endl;
 
 	return true;
 }

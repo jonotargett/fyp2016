@@ -62,6 +62,8 @@ public:
 	Bscan* getBscan(GPR_CHANNEL);
 
 private:
+	bool properly_initialised;
+
 	bool green_button;
 	bool red_button;
 	bool yellow_button;

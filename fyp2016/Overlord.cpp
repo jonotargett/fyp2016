@@ -34,7 +34,7 @@ bool Overlord::initialise() {
 	ns->initialise(dc, hwi);
 	Log::d << "-> NAVIGATION SYSTEM DONE" << endl;
 
-	fd = new FeatureDetector(hwi);
+	fd = new FeatureDetector(hwi, window->getRenderer());
 	fd->initialise();
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
@@ -48,25 +48,29 @@ bool Overlord::initialise() {
 
 
 void Overlord::run() {
-	
 
-	//fd->createImage(DISPLAY_KERNEL);
-	
 	window->showWindow(true);
 
-	//window->update(fd->retrieveImage());
-	//window->update(vp->getTexture());
+	// Virtual platform stuff
+	vp->drawTexture();
+	window->update(vp->getTexture());
+
+	// Feature detector stuff
+	fd->createImage(DISPLAY_RAW);
+	window->update(fd->retrieveImage());
+	
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
-	vp->drawTexture();
-	window->update(vp->getTexture());
-	
 	while (!window->shouldQuit()) {
 
 		window->handleEvents();
 		// waste time
 
-		SDL_Delay(50);
+		fd->runScan();
+		fd->createImage(DISPLAY_RAW);
+		window->update(fd->retrieveImage());
+
+		SDL_Delay(5);
 	}
 }
