@@ -1,6 +1,6 @@
 #include "SimpleTexture.h"
 
-SimpleTexture::SimpleTexture()
+SimpleTexture::SimpleTexture(SDL_Renderer* r) : renderer(r)
 {
 	//Initialize
 	texture = NULL;
@@ -16,10 +16,13 @@ SimpleTexture::~SimpleTexture()
 SDL_Texture* SimpleTexture::getTexture() {
 	return texture;
 }
+SDL_Renderer* SimpleTexture::getRenderer() {
+	return renderer;
+}
 
 void SimpleTexture::createBlank(int w, int h)
 {
-	texture = SDL_CreateTexture(Window::renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
 	width = w;
 	height = h;
 }
@@ -46,19 +49,9 @@ void SimpleTexture::setAlpha(Uint8 alpha)
 	SDL_SetTextureAlphaMod(texture, alpha);
 }
 
-void SimpleTexture::render(int x, int y)
-{
-	//Set rendering space and render to screen
-	SDL_Rect renderQuad = {x, y, width, height};
-
-	//Render to screen
-	SDL_RenderCopy(Window::renderer, texture, NULL, &renderQuad);
-	SDL_RenderPresent(Window::renderer);
-}
-
 void SimpleTexture::setAsRenderTarget()
 {
-	SDL_SetRenderTarget(Window::renderer, texture);
+	SDL_SetRenderTarget(renderer, texture);
 }
 
 int SimpleTexture::getWidth()

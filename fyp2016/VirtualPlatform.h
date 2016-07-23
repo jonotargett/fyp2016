@@ -7,21 +7,21 @@
 
 class VirtualPlatform
 {
-private:
-	NavigationSystem* ns;
-	int textureWidth = 800;
-	int textureHeight = 600;
-
 public:
 	VirtualPlatform();
 	~VirtualPlatform();
 
-	bool initialise(NavigationSystem*);
+	bool initialise(NavigationSystem*, SDL_Renderer*);
 
 	void drawTexture();
-	void renderTexture();
 	SDL_Texture* getTexture();
 	
+private:
+	NavigationSystem* ns;
 	SimpleTexture* texture;
+
+	int textureWidth = 800;
+	int textureHeight = 600;
+
 };
 

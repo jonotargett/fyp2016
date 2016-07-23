@@ -39,7 +39,7 @@ bool Overlord::initialise() {
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
 	vp = new VirtualPlatform();
-	vp->initialise(ns);
+	vp->initialise(ns, window->getRenderer());
 	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
 	
 	initialised = true;
@@ -52,7 +52,7 @@ void Overlord::run() {
 
 	//fd->createImage(DISPLAY_KERNEL);
 	
-	Window::showWindow(true);
+	window->showWindow(true);
 
 	//window->update(fd->retrieveImage());
 	//window->update(vp->getTexture());
@@ -60,11 +60,11 @@ void Overlord::run() {
 	Log::setVerbosity(LOG_INFORMATIVE);
 
 	vp->drawTexture();
-	vp->renderTexture();
+	window->update(vp->getTexture());
 	
-	while (!Window::shouldQuit()) {
+	while (!window->shouldQuit()) {
 
-		Window::handleEvents();
+		window->handleEvents();
 		// waste time
 
 		SDL_Delay(50);

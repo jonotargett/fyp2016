@@ -1,32 +1,30 @@
 #pragma once
 
-#include <string.h>
-
 #include "SDL\SDL.h"
-#include "Window.h"
+
 
 class SimpleTexture
 {
+private:
+	SDL_Texture* texture;
+	SDL_Renderer* renderer;
+
+	int width;
+	int height;
 public:
-	SimpleTexture();
+	SimpleTexture(SDL_Renderer* r);
 	~SimpleTexture();
 	
-	SDL_Texture* getTexture();
 	void createBlank(int width, int height);
 	void freeSimpleTexture();
+
 	void setColor(Uint8 red, Uint8 green, Uint8 blue);
 	void setAlpha(Uint8 alpha);
 	void setAsRenderTarget();
-	void render(int x, int y);
-	SDL_Renderer* renderer;
 
+	SDL_Texture* getTexture();
+	SDL_Renderer* getRenderer();
 	int getWidth();
 	int getHeight();
-
-private:
 	
-	SDL_Texture* texture;
-	
-	int width;
-	int height;
 };

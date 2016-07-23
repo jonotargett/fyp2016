@@ -1,14 +1,6 @@
 #include "Window.h"
 #include "SimpleTexture.h"
 
-SDL_Window* Window::window = NULL;
-SDL_Surface* Window::surface = NULL;
-SDL_Renderer* Window::renderer = NULL;
-
-SDL_Event Window::event;
-
-bool Window::quit = false;
-bool Window::visible = false;
 
 Window::Window()
 {
@@ -16,14 +8,35 @@ Window::Window()
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		Log::e << "SDL could not be initialised. " << SDL_GetError() << std::endl;
+		Log::e << "SDL could not be initialised. " 
+			<< SDL_GetError() << std::endl;
+
+		quit = true;
 		return;
 	}
 
-	window = SDL_CreateWindow("Signal Processing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							1200, 600, SDL_WINDOW_HIDDEN);
+	window = SDL_CreateWindow(
+		"FYP 2099 Control Program", 
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		1200, 600, SDL_WINDOW_HIDDEN);
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (window == NULL) {
+		Log::e << "SDL Window could not be created. "
+			<< SDL_GetError() << endl;
+		quit = true;
+		return;
+	}
+
+	renderer = SDL_CreateRenderer(window, -1, 
+		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	if (renderer == NULL) {
+		Log::e << "SDL Renderer could not be created. " 
+			<< SDL_GetError() << endl;
+		quit = true;
+		return;
+	}
+
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
 
@@ -45,11 +58,14 @@ Window::Window()
 
 Window::~Window()
 {
-	SDL_FreeSurface(surface);
-	surface = NULL;
-
 	SDL_DestroyWindow(window);
 	window = NULL;
+
+	SDL_DestroyRenderer(renderer);
+	renderer = NULL;
+
+	//SDL_DestroyTexture(texture);
+	//texture = NULL;
 }
 
 
@@ -67,15 +83,19 @@ void Window::showWindow(bool b) {
 	}
 }
 
-void Window::update(SDL_Surface* newImage) {
+void Window::update(SDL_Texture* newImage) {
 
-	SDL_BlitSurface(newImage, NULL, surface, NULL);
-
-	SDL_UpdateWindowSurface(window);
+	SDL_RenderClear(renderer);
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderCopy(renderer, newImage, NULL, NULL);
+	SDL_RenderPresent(renderer);
 
 	Log::d << "Window frame changed." << std::endl;
 }
 
+SDL_Renderer* Window::getRenderer() {
+	return renderer;
+}
 
 void Window::handleEvents() {
 	while (SDL_PollEvent(&event) != 0) {

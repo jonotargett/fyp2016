@@ -16,6 +16,7 @@ FeatureDetector::~FeatureDetector()
 bool FeatureDetector::initialise() {
 
 	bool success;
+	return false;
 
 	gpr = new GPR();
 
@@ -23,6 +24,8 @@ bool FeatureDetector::initialise() {
 	if (!success) return false;
 
 	int samples = 0;
+
+	
 
 	while (samples < 100) {
 		bool received = gpr->getData();
