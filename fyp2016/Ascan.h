@@ -1,12 +1,14 @@
 #pragma once
+#include <cstdint>
+
 class Ascan
 {
 private:
 	int offset;
 	const int length;
-	const int *values;
+	const int16_t *values;
 public:
-	Ascan(int, int*);
+	Ascan(int, int16_t*);
 	~Ascan();
 
 	int getSize();

@@ -22,10 +22,15 @@ bool FeatureDetector::initialise() {
 	success = gpr->initialise();
 	if (!success) return false;
 
+	int samples = 0;
 
-
-	while (!gpr->getData()) {
-
+	while (samples < 100) {
+		bool received = gpr->getData();
+		
+		if (received) {
+			++samples;
+			Log::d << "Sample " << samples << " taken." << endl;
+		}
 	}
 
 

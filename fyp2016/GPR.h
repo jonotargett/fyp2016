@@ -4,10 +4,17 @@
 #include <fstream>
 
 #include "csirousb.h"
+#include "Bscan.h"
 
 
 #define MAX_ATTEMPTS 10
+#define CHANNEL_STRIDE 512
 
+enum GPR_CHANNEL {
+	GPR_DIFFERENTIAL,
+	GPR_CHANNEL_1,
+	GPR_CHANNEL_2
+};
 
 enum GPR_PARAM_UPDATE {
 	GPR_PARAM_UPDATE_CHANGES_ONLY,
@@ -52,12 +59,17 @@ public:
 
 	bool getData();
 	bool checkStatus(bool);
+	Bscan* getBscan(GPR_CHANNEL);
 
 private:
 	bool green_button;
 	bool red_button;
 	bool yellow_button;
 	bool blue_button;
+
+	Bscan* differential;
+	Bscan* channel1;
+	Bscan* channel2;
 
 	GPR_PARAM_UPDATE updateMode;
 	GPR_SPI_UPDATING serialUpdating;

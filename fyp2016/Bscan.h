@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <vector>
 #include <string>
 #include <fstream>
@@ -23,6 +21,7 @@ public:
 
 	Ascan* produceNormal(int);
 	void normalise(Ascan*);
+	bool add(Ascan*);
 
 
 	int Kernel(int dimension, int h, int d);

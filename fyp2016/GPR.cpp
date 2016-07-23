@@ -15,17 +15,21 @@ GPR::GPR() {
 	adAveraging = GPR_AD_AVERAGING_ENABLE;
 	adCalibration = GPR_AD_CALIBRATION_DISABLE;
 
-	daDelay = 0;					// range [0, 255]
-	timeBase = 0;					// range [0, 4095]
-	cableDelay = 1;					// range [0, 7]
-	analogGain = 15;					// range [0, 127]
-	singleAntennaGain = 1;				// range [0, 3]
-	differentialAntennaGain = 0;		// range [0, 3]
+	daDelay = 24;					// range [0, 255]
+	timeBase = 255;					// range [0, 4095]
+	cableDelay = 3;					// range [0, 7]
+	analogGain = 44;					// range [0, 127]
+	singleAntennaGain = 2;				// range [0, 3]
+	differentialAntennaGain = 2;		// range [0, 3]
 	
 	green_button = false;
 	red_button = false;
 	yellow_button = false;
 	blue_button = false;
+
+	differential = new Bscan();
+	channel1 = new Bscan();
+	channel2 = new Bscan();
 
 	// initialise ID values to something non-default
 	ids->antenna_id = 0xDEADBEEF;
@@ -308,6 +312,21 @@ bool GPR::initialise() {
 	int attempts = 0;
 	bool success = false;
 
+	// synchronise data stream
+	// not sure if this is necessary or if it even does anything.
+	// but it was mentioned in the supplied header so ill do it regardless
+	Log::i << "Synchronising data stream..." << endl;
+
+	while (!success) {
+		status = read_data(dataBuffer, -1, ids);
+		success = processStatusCode();
+	}
+
+	// read status data
+	Log::i << "Checking synchronisation and reading status data..." << endl;
+	success = checkStatus(true);
+	
+
 	//generate the configuration parameters that will
 	// be sent to initialise the hardware
 	Log::i << "Initialising hardware parameters..." << endl;
@@ -319,20 +338,6 @@ bool GPR::initialise() {
 
 	setFlushMode(GPR_PARAM_UPDATE_CHANGES_ONLY);
 
-	// synchronise data stream
-	// not sure if this is necessary or if it even does anything.
-	// but it was mentioned in the supplied header so ill do it regardless
-	Log::i << "Synchronising data stream..." << endl;
-	success = false;
-	while (!success) {
-		status = read_data(dataBuffer, -1, ids);
-		success = processStatusCode();
-	}
-
-	// read status data
-	Log::i << "Checking synchronisation and reading status data..." << endl;
-	success = checkStatus(true);
-	
 	if (!success)
 		return false;
 
@@ -344,7 +349,7 @@ bool GPR::initialise() {
 TODO(Jono) : this is incomplete
 */
 bool GPR::getData() {
-	Log::i << "Wait for data..." << endl;
+	Log::d << "Wait for data..." << endl;
 	bool success = false;
 
 	// this checks whether the GPR is ready, and calculates the number of 
@@ -352,43 +357,51 @@ bool GPR::getData() {
 	// is calculated everytime processStatusCode is called, which is called
 	// automatically by check-status.
 	success = checkStatus(false);
-		
+
 	if (!success) {
 		samples = 0;
 		Log::e << "Cannot retreive data. Error code: " << std::hex << status << std::dec << endl;
 		return false;
 	}
-		
+
 	if (samples == 0) {
-		Log::i << "No samples available" << endl;
+		Log::d << "No samples available" << endl;
 		return false;
 	}
-	
+
 	// read some data from the buffer
-	Log::i << "Attemptint to retrieve data..." << endl;
-	Log::i << "Samples: " << samples << endl;
+	Log::d << "Attemptint to retrieve data..." << endl;
+	Log::d << "Samples: " << samples << endl;
 
+	if (samples < 24) {
+		Log::i << "Not enough samples available (3x512 for all channels)" << endl;
+		return false;
+	}
 
-	status = read_data(dataBuffer, 64 * samples, ids);
+	Log::d << "Reading 24 samples [64 chunks, 24x64 == 512x3 channels" << endl;
+
+	unsigned int reading = 24;
+	status = read_data(dataBuffer, 64 * reading, ids);
 
 	unsigned int valuesMask = 0x0000FFFF;
 	unsigned int switchesMask = 0x000F0000;
 	unsigned int positionMask = 0x00300000;
 	unsigned int antennasMask = 0x00C00000;
-	unsigned int blueSwitchMask = 0x1;
-	unsigned int greenSwitchMask = 0x2;
-	unsigned int redSwitchMask = 0x4;
-	unsigned int yellowSwitchMask = 0x8;
 	unsigned int value, switches, position, antennas;
 
+	// Don't need to be deleted at the end of the function
+	// as they are persistent in the Ascan
+	int16_t* dif_vals = new int16_t[CHANNEL_STRIDE];
+	int16_t* ch1_vals = new int16_t[CHANNEL_STRIDE];
+	int16_t* ch2_vals = new int16_t[CHANNEL_STRIDE];
+	unsigned int dif_count = 0;
+	unsigned int ch1_count = 0;
+	unsigned int ch2_count = 0;
 
-	std::ofstream myfile;
-	myfile.open("output.csv");
-	//write headers
-	myfile << "ID, Antenna, Switches, Position, Value\n";
 
 
-	for (unsigned int i = 0; i<64 * samples; i++) {
+
+	for (unsigned int i = 0; i<64 * reading; i++) {
 
 		//dataBuffer[i] = 0xFFFFFFFF;
 
@@ -398,6 +411,10 @@ bool GPR::getData() {
 		antennas = (dataBuffer[i] & antennasMask) >> 22;
 
 		
+		//check the value of the switches -- regardless of 
+		// of the value of anything else in the data stream
+
+
 		if ((switches & 0b0001) == 0b0000) {
 			//Log::d << "blue button pressed" << endl;
 			blue_button = true;
@@ -415,41 +432,86 @@ bool GPR::getData() {
 		if ((switches & 0b0100) == 0b0000) {
 			//Log::d << "red button pressed" << endl;
 			red_button = true;
-		}
-		else {
+		} else {
 			red_button = false;
 		}
 
 		if ((switches & 0b1000) == 0b0000) {
 			//Log::d << "yellow button pressed" << endl;
 			yellow_button = true;
-		}
-		else {
+		} else {
 			yellow_button = false;
 		}
 
 
-
-		//Log::i << "Value:\t" << std::hex << value << std::dec << endl;
-		//Log::i << "Switches:\t" << std::bitset<4>(switches) << endl;
-		//Log::i << "Position:\t" << std::bitset<2>(position) << endl;
-		//Log::i << "Antenna:\t" << std::bitset<2>(antennas) << endl;
-
-		//Log::i << std::bitset<2>(antennas) << "-" << value << " | ";
-
-		myfile << i << ", " << std::bitset<2>(antennas) 
-			<< ", " << std::bitset<4>(switches) 
-			<< ", " << std::bitset<2>(position) 
-			<< ", " << std::bitset<16>(value) << "\n";
+		//sort the data into structures by channel
+		switch (antennas) {
+		case 0b00:
+			dif_vals[dif_count++] = (int16_t)value;
+			break;
+		case 0b10:
+			ch1_vals[ch1_count++] = (int16_t)value;
+			break;
+		case 0b01:
+			ch2_vals[ch2_count++] = (int16_t)value;
+			break;
+		default:
+			Log::e << "Unknown channel ID received. Data error." << endl;
+			return false;
+		}
 
 	}
+
+	Log::d << "Ascan counts: " << dif_count << " " << ch1_count << " " << ch2_count << endl;
+
+	if (dif_count == 512) {
+		Ascan* dif_scan = new Ascan(dif_count, dif_vals);
+		differential->add(dif_scan);
+	}
+	else {
+		delete dif_vals;
+		Log::e << "GPR comms sync mismatch detected" << endl;
+	}
+	if (ch1_count == 512) {
+		Ascan* ch1_scan = new Ascan(ch1_count, ch1_vals);
+		channel1->add(ch1_scan);
+	}
+	else {
+		delete ch1_vals;
+		Log::e << "GPR comms sync mismatch detected" << endl;
+	}
+	if (ch2_count == 512) {
+		Ascan* ch2_scan = new Ascan(ch2_count, ch2_vals);
+		channel2->add(ch2_scan);
+	}
+	else {
+		delete ch2_vals;
+		Log::e << "GPR comms sync mismatch detected" << endl;
+	}
+
 	Log::i << endl;
 
-	
-	myfile.close();
-
-	return success;
+	return true;
 }
+
+
+
+
+Bscan* GPR::getBscan(GPR_CHANNEL c) {
+	switch (c) {
+	case GPR_DIFFERENTIAL:
+		return differential;
+	case GPR_CHANNEL_1:
+		return channel1;
+	case GPR_CHANNEL_2:
+		return channel2;
+	default:
+		return NULL;
+	}
+}
+
+
+
 
 /*
 data word bits (d31,d30... d0)
@@ -459,3 +521,27 @@ d23-d22	-	Antenna code(11 - differential ;10/01 - antenna1 / antenna2)
 d21-d20	- Position sensor data
 d19-d16	- switch data ( the four switches on the antenna/base unit)
 */
+
+/*
+std::ofstream myfile;
+myfile.open("output2.csv");
+//write headers
+myfile << "ID, Antenna, Switches, Position, Value, Value decimal\n";
+*/
+
+/*
+myfile << i << ", " << std::bitset<2>(antennas)
+<< ", " << std::bitset<4>(switches)
+<< ", " << std::bitset<2>(position)
+<< ", " << std::bitset<16>(value)
+<< ", " << (int16_t)value << "\n";
+*/
+
+//Log::i << "Value:\t" << std::hex << value << std::dec << endl;
+//Log::i << "Switches:\t" << std::bitset<4>(switches) << endl;
+//Log::i << "Position:\t" << std::bitset<2>(position) << endl;
+//Log::i << "Antenna:\t" << std::bitset<2>(antennas) << endl;
+
+//Log::i << std::bitset<2>(antennas) << "-" << value << " | ";
+
+//myfile.close();
