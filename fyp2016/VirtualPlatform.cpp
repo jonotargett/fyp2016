@@ -25,8 +25,8 @@ void VirtualPlatform::drawTexture() {
 	texture->setAsRenderTarget();
 
 	//clear screen
-	SDL_SetRenderDrawColor(texture->getRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(texture->getRenderer);
+	SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(texture->getRenderer());
 
 	int drawScale = 80;
 	int focusX = 60;
@@ -45,10 +45,10 @@ void VirtualPlatform::drawTexture() {
 		double x2transform = x2Loc * drawScale - focusX*drawScale + textureWidth / 2;
 		double y2transform = y2Loc * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
 
-		SDL_SetRenderDrawColor(texture->getRenderer, 0xFF, 0xFF, 0x00, 0xFF);
-		SDL_RenderDrawLine(texture->getRenderer, (int)x1transform, (int)y1transform, (int)x2transform, (int)y2transform);
-		SDL_SetRenderDrawColor(texture->getRenderer, 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderDrawPoint(texture->getRenderer, (int)x1transform, (int)y1transform);
+		SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0x00, 0xFF);
+		SDL_RenderDrawLine(texture->getRenderer(), (int)x1transform, (int)y1transform, (int)x2transform, (int)y2transform);
+		SDL_SetRenderDrawColor(texture->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+		SDL_RenderDrawPoint(texture->getRenderer(), (int)x1transform, (int)y1transform);
 	}
 
 	/*
@@ -59,7 +59,7 @@ void VirtualPlatform::drawTexture() {
 	*/
 
 	//reset render target
-	SDL_SetRenderTarget(texture->getRenderer, NULL);
+	SDL_SetRenderTarget(texture->getRenderer(), NULL);
 }
 
 
