@@ -16,7 +16,7 @@ bool SimpleNavigator::initialise(DriveController* controller, HardwareInterface*
 	dc = controller;
 	hwi = hardware;
 	
-	// subdivide() here for testing purposes at the moment
+	// TODO(): subdivide() here for testing purposes at the moment
 	subdivide();
 
 	Log::i << "Navigator initialised." << std::endl;
@@ -37,12 +37,24 @@ void SimpleNavigator::addPoint(Point p) {
 	path.push_back(np);
 }
 
+
+/*
+subdivide: takes user defined waypoints and subdivides them with waypoints
+spaced apart as defined in variables at start of function.  1 unit represents
+1m. function loops through each line segment. for each iteration the line
+segment is subdivided and waypoints for a turn into the next line segment is
+calculated and added.
+*/
 bool SimpleNavigator::subdivide() {
+	// TODO(): adjust the units in this function when more info on GPS is available.
 
-	////// 1 unit here is equivalent to 1m, will need to be adjusted when more info on GPS is available.
+	double const distanceBetweenWaypoints = 0.5;
+	double const distanceBetweenTurnWaypoints = 0.2;
+	double const turnRadius = 3.14;
+	std::vector<double> turnAngleListDegrees = {
+		0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
 
-	double distanceBetweenWaypoints = 1;
-	double distanceBetweenTurnWaypoints = 0.2;
+	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
 	Point dummyPoints = Point(30, 80);
@@ -54,54 +66,57 @@ bool SimpleNavigator::subdivide() {
 	dummyPoints = Point(30, 50);
 	addPoint(dummyPoints);
 
-	std::vector<Point> subdividedPath;
-
 	// for each line segment (each line between two 'ultimate' waypoints)
 	for (unsigned int i = 0; i < path.size() - 1; i++) {
+		
+		/*
+			subdividing straight line segments:
+			get a unit vector in the direction from the start point to the finish point.
+			place a waypoint at each specified distance using the unit vector.
+		*/
 
-		///
-		///	subdividing straight line segments:
-		/// get a unit vector in the direction from the start point to the finish point. place a waypoint at each specified distance using the unit vector.
-		///
-
-		Point directionVector = Point(path.at(i + 1)->x - path.at(i)->x, path.at(i + 1)->y - path.at(i)->y);
+		Point curPoint = *path.at(i);
+		Point nexPoint = *path.at(i + 1);
+		Point directionVector = Point(nexPoint.x - curPoint.x, 
+									nexPoint.y - curPoint.y);
 		directionVector.normalise();
 
 		// intermediate holds the current intermediate waypoint
-		Point intermediate = Point(path.at(i)->x, path.at(i)->y);
+		Point intermediate = Point(curPoint.x, curPoint.y);
 
 		// FactorXY used for determining whether intermediate point is still within boundary points.
 		double FactorX = (directionVector.x != 0) ? directionVector.x / abs(directionVector.x) : 0;
 		double FactorY = (directionVector.y != 0) ? directionVector.y / abs(directionVector.y) : 0;
-
+		
+		// while our intermediate point is still between the two 'ultimate' waypoints
+		// intermediate is calculated based on curPoint to remove accumulative error
 		int index = 0;
-		//while our intermediate point is still between the two 'ultimate' waypoints
-		while (intermediate.x * FactorX <= path.at(i + 1)->x * FactorX && intermediate.y * FactorY <= path.at(i + 1)->y * FactorY) {
+		while (intermediate.x * FactorX <= nexPoint.x * FactorX && intermediate.y * FactorY <= nexPoint.y * FactorY) {
 			Point p = Point(intermediate.x, intermediate.y);
 			subdividedPath.push_back(p);
-			// add to initial point rather than incrementing 'intermediate' to remove accumulative error
 			index++;
-			intermediate.x = path.at(i)->x + index * (directionVector.x * distanceBetweenWaypoints);
-			intermediate.y = path.at(i)->y + index * (directionVector.y * distanceBetweenWaypoints);
+			intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
+			intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
 		}
-		subdividedPath.push_back(Point(path.at(i+1)->x, path.at(i+1)->y));
+		subdividedPath.push_back(Point(nexPoint.x, nexPoint.y));
 
-		///
-		/// waypoints for turn subdivision below: see document on google drive for more information on how this is calculated
-		/// the turn will orient the quadbike such that its heading matches the new heading of the next line segment.  The main for loop can then iterate to work on the next line segment.
-		///
-		// turn code goes here!!!!!
-		//angle between 2 lines:
 
-		double const turnRadius = 3.14;
-
-		// if we still have a turn to calculate:
+		/*
+			waypoints for turn subdivision calculated below
+			turn orients the quadbike such that its heading matches the heading
+			of the next line segment. The main for loop (iterating on i) can
+			then proceed.
+			uses a vector from the centre of the turn circle to the quadbike to
+			calculate waypoints. the vector is incrementally rotated and a
+			waypoint added at each step.
+		*/
+		
+		// if there is a next line segment to line up with:
 		if (i + 2 < path.size()) {
 			
 			// figure out the turn angle
-			double angle1 = atan2(path.at(i)->y - path.at(i + 1)->y, 
-									path.at(i)->x - path.at(i + 1)->x);
-			double angle2 = atan2(path.at(i + 1)->y - path.at(i + 2)->y, path.at(i + 1)->x - path.at(i + 2)->x);
+			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
+			double angle2 = atan2(nexPoint.y - path.at(i + 2)->y, nexPoint.x - path.at(i + 2)->x);
 			
 			// positive is clockwise. turn angle from -180 to 180
 			double turnAngle = (angle1 - angle2);
@@ -113,21 +128,22 @@ bool SimpleNavigator::subdivide() {
 			}
 			cout << turnAngle * 180/PI << endl;
 			
-			//current path angle, clockwise from positive y (note, we are using cartesian coordinates +y is up, +x is right).
-			double currentAngle = (atan2(path.at(i+1)->y - path.at(i)->y, path.at(i+1)->x - path.at(i)->x) - PI /2) * -1;
-					
-			std::vector<double> turnAngleListDegrees = {
-				0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
+			// current path angle, clockwise from positive y (note, we are using 
+			// cartesian coordinates +y is up, +x is right).
+			double currentAngle = (atan2(nexPoint.y - curPoint.y, nexPoint.x - curPoint.x) - PI / 2) * -1;
+			
+			// convert turnAngleListDegrees to radians
 			std::vector<double> turnAngleListRads;
 			for (unsigned int m = 0; m < turnAngleListDegrees.size(); m++) {
 				turnAngleListRads.push_back(turnAngleListDegrees.at(m) * PI/180);
 			}
 			
-			//std::vector<Point> turnAngleEndPoints = { Point(0,0), Point(-0.32, -1.38), Point(1.06, 0.03), Point(0.07, -0.29), Point(1.18, -0.32), Point(0.02, 0.18), Point(0.89, -0.74), Point(0.43, 0.91)};
+			// dirVector holds the vector from the centre of the turning circle
+			// to the quad bike. needs some manipulation before we have the
+			// correct vector.
+			// get direction vector from initial point to final point of line segment
 
-			//dirVector holds the vector from the centre of the turning circle to the quad bike.
-			// needs some manipulation before we have the correct vector
-			Point dirVector = Point(path.at(i + 1)->x - path.at(i)->x, path.at(i + 1)->y - path.at(i)->y);
+			Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
 			dirVector.normalise();
 			dirVector.x *= turnRadius;	// turn radius
 			dirVector.y *= turnRadius;	// turn radius
@@ -137,8 +153,8 @@ bool SimpleNavigator::subdivide() {
 			dirVector.x = dirVector.y;
 			dirVector.y = -tempX;
 
-			double centreX = path.at(i + 1)->x - dirVector.x;
-			double centreY = path.at(i + 1)->y - dirVector.y;
+			double centreX = nexPoint.x - dirVector.x;
+			double centreY = nexPoint.y - dirVector.y;
 
 			bool hasReachedCorrectAngle = false;
 
