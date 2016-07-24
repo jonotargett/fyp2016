@@ -32,6 +32,12 @@ public:
 	SDL_Texture* retrieveImage();
 
 private:
+
+	float clip(float, float, float);
+	void generateColorMap();
+	uint8_t* colormap;
+
+
 	HardwareInterface* hwi;
 	GPR* gpr;
 
