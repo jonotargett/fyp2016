@@ -2,15 +2,16 @@
 #include "Window.h"
 #include "SimpleTexture.h"
 
-FeatureDetector::FeatureDetector(HardwareInterface* interf) : hwi(interf)
+FeatureDetector::FeatureDetector(HardwareInterface* interf, SDL_Renderer* r) : hwi(interf), renderer(r)
 {
+	generateColorMap();
 }
 
 
 FeatureDetector::~FeatureDetector()
 {
-	SDL_FreeSurface(image);
-	image = NULL;
+	SDL_DestroyTexture(texture);
+	texture = NULL;
 }
 
 bool FeatureDetector::initialise() {
@@ -23,17 +24,24 @@ bool FeatureDetector::initialise() {
 	if (!success) return false;
 
 
+	scan = gpr->getBscan(GPR_DIFFERENTIAL);
 
-	while (!gpr->getData()) {
+	return true;
+}
 
+bool FeatureDetector::runScan() {
+	bool received = false;
+
+	while (!received) {
+		received = gpr->getData();
 	}
-
 
 	return true;
 }
 
 bool FeatureDetector::loadScan() {
 
+	delete scan;
 	scan = new Bscan();
 	Bscan* empty = new Bscan();
 
@@ -48,14 +56,14 @@ bool FeatureDetector::loadScan() {
 	01021000.DAT	- PVC10x15-para-at0.5cm SS10x05-at0.5cm
 	*/
 
-	empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
+	empty->load("./scans/01011329.DAT");
 	Log::i << "empty scan loaded." << std::endl;
-	scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
+	scan->load("./scans/01031453.DAT");
 	Log::i << "feature scan loaded." << std::endl;
 
 	Ascan* normal = scan->produceNormal(scan->length());
 	Log::i << "background noise identified." << std::endl;
-	scan->normalise(normal);
+	//scan->normalise(normal);
 	Log::i << "feature scan normalised for background noise." << std::endl;
 
 	return true;
@@ -63,14 +71,16 @@ bool FeatureDetector::loadScan() {
 
 bool FeatureDetector::createImage(Visual displayMode) {
 
-	SDL_FreeSurface(image);
-	image = NULL;
+	SDL_DestroyTexture(texture);
+	texture = NULL;
+
+	
 	image = SDL_CreateRGBSurface(0, 1000, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	Uint32 *pixels = (Uint32*)image->pixels;
 
-	// initialise the surface to black
+	// initialise the surface to blue
 	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
+		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0xFF);
 	}
 
 	// if a scan is paired to this window, push it to the screen
@@ -93,20 +103,161 @@ bool FeatureDetector::createImage(Visual displayMode) {
 					v = scan->Kernel(3, i, j);
 				}
 
-				int h = v / 256;
-				int l = v - h * 256;
+				//int h = v / 256;
+				//int l = v - h * 256;
 
-				pixels[j*image->w + i] = SDL_MapRGB(image->format, h, h, h);
+				//int16_t n = (int16_t)(v);
+				//uint8_t h = ((int)(v) / 256);
+				//uint8_t l = ((int8_t)v);
+
+				uint32_t offset = ((uint16_t)v) * 3;
+				uint8_t r = colormap[offset + 0];
+				uint8_t g = colormap[offset + 1];
+				uint8_t b = colormap[offset + 2];
+
+				//Log::e << (int)offset << "-" << endl;
+
+
+				pixels[j*image->w + i] = SDL_MapRGB(image->format, r, g, b);
 			}
 		}
+
+
+		Log::d << "Visual scan image created." << std::endl; 
+		texture = SDL_CreateTextureFromSurface(renderer, image);
+
+		if (texture == NULL) {
+			Log::e << "Could not create texture from scan image. " << SDL_GetError() << endl;
+		}
+	}
+	else {
+		Log::d << "Scan is NULL" << endl;
 	}
 
-	Log::d << "Visual scan image created." << std::endl;
+	SDL_FreeSurface(image);
 
 	return true;
 }
 
 
-SDL_Surface* FeatureDetector::retrieveImage() {
-	return image;
+SDL_Texture* FeatureDetector::retrieveImage() {
+	return texture;
+}
+
+
+
+void FeatureDetector::generateColorMap() {
+
+	float initial_map[65*3] = {
+		0,	0,	0.562500000000000,
+		0,	0,	0.625000000000000,
+		0,	0,	0.687500000000000,
+		0,	0,	0.750000000000000,
+		0,	0,	0.812500000000000,
+		0,	0,	0.875000000000000,
+		0,	0,	0.937500000000000,
+		0,	0,	1,
+		0,	0.062500000000000,	1,
+		0,	0.125000000000000,	1,
+		0,	0.187500000000000,	1,
+		0,	0.250000000000000,	1,
+		0,	0.312500000000000,	1,
+		0,	0.375000000000000,	1,
+		0,	0.437500000000000,	1,
+		0,	0.500000000000000,	1,
+		0,	0.562500000000000,	1,
+		0,	0.625000000000000,	1,
+		0,	0.687500000000000,	1,
+		0,	0.750000000000000,	1,
+		0,	0.812500000000000,	1,
+		0,	0.875000000000000,	1,
+		0,	0.937500000000000,	1,
+		0,	1,	1,
+		0.062500000000000,	1,	0.937500000000000,
+		0.125000000000000,	1,	0.875000000000000,
+		0.187500000000000,	1,	0.812500000000000,
+		0.250000000000000,	1,	0.750000000000000,
+		0.312500000000000,	1,	0.687500000000000,
+		0.375000000000000,	1,	0.625000000000000,
+		0.437500000000000,	1,	0.562500000000000,
+		0.500000000000000,	1,	0.500000000000000,
+		0.562500000000000,	1,	0.437500000000000,
+		0.625000000000000,	1,	0.375000000000000,
+		0.687500000000000,	1,	0.312500000000000,
+		0.750000000000000,	1,	0.250000000000000,
+		0.812500000000000,	1,	0.187500000000000,
+		0.875000000000000,	1,	0.125000000000000,
+		0.937500000000000,	1,	0.062500000000000,
+		1,	1,	0,
+		1,	0.937500000000000,	0,
+		1,	0.875000000000000,	0,
+		1,	0.812500000000000,	0,
+		1,	0.750000000000000,	0,
+		1,	0.687500000000000,	0,
+		1,	0.625000000000000,	0,
+		1,	0.562500000000000,	0,
+		1,	0.500000000000000,	0,
+		1,	0.437500000000000,	0,
+		1,	0.375000000000000,	0,
+		1,	0.312500000000000,	0,
+		1,	0.250000000000000,	0,
+		1,	0.187500000000000,	0,
+		1,	0.125000000000000,	0,
+		1,	0.062500000000000,	0,
+		1,	0,	0,
+		0.937500000000000,	0,	0,
+		0.875000000000000,	0,	0,
+		0.812500000000000,	0,	0,
+		0.750000000000000,	0,	0,
+		0.687500000000000,	0,	0,
+		0.625000000000000,	0,	0,
+		0.562500000000000,	0,	0,
+		0.500000000000000,	0,	0,
+		0.437500000000000,	0,	0
+	};
+
+
+	colormap = new uint8_t[65536 * 3];
+	int offset = 0;
+	float c1_r, c1_g, c1_b, c2_r, c2_g, c2_b;
+
+	for (int i = 0; i < 64; i++) {
+
+		c1_r = initial_map[(i + 0) * 3 + 0] * 256;
+		c1_g = initial_map[(i + 0) * 3 + 1] * 256;
+		c1_b = initial_map[(i + 0) * 3 + 2] * 256;
+		c2_r = initial_map[(i + 1) * 3 + 0] * 256;
+		c2_g = initial_map[(i + 1) * 3 + 1] * 256;
+		c2_b = initial_map[(i + 1) * 3 + 2] * 256;
+
+		/*
+		Log::d << c1_r << "-" << c1_g << "-" << c1_b 
+			<< "/" << c2_r << "-" << c2_g << "-" << c2_b << endl;
+		*/
+
+		for (int j = 0; j < 1024; j++) {
+
+			float lerp = (float)j / 1024.0f;
+
+			colormap[offset * 3 + 0] = (uint8_t)(clip(c1_r + (c2_r - c1_r)*(lerp), 0, 255));
+			colormap[offset * 3 + 1] = (uint8_t)(clip(c1_g + (c2_g - c1_g)*(lerp), 0, 255));
+			colormap[offset * 3 + 2] = (uint8_t)(clip(c1_b + (c2_b - c1_b)*(lerp), 0, 255));
+
+			/*
+			Log::i << lerp << "/" << (int)colormap[offset * 3 + 0] << "-"
+				<< (int)colormap[offset * 3 + 1] << "-"
+				<< (int)colormap[offset * 3 + 2] << endl;
+			*/
+
+			++offset;
+		}
+
+	}
+
+	Log::d << "Colormap successfully built with " << offset << " entries" << endl;
+}
+
+
+float FeatureDetector::clip(float n, float lower, float upper) {
+	return std::max(lower, std::min(n, upper));
 }

@@ -18,22 +18,33 @@ enum Visual {
 
 class FeatureDetector
 {
-private:
-	Bscan* scan;
-	HardwareInterface* hwi;
-	SDL_Surface* image;
-
-	GPR* gpr;
-
 public:
-	FeatureDetector(HardwareInterface*);
+	FeatureDetector(HardwareInterface*, SDL_Renderer*);
 	~FeatureDetector();
 
 	bool initialise();
 	bool loadScan();
 
+	bool runScan();
+
 	//debug programs
 	bool createImage(Visual);
-	SDL_Surface* retrieveImage();
+	SDL_Texture* retrieveImage();
+
+private:
+
+	float clip(float, float, float);
+	void generateColorMap();
+	uint8_t* colormap;
+
+
+	HardwareInterface* hwi;
+	GPR* gpr;
+
+	SDL_Renderer* renderer;
+	SDL_Texture* texture;
+	SDL_Surface* image;
+	Bscan* scan;
+	
 };
 

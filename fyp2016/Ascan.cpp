@@ -2,7 +2,7 @@
 
 
 
-Ascan::Ascan(int l, int* v) : length(l), values(v) {
+Ascan::Ascan(int l, int16_t* v) : length(l), values(v) {
 	offset = 0;
 	/*
 	values = new int[length];

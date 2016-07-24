@@ -34,12 +34,12 @@ bool Overlord::initialise() {
 	ns->initialise(dc, hwi);
 	Log::d << "-> NAVIGATION SYSTEM DONE" << endl;
 
-	fd = new FeatureDetector(hwi);
+	fd = new FeatureDetector(hwi, window->getRenderer());
 	fd->initialise();
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
 	vp = new VirtualPlatform();
-	vp->initialise(ns);
+	vp->initialise(ns, window->getRenderer());
 	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
 	
 	initialised = true;
@@ -48,25 +48,30 @@ bool Overlord::initialise() {
 
 
 void Overlord::run() {
+
+	window->showWindow(true);
+
+	// Virtual platform stuff
+	vp->drawTexture();
+	window->update(vp->getTexture());
+
+	// Feature detector stuff
+	fd->loadScan();
+	fd->createImage(DISPLAY_RAW);
+	window->update(fd->retrieveImage());
 	
-
-	//fd->createImage(DISPLAY_KERNEL);
-
-
-	//Window::showWindow(false);
-	//window->update(fd->retrieveImage());
-	//window->update(vp->getTexture());
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
-	//vp->drawTexture();
-	//vp->renderTexture();
-	
-	while (!Window::shouldQuit()) {
+	while (!window->shouldQuit()) {
 
-		Window::handleEvents();
+		window->handleEvents();
 		// waste time
 
-		SDL_Delay(50);
+		//fd->runScan();
+		//fd->createImage(DISPLAY_RAW);
+		//window->update(fd->retrieveImage());
+
+		SDL_Delay(5);
 	}
 }
