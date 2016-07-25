@@ -14,6 +14,10 @@ VirtualPlatform::~VirtualPlatform()
 bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	ns = nav;
 	texture = new SimpleTexture(r);
+
+	textureWidth = 800;
+	textureHeight = 600;
+
 	texture->createBlank(textureWidth, textureHeight);
 	return true;
 }
@@ -28,9 +32,9 @@ void VirtualPlatform::drawTexture() {
 	SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(texture->getRenderer());
 
-	int drawScale = 80;
-	int focusX = 60;
-	int focusY = 100;
+	int drawScale = 60;
+	int focusX = 3;
+	int focusY = 3;
 
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 

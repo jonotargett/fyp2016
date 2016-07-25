@@ -20,8 +20,8 @@ private:
 	NavigationSystem* ns;
 	SimpleTexture* texture;
 
-	int textureWidth = 800;
-	int textureHeight = 600;
+	int textureWidth;
+	int textureHeight;
 
 };
 

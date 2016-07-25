@@ -83,6 +83,10 @@ void Window::showWindow(bool b) {
 	}
 }
 
+void Window::clearWindow() {
+	SDL_RenderClear(renderer);
+}
+
 void Window::update(SDL_Texture* newImage) {
 
 	int w, h;
@@ -93,7 +97,9 @@ void Window::update(SDL_Texture* newImage) {
 	destination.w = w;
 	destination.h = h;
 
-	SDL_RenderClear(renderer);
+	// this is donw in clearWindow() now
+	//SDL_RenderClear(renderer);
+
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, newImage, NULL, &destination);
 	SDL_RenderPresent(renderer);

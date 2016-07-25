@@ -57,13 +57,15 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(30, 80);
+	Point dummyPoints = Point(-3, 3);
 	addPoint(dummyPoints);
-	dummyPoints = Point(60, 100);
+	dummyPoints = Point(0, 0);
 	addPoint(dummyPoints);
-	dummyPoints = Point(60, 60);
+	dummyPoints = Point(2, 4);
 	addPoint(dummyPoints);
-	dummyPoints = Point(30, 50);
+	dummyPoints = Point(6, 6);
+	addPoint(dummyPoints);
+	dummyPoints = Point(8, 3);
 	addPoint(dummyPoints);
 
 	// for each line segment (each line between two 'ultimate' waypoints)
@@ -136,7 +138,7 @@ bool SimpleNavigator::subdivide() {
 			for (unsigned int m = 0; m < turnAngleListDegrees.size(); m++) {
 				turnAngleListRads.push_back(turnAngleListDegrees.at(m) * PI/180);
 			}
-			
+
 			// dirVector holds the vector from the centre of the turning circle
 			// to the quad bike. needs some manipulation before we have the
 			// correct vector.
@@ -144,14 +146,18 @@ bool SimpleNavigator::subdivide() {
 
 			Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
 			dirVector.normalise();
-			dirVector.x *= turnRadius;	// turn radius
-			dirVector.y *= turnRadius;	// turn radius
+			dirVector.x *= turnRadius;
+			dirVector.y *= turnRadius;
 
-			// first turn arc, a LEFT turn has negative y
+			// factor to multiply angles and such. if a right turn = 1, if left = -1
+			int turnFactor = (turnAngle >= 0) ? 1 : -1;
+
+			// first turn arc, a RIGHT turn arc has negative x, a LEFT turn arc has negative y
 			double tempX = dirVector.x;
-			dirVector.x = dirVector.y;
-			dirVector.y = -tempX;
-
+			dirVector.x = dirVector.y * turnFactor;
+			dirVector.y = -tempX * turnFactor;
+			
+			// centre of the turning circle
 			double centreX = nexPoint.x - dirVector.x;
 			double centreY = nexPoint.y - dirVector.y;
 
@@ -163,10 +169,10 @@ bool SimpleNavigator::subdivide() {
 				// k increments the angle and places multiple waypoints for each of the turns.
 				double increment = distanceBetweenTurnWaypoints / turnRadius;
 				for (double k = increment; k < (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j)); k += increment) {
-					double newVecX = cos(k) * dirVector.x + sin(k) * dirVector.y;
-					double newVecY = -sin(k) * dirVector.x + cos(k) * dirVector.y;
+					double newVecX = cos(k * turnFactor) * dirVector.x + sin(k * turnFactor) * dirVector.y;
+					double newVecY = -sin(k * turnFactor) * dirVector.x + cos(k * turnFactor) * dirVector.y;
 					
-					if (k + turnAngleListRads.at(j) > turnAngle) {
+					if (k + turnAngleListRads.at(j) > turnAngle * turnFactor) {
 						hasReachedCorrectAngle = true;
 						break;
 					}
@@ -180,21 +186,21 @@ bool SimpleNavigator::subdivide() {
 				}
 				//adding the last point that the for loop would have missed.
 				double finalTurnAngle = (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j));
-				double newVecX = cos(finalTurnAngle) * dirVector.x + sin(finalTurnAngle) * dirVector.y;
-				double newVecY = -sin(finalTurnAngle) * dirVector.x + cos(finalTurnAngle) * dirVector.y;
+				double newVecX = cos(finalTurnAngle * turnFactor) * dirVector.x + sin(finalTurnAngle * turnFactor) * dirVector.y;
+				double newVecY = -sin(finalTurnAngle * turnFactor) * dirVector.x + cos(finalTurnAngle * turnFactor) * dirVector.y;
 
 				Point pp = Point(centreX + newVecX, centreY + newVecY);
 				subdividedPath.push_back(pp);
 
-				if (finalTurnAngle + turnAngleListRads.at(j) > turnAngle) {
+				if (finalTurnAngle + turnAngleListRads.at(j) > turnAngle * turnFactor) {
 					hasReachedCorrectAngle = true;
 					break;
 				}
 
 				// set up direction vector for the next arc in the n-point turn
 				double rotationAngle = turnAngleListRads.at(j + 1) - turnAngleListRads.at(j);
-				tempX = cos(rotationAngle) * dirVector.x + sin(rotationAngle) * dirVector.y;
-				dirVector.y = -sin(rotationAngle) * dirVector.x + cos(rotationAngle) * dirVector.y;
+				double tempX = cos(rotationAngle * turnFactor) * dirVector.x + sin(rotationAngle * turnFactor) * dirVector.y;
+				dirVector.y = -sin(rotationAngle * turnFactor) * dirVector.x + cos(rotationAngle * turnFactor) * dirVector.y;
 				dirVector.x = tempX;
 
 				//then flip it so we turn the other way
