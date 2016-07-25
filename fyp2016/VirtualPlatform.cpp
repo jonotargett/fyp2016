@@ -51,19 +51,11 @@ void VirtualPlatform::drawTexture() {
 		SDL_RenderDrawPoint(texture->getRenderer(), (int)x1transform, (int)y1transform);
 	}
 
-	/*
-	//render red filled quad
-	SDL_Rect fillRect = { 0, 0, 10, 10 };
-	SDL_SetRenderDrawColor(Window::renderer, 0xFF, 0x00, 0x00, 0xFF);
-	SDL_RenderFillRect(Window::renderer, &fillRect);
-	*/
-
-	//reset render target
 	SDL_SetRenderTarget(texture->getRenderer(), NULL);
 }
 
 
 
-SDL_Texture* VirtualPlatform::getTexture() {
+SDL_Texture* VirtualPlatform::retrieveImage() {
 	return texture->getTexture();
 }

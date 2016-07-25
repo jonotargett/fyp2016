@@ -53,12 +53,12 @@ void Overlord::run() {
 
 	// Virtual platform stuff
 	vp->drawTexture();
-	window->update(vp->getTexture());
+	window->update(vp->retrieveImage());
 
 	// Feature detector stuff
 	fd->loadScan();
 	fd->createImage(DISPLAY_RAW);
-	window->update(fd->retrieveImage());
+	//window->update(fd->retrieveImage());
 	
 
 	Log::setVerbosity(LOG_INFORMATIVE);
