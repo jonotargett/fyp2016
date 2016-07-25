@@ -126,7 +126,6 @@ bool SimpleNavigator::subdivide() {
 			if (turnAngle > PI) {
 				turnAngle -= 2 * PI;
 			}
-			cout << turnAngle * 180/PI << endl;
 			
 			// current path angle, clockwise from positive y (note, we are using 
 			// cartesian coordinates +y is up, +x is right).

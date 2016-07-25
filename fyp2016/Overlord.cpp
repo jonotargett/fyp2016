@@ -58,7 +58,7 @@ void Overlord::run() {
 	// Feature detector stuff
 	fd->loadScan();
 	fd->createImage(DISPLAY_RAW);
-	//window->update(fd->retrieveImage());
+	window->update(fd->retrieveImage());
 	
 
 	Log::setVerbosity(LOG_INFORMATIVE);
