@@ -32,9 +32,9 @@ void VirtualPlatform::drawTexture() {
 	SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(texture->getRenderer());
 
-	int drawScale = 60;
-	int focusX = 3;
-	int focusY = 3;
+	int drawScale = 80;
+	int focusX = 2.5;
+	int focusY = 2.5;
 
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 
@@ -49,11 +49,15 @@ void VirtualPlatform::drawTexture() {
 		double x2transform = x2Loc * drawScale - focusX*drawScale + textureWidth / 2;
 		double y2transform = y2Loc * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
 
-		SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0x00, 0xFF);
+		SDL_SetRenderDrawColor(texture->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
 		SDL_RenderDrawLine(texture->getRenderer(), (int)x1transform, (int)y1transform, (int)x2transform, (int)y2transform);
 		SDL_SetRenderDrawColor(texture->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
 		SDL_RenderDrawPoint(texture->getRenderer(), (int)x1transform, (int)y1transform);
 	}
+
+	SDL_SetRenderDrawColor(texture->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
+	SDL_RenderDrawLine(texture->getRenderer(), textureWidth / 2 -10, textureHeight / 2 - 10, textureWidth / 2+10, textureHeight / 2 + 10);
+	SDL_RenderDrawLine(texture->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 +10, textureWidth / 2 + 10, textureHeight / 2-10);
 
 	SDL_SetRenderTarget(texture->getRenderer(), NULL);
 }

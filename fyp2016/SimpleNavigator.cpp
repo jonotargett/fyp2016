@@ -38,6 +38,24 @@ void SimpleNavigator::addPoint(Point p) {
 }
 
 
+double SimpleNavigator::getDeltaY(double radians) {
+	std::vector<Point> deltaYList = { Point(0, 0),
+								Point(26,-0.724),
+								Point(63,-0.51),
+								Point(81.5,-0.3),
+								Point(102,-0.07),
+								Point(125,0.2),
+								Point(148.3,0.7),
+								Point(165.8,2.72) };
+	double degrees = abs(radians * 180 / PI);
+	int i = 0;
+	while (degrees > deltaYList.at(i).x) {
+		i++;
+	}
+	double deltaY = deltaYList.at(i).y + ((degrees - deltaYList.at(i).x)/(deltaYList.at(i-1).x - deltaYList.at(i).x))*(deltaYList.at(i-1).y - deltaYList.at(i).y);
+	return deltaY;
+}
+
 /*
 subdivide: takes user defined waypoints and subdivides them with waypoints
 spaced apart as defined in variables at start of function.  1 unit represents
@@ -48,7 +66,7 @@ calculated and added.
 bool SimpleNavigator::subdivide() {
 	// TODO(): adjust the units in this function when more info on GPS is available.
 
-	double const distanceBetweenWaypoints = 0.5;
+	double const distanceBetweenWaypoints = 0.1;
 	double const distanceBetweenTurnWaypoints = 0.2;
 	double const turnRadius = 3.14;
 	std::vector<double> turnAngleListDegrees = {
@@ -57,18 +75,18 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(-3, 3);
+	Point dummyPoints = Point(0, -10);
 	addPoint(dummyPoints);
 	dummyPoints = Point(0, 0);
 	addPoint(dummyPoints);
-	dummyPoints = Point(2, 4);
+	dummyPoints = Point(5, 2.5);
 	addPoint(dummyPoints);
-	dummyPoints = Point(6, 6);
-	addPoint(dummyPoints);
-	dummyPoints = Point(8, 3);
+	dummyPoints = Point(-5, 25);
 	addPoint(dummyPoints);
 
 	// for each line segment (each line between two 'ultimate' waypoints)
+	Point curPoint = *path.at(0);
+	Point nexPoint = *path.at(1);
 	for (unsigned int i = 0; i < path.size() - 1; i++) {
 		
 		/*
@@ -77,9 +95,12 @@ bool SimpleNavigator::subdivide() {
 			place a waypoint at each specified distance using the unit vector.
 		*/
 
-		Point curPoint = *path.at(i);
-		Point nexPoint = *path.at(i + 1);
-		Point directionVector = Point(nexPoint.x - curPoint.x, 
+		//Point curPoint = *path.at(i);
+		//Point nexPoint = *path.at(i + 1);
+		
+		nexPoint = *path.at(i + 1);
+
+		Point directionVector = Point(nexPoint.x - curPoint.x,
 									nexPoint.y - curPoint.y);
 		directionVector.normalise();
 
@@ -102,7 +123,6 @@ bool SimpleNavigator::subdivide() {
 		}
 		subdividedPath.push_back(Point(nexPoint.x, nexPoint.y));
 
-
 		/*
 			waypoints for turn subdivision calculated below
 			turn orients the quadbike such that its heading matches the heading
@@ -120,7 +140,7 @@ bool SimpleNavigator::subdivide() {
 			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
 			double angle2 = atan2(nexPoint.y - path.at(i + 2)->y, nexPoint.x - path.at(i + 2)->x);
 			
-			// positive is clockwise. turn angle from -180 to 180
+			// positive is clockwise. turn angle from -pi to pi
 			double turnAngle = (angle1 - angle2);
 			if (turnAngle<0) {
 				turnAngle += 2 * PI;
@@ -128,6 +148,14 @@ bool SimpleNavigator::subdivide() {
 			if (turnAngle > PI) {
 				turnAngle -= 2 * PI;
 			}
+
+			double deltaY = 0.5843*pow(abs(turnAngle), 4) - 3.1669*pow(abs(turnAngle), 3) + 5.968*pow(abs(turnAngle), 2) - 4.047*abs(turnAngle) + 0.1295;
+			if (deltaY > 0.2) deltaY = 0.2;
+			Point turnPoint;
+			turnPoint.x = nexPoint.x - directionVector.x*deltaY;
+			turnPoint.y = nexPoint.y - directionVector.y*deltaY;
+
+			subdividedPath.push_back(Point(turnPoint.x, turnPoint.y));
 			
 			// current path angle, clockwise from positive y (note, we are using 
 			// cartesian coordinates +y is up, +x is right).
@@ -158,8 +186,8 @@ bool SimpleNavigator::subdivide() {
 			dirVector.y = -tempX * turnFactor;
 			
 			// centre of the turning circle
-			double centreX = nexPoint.x - dirVector.x;
-			double centreY = nexPoint.y - dirVector.y;
+			double centreX = turnPoint.x - dirVector.x;
+			double centreY = turnPoint.y - dirVector.y;
 
 			bool hasReachedCorrectAngle = false;
 
@@ -179,7 +207,8 @@ bool SimpleNavigator::subdivide() {
 
 					Point pp = Point(centreX + newVecX, centreY + newVecY);
 					subdividedPath.push_back(pp);
-					
+
+					//cout << pp.x << ", " << pp.y << endl;
 				}
 				if (hasReachedCorrectAngle) {
 					break;
@@ -211,17 +240,10 @@ bool SimpleNavigator::subdivide() {
 				centreY -= 2 * dirVector.y;
 			}
 
-			// this is the distance that needs to be corrected for in the y direction to make the quad colinear with the next line segment
-			double deltaY = 0.5843*pow(turnAngle, 4) - 3.1669*pow(turnAngle, 3) + 5.968*pow(turnAngle, 2) - 4.047*turnAngle + 0.1295;
 		}
-
-
-
+		curPoint = subdividedPath.at(subdividedPath.size() - 1);
 	}
 
-	/*
-	TODO (JONO could you please check that ive done this right or correct it if i havnt:)
-	*/
 	for (unsigned int i = 0; i < path.size(); i++) {
 		delete path.at(i);
 	}

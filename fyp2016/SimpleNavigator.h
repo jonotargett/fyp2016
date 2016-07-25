@@ -19,6 +19,7 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
 
 	std::thread* updater;
+	double getDeltaY(double radians);
 
 public:
 	SimpleNavigator();
