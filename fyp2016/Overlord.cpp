@@ -56,7 +56,7 @@ void Overlord::run() {
 	window->update(vp->getTexture());
 
 	// Feature detector stuff
-	fd->loadScan();
+	//fd->loadScan();
 	fd->createImage(DISPLAY_RAW);
 	window->update(fd->retrieveImage());
 	
@@ -68,9 +68,9 @@ void Overlord::run() {
 		window->handleEvents();
 		// waste time
 
-		//fd->runScan();
-		//fd->createImage(DISPLAY_RAW);
-		//window->update(fd->retrieveImage());
+		fd->runScan();
+		fd->createImage(DISPLAY_RAW);
+		window->update(fd->retrieveImage());
 
 		SDL_Delay(5);
 	}

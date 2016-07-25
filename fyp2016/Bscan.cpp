@@ -46,13 +46,13 @@ void Bscan::load(std::string filename) {
 
 	while (offset < size) {
 
-		int16_t* v = new int16_t[ASCAN_STRIDE];
+		uint16_t* v = new uint16_t[ASCAN_STRIDE];
 		int count = 0;
 		
 		while ((count < ASCAN_STRIDE) && offset < size) {
 
 			//TODO(Jono) check whether this is meant to be unsigned or 2s complement
-			int16_t e = (uint8_t)memblock[offset+1]*256 + (uint8_t)memblock[offset];
+			uint16_t e = (uint8_t)memblock[offset+1]*256 + (uint8_t)memblock[offset];
 
 			v[count] = e;
 
@@ -114,7 +114,7 @@ Ascan* Bscan::produceNormal(int firstXscans) {
 
 
 	int size = scans.at(0)->getSize();
-	int16_t* v = new int16_t[size];
+	uint16_t* v = new uint16_t[size];
 	
 
 	for (int i = 0; i < size; i++) {
@@ -141,7 +141,7 @@ void Bscan::normalise(Ascan* normal) {
 
 	for (int i = 0; i < (int)scans.size(); i++) {
 		int size = scans.at(i)->getSize();
-		int16_t* v = new int16_t[size];
+		uint16_t* v = new uint16_t[size];
 
 		for (int j = 0; j < normal->getSize(); j++) {
 			int dif = scans.at(i)->getIndex(j) - normal->getIndex(j);

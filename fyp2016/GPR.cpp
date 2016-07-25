@@ -13,7 +13,7 @@ GPR::GPR() {
 	updateMode = GPR_PARAM_UPDATE_FLUSH_ALL;
 	serialUpdating = GPR_SPI_UPDATING_ENABLE;
 	framerate = GPR_FRAMERATE_127Hz;
-	prf = GPR_PRF_130kHz;
+	prf = GPR_PRF_65kHz;
 	adAveraging = GPR_AD_AVERAGING_DISABLE;
 	adCalibration = GPR_AD_CALIBRATION_DISABLE;
 
@@ -275,6 +275,11 @@ bool GPR::checkStatus(bool verbose) {
 		success = processStatusCode();
 
 		if (success) {
+
+			if (ids->antenna_id == 0) {
+				success = false;
+			}
+
 			if (verbose) {
 				Log::i << "GPR status all okay. Code: " << std::hex << status << std::dec << endl;
 
@@ -417,9 +422,9 @@ bool GPR::getData() {
 
 	// Don't need to be deleted at the end of the function
 	// as they are persistent in the Ascan
-	int16_t* dif_vals = new int16_t[CHANNEL_STRIDE];
-	int16_t* ch1_vals = new int16_t[CHANNEL_STRIDE];
-	int16_t* ch2_vals = new int16_t[CHANNEL_STRIDE];
+	uint16_t* dif_vals = new uint16_t[CHANNEL_STRIDE];
+	uint16_t* ch1_vals = new uint16_t[CHANNEL_STRIDE];
+	uint16_t* ch2_vals = new uint16_t[CHANNEL_STRIDE];
 	unsigned int dif_count = 0;
 	unsigned int ch1_count = 0;
 	unsigned int ch2_count = 0;
@@ -473,13 +478,13 @@ bool GPR::getData() {
 		//sort the data into structures by channel
 		switch (antennas) {
 		case 0b00:
-			dif_vals[dif_count++] = (int16_t)value;
+			dif_vals[dif_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
 			break;
 		case 0b10:
-			ch1_vals[ch1_count++] = (int16_t)value;
+			ch1_vals[ch1_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
 			break;
 		case 0b01:
-			ch2_vals[ch2_count++] = (int16_t)value;
+			ch2_vals[ch2_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
 			break;
 		default:
 			Log::e << "Unknown channel ID received. Data error." << endl;
