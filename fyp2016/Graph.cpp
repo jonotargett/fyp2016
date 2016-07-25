@@ -28,7 +28,7 @@ Graph::~Graph()
 	vals = 0;
 }
 
-SDL_Surface* Graph::getTexture() {
+SDL_Surface* Graph::retrieveImage() {
 	return image;
 }
 

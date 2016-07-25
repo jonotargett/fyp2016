@@ -17,6 +17,7 @@ public:
 
 	bool shouldQuit();
 	void showWindow(bool);
+	void clearWindow();
 
 	void handleEvents();
 	void update(SDL_Texture*);

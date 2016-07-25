@@ -83,11 +83,25 @@ void Window::showWindow(bool b) {
 	}
 }
 
+void Window::clearWindow() {
+	SDL_RenderClear(renderer);
+}
+
 void Window::update(SDL_Texture* newImage) {
 
-	SDL_RenderClear(renderer);
+	int w, h;
+	SDL_QueryTexture(newImage, NULL, NULL, &w, &h);
+	SDL_Rect destination;
+	destination.x = 0;
+	destination.y = 0;
+	destination.w = w;
+	destination.h = h;
+
+	// this is donw in clearWindow() now
+	//SDL_RenderClear(renderer);
+
 	SDL_SetRenderTarget(renderer, NULL);
-	SDL_RenderCopy(renderer, newImage, NULL, NULL);
+	SDL_RenderCopy(renderer, newImage, NULL, &destination);
 	SDL_RenderPresent(renderer);
 
 	Log::d << "Window frame changed." << std::endl;

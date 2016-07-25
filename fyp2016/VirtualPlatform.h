@@ -14,14 +14,14 @@ public:
 	bool initialise(NavigationSystem*, SDL_Renderer*);
 
 	void drawTexture();
-	SDL_Texture* getTexture();
+	SDL_Texture* retrieveImage();
 	
 private:
 	NavigationSystem* ns;
 	SimpleTexture* texture;
 
-	int textureWidth = 800;
-	int textureHeight = 600;
+	int textureWidth;
+	int textureHeight;
 
 };
 
