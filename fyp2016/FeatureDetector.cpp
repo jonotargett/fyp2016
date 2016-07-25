@@ -63,7 +63,7 @@ bool FeatureDetector::loadScan() {
 
 	Ascan* normal = scan->produceNormal(scan->length());
 	Log::i << "background noise identified." << std::endl;
-	//scan->normalise(normal);
+	scan->normalise(normal);
 	Log::i << "feature scan normalised for background noise." << std::endl;
 
 	return true;
@@ -90,7 +90,7 @@ bool FeatureDetector::createImage(Visual displayMode) {
 
 		for (int i = 0; i < cols; i++) {
 			Ascan* a = scan->element(i);
-			int rows = std::min(image->h, a->getSize());
+			int rows = std::min((unsigned int)image->h, a->getSize());
 
 
 			for (int j = 0; j < rows; j++) {

@@ -52,13 +52,13 @@ void Overlord::run() {
 	window->showWindow(true);
 
 	// Feature detector stuff
-	//fd->loadScan();
-	fd->createImage(DISPLAY_RAW);
+	fd->loadScan();
+	fd->createImage(DISPLAY_KERNEL);
 	window->update(fd->retrieveImage());
 
 	// Virtual platform stuff
 	vp->drawTexture();
-	window->update(vp->retrieveImage());
+	//window->update(vp->retrieveImage());
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
@@ -67,9 +67,9 @@ void Overlord::run() {
 		window->handleEvents();
 		// waste time
 
-		fd->runScan();
-		fd->createImage(DISPLAY_RAW);
-		window->update(fd->retrieveImage());
+		//fd->runScan();
+		//fd->createImage(DISPLAY_RAW);
+		//window->update(fd->retrieveImage());
 
 		SDL_Delay(5);
 	}
