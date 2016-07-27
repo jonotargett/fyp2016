@@ -19,6 +19,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	textureHeight = 600;
 
 	texture->createBlank(textureWidth, textureHeight);
+
 	return true;
 }
 
@@ -32,37 +33,53 @@ void VirtualPlatform::drawTexture() {
 	SDL_SetRenderDrawColor(texture->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(texture->getRenderer());
 
-	int drawScale = 80;
-	int focusX = 2.5;
-	int focusY = 2.5;
-
+	drawScale = 80;
+	focusX = 0;
+	focusY = 0;
+	
+	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 
-		double x1Loc = ns->getPath().at(i)->x;
-		double y1Loc = ns->getPath().at(i)->y;
-		double x2Loc = ns->getPath().at(i + 1)->x;
-		double y2Loc = ns->getPath().at(i + 1)->y;
+		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
+		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
 
-		// transformed (x,y) locations for scale, computers inverted y coordinate, and focus point
-		double x1transform = x1Loc * drawScale - focusX*drawScale + textureWidth / 2;
-		double y1transform = y1Loc * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
-		double x2transform = x2Loc * drawScale - focusX*drawScale + textureWidth / 2;
-		double y2transform = y2Loc * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
+		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
+		Point loc1transf = transform(loc1);
+		Point loc2transf = transform(loc2);
 
 		SDL_SetRenderDrawColor(texture->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
-		SDL_RenderDrawLine(texture->getRenderer(), (int)x1transform, (int)y1transform, (int)x2transform, (int)y2transform);
+		SDL_RenderDrawLine(texture->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
 		SDL_SetRenderDrawColor(texture->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderDrawPoint(texture->getRenderer(), (int)x1transform, (int)y1transform);
+		SDL_RenderDrawPoint(texture->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
 	}
 
+	// drawing crosshairs over the focus point
 	SDL_SetRenderDrawColor(texture->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
 	SDL_RenderDrawLine(texture->getRenderer(), textureWidth / 2 -10, textureHeight / 2 - 10, textureWidth / 2+10, textureHeight / 2 + 10);
 	SDL_RenderDrawLine(texture->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 +10, textureWidth / 2 + 10, textureHeight / 2-10);
 
+
+	// drawing the quadbike
+	Point quadLoc = quad.getLocation();
+	SDL_SetRenderDrawColor(texture->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y,
+												(int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y);
+	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y,
+												(int)transform(quadLoc + quad.getFrontR()).x, (int)transform(quadLoc + quad.getFrontR()).y);
+	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getFrontR()).x, (int)transform(quadLoc + quad.getFrontR()).y,
+												(int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y);
+	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y,
+												(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);
 	SDL_SetRenderTarget(texture->getRenderer(), NULL);
 }
 
-
+Point VirtualPlatform::transform(Point p) {
+	//transformed(x, y) locations for scale, computers inverted y coordinate, and focus point
+	Point t;
+	t.x = p.x * drawScale - focusX*drawScale + textureWidth / 2;
+	t.y = p.y * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
+	return t;
+}
 
 SDL_Texture* VirtualPlatform::retrieveImage() {
 	return texture->getTexture();

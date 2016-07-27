@@ -14,7 +14,7 @@ public:
 	void normalise();
 
 	//vector addition
-	Point operator+(const Point&);
+	friend Point operator+(const Point& p1, const Point& p2);
 	Point operator-(const Point&);
 
 	//piecewise multiplication/division

@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "SimpleTexture.h"
 #include "NavigationSystem.h"
+#include "QuadBike.h"
 
 class VirtualPlatform
 {
@@ -23,5 +24,12 @@ private:
 	int textureWidth;
 	int textureHeight;
 
+	int drawScale = 1;
+	int focusX = 0;
+	int focusY = 0;
+
+	QuadBike quad;
+
+	Point transform(Point p);
 };
 

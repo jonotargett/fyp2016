@@ -38,6 +38,11 @@ void SimpleNavigator::addPoint(Point p) {
 }
 
 
+/*
+returns the distance that the quad bike is out after completing a turn
+to line up with the next line segment based off a list of experimental
+values (interpolation)
+*/
 double SimpleNavigator::getDeltaY(double radians) {
 	std::vector<Point> deltaYList = { Point(0, 0),
 								Point(26,-0.724),
@@ -52,7 +57,9 @@ double SimpleNavigator::getDeltaY(double radians) {
 	while (degrees > deltaYList.at(i).x) {
 		i++;
 	}
-	double deltaY = deltaYList.at(i).y + ((degrees - deltaYList.at(i).x)/(deltaYList.at(i-1).x - deltaYList.at(i).x))*(deltaYList.at(i-1).y - deltaYList.at(i).y);
+	double deltaY = deltaYList.at(i).y + 
+				((degrees - deltaYList.at(i).x)/(deltaYList.at(i-1).x - deltaYList.at(i).x))
+				*(deltaYList.at(i-1).y - deltaYList.at(i).y);
 	return deltaY;
 }
 
@@ -79,9 +86,9 @@ bool SimpleNavigator::subdivide() {
 	addPoint(dummyPoints);
 	dummyPoints = Point(0, 0);
 	addPoint(dummyPoints);
-	dummyPoints = Point(5, 2.5);
+	dummyPoints = Point(3, 0);
 	addPoint(dummyPoints);
-	dummyPoints = Point(-5, 25);
+	dummyPoints = Point(5, 5);
 	addPoint(dummyPoints);
 
 	// for each line segment (each line between two 'ultimate' waypoints)

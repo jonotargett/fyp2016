@@ -58,7 +58,7 @@ void Overlord::run() {
 
 	// Virtual platform stuff
 	vp->drawTexture();
-	//window->update(vp->retrieveImage());
+	window->update(vp->retrieveImage());
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
