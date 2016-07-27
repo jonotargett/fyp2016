@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Point.h"
-#include <math.h>
+#include <cmath>
 
 class QuadBike
 {
@@ -11,6 +11,7 @@ public:
 
 	Point getLocation();
 	double getHeading();
+	double getVelocity();
 
 	double const width = 1.18;
 	double const length = 1.86;
@@ -21,11 +22,13 @@ public:
 	Point getRearR();
 	Point getFrontL();
 	Point getFrontR();
+
+	void update();
 	
 
 private:
 	Point location = Point(1.33, 1.33);
-	
 	double velocity = 0;
 	double heading = 0; // heading in degrees clockwise from vertical axis (+y).
+	double steerAngle = 0;
 };

@@ -13,7 +13,7 @@ public:
 	~VirtualPlatform();
 
 	bool initialise(NavigationSystem*, SDL_Renderer*);
-
+	void update();
 	void drawTexture();
 	SDL_Texture* retrieveImage();
 	

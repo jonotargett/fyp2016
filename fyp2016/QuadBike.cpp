@@ -1,14 +1,43 @@
 #include "QuadBike.h"
+#include <iostream>
 
 QuadBike::QuadBike()
 {
 	location.x = 0;
 	location.y = 0;
-	heading = 30 * 3.141592 / 180;
+	velocity = 1;
+	heading = 190 * 3.141592 / 180;
 }
 QuadBike::~QuadBike()
 {
 
+}
+
+void QuadBike::update() {
+
+	if (steerAngle > 20 * 3.1415 / 180) steerAngle = 20 * 3.1415 / 180;
+	if (steerAngle < -20 * 3.1415 / 180) steerAngle = -20 * 3.1415 / 180;
+
+	// loop is runnin approx every 0.014 seconds (70 fps)
+	double fps = 70;
+	double distanceTravelled = velocity * 1 / fps;
+	double distanceForward = 0;
+	double distanceRight = 0;
+	double angleTurned = 0;
+
+	if (steerAngle == 0) {
+		distanceForward = distanceTravelled;
+	}
+	else {
+		double turnRadius = wheelBase / tan(steerAngle);
+		angleTurned = distanceTravelled / turnRadius;
+		distanceForward = turnRadius * sin(angleTurned);
+		distanceRight = turnRadius - turnRadius * cos(angleTurned);
+	}
+
+	location.x += distanceForward * sin(heading) + distanceRight * cos(heading);
+	location.y += distanceForward * cos(heading) - distanceRight * sin(heading);
+	heading += angleTurned;
 }
 
 Point QuadBike::getLocation() {
@@ -17,6 +46,10 @@ Point QuadBike::getLocation() {
 
 double QuadBike::getHeading() {
 	return heading;
+}
+
+double QuadBike::getVelocity() {
+	return velocity;
 }
 
 Point QuadBike::getRearL() {

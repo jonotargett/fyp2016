@@ -23,6 +23,10 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	return true;
 }
 
+void VirtualPlatform::update() {
+	quad.update();
+}
+
 /*
 	Draws path to texture for the given drawScale and focus point defined within the function.
 */

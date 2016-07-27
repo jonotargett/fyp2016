@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "Log.h"
-
 #include "Window.h"
 #include "HardwareInterface.h"
 #include "DummyHardware.h"

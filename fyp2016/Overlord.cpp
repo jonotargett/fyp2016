@@ -56,16 +56,21 @@ void Overlord::run() {
 	fd->createImage(DISPLAY_KERNEL);
 	window->update(fd->retrieveImage());
 
-	// Virtual platform stuff
-	vp->drawTexture();
-	window->update(vp->retrieveImage());
+	
 
 	Log::setVerbosity(LOG_INFORMATIVE);
 
 	while (!window->shouldQuit()) {
 
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
 		window->handleEvents();
 		// waste time
+
+		// Virtual platform stuff
+		vp->update();
+		vp->drawTexture();
+		window->update(vp->retrieveImage());
 
 		//fd->runScan();
 		//fd->createImage(DISPLAY_RAW);
