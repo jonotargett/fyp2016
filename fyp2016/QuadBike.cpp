@@ -6,7 +6,7 @@ QuadBike::QuadBike()
 	location.x = 0;
 	location.y = 0;
 	velocity = 1;
-	heading = 190 * 3.141592 / 180;
+	heading = 0 * 3.141592 / 180;
 }
 QuadBike::~QuadBike()
 {
@@ -15,8 +15,11 @@ QuadBike::~QuadBike()
 
 void QuadBike::update() {
 
-	if (steerAngle > 20 * 3.1415 / 180) steerAngle = 20 * 3.1415 / 180;
-	if (steerAngle < -20 * 3.1415 / 180) steerAngle = -20 * 3.1415 / 180;
+	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
+	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
+
+	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle * 3.14159 / 180;
+	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle * 3.14159 / 180;
 
 	// loop is runnin approx every 0.014 seconds (70 fps)
 	double fps = 70;
@@ -29,7 +32,7 @@ void QuadBike::update() {
 		distanceForward = distanceTravelled;
 	}
 	else {
-		double turnRadius = wheelBase / tan(steerAngle);
+		double turnRadius = wheelBase / tan(-steerAngle);
 		angleTurned = distanceTravelled / turnRadius;
 		distanceForward = turnRadius * sin(angleTurned);
 		distanceRight = turnRadius - turnRadius * cos(angleTurned);
@@ -38,6 +41,19 @@ void QuadBike::update() {
 	location.x += distanceForward * sin(heading) + distanceRight * cos(heading);
 	location.y += distanceForward * cos(heading) - distanceRight * sin(heading);
 	heading += angleTurned;
+}
+
+void QuadBike::setThrottle(int t) {
+	//TODO
+}
+void QuadBike::setSteerAng(int s) {
+	requestedSteerAngle = s;
+}
+void QuadBike::setBrake(bool b) {
+	//TODO
+}
+void QuadBike::setGear(int g) {
+	//TODO
 }
 
 Point QuadBike::getLocation() {
@@ -50,6 +66,10 @@ double QuadBike::getHeading() {
 
 double QuadBike::getVelocity() {
 	return velocity;
+}
+
+double QuadBike::getSteerAng() {
+	return steerAngle;
 }
 
 Point QuadBike::getRearL() {
@@ -75,4 +95,10 @@ Point QuadBike::getFrontR() {
 	frontRight.x = overHang * sin(getHeading()) + (width / 2) * cos(getHeading());
 	frontRight.y = overHang * cos(getHeading()) - (width / 2) * sin(getHeading());
 	return frontRight;
+}
+Point QuadBike::getRearC() {
+	Point rearCenter;
+	rearCenter.x = -(wheelBase)*sin(getHeading());
+	rearCenter.y = -(wheelBase)*cos(getHeading());
+	return rearCenter;
 }
