@@ -2,7 +2,7 @@
 
 
 
-Ascan::Ascan(int l, int* v) : length(l), values(v) {
+Ascan::Ascan(unsigned int l, uint16_t* v) : length(l), values(v) {
 	offset = 0;
 	/*
 	values = new int[length];
@@ -21,26 +21,24 @@ Ascan::~Ascan()
 
 
 
-int Ascan::getSize() {
+unsigned int Ascan::getSize() {
 	return length;
 }
 
-int Ascan::getIndex(int index) {
-	if (index < 0)
-		return 0;
+uint16_t Ascan::getIndex(unsigned int index) {
 	if (index > length)
 		return 0;
 
 	return values[index];
 }
 
-int Ascan::getPercent(float percent) {
+uint16_t Ascan::getPercent(float percent) {
 	if (percent <= 0.0f)
 		return values[0];
 	if (percent >= 1.0f)
 		return values[length - 1];
 
-	int index = (int)percent * length;
+	unsigned int index = (unsigned int)percent * length;
 
 	return values[index];
 }

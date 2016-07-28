@@ -1,5 +1,6 @@
-#include "Point.h"
 
+#include "Point.h"
+#include <cmath>
 
 
 Point::Point()
@@ -19,13 +20,15 @@ Point::~Point()
 
 void Point::normalise()
 {
-	//TODO
+	double length = sqrt(x*x + y*y);
+	x /= length;
+	y /= length;
 }
 
-Point Point::operator+(const Point &)
+Point operator+(const Point& p1, const Point& p2)
 {
 	//TODO
-	return Point();
+	return Point(p1.x + p2.x, p1.y + p2.y);
 }
 
 Point Point::operator-(const Point &)

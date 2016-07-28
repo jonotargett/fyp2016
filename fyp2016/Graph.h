@@ -19,6 +19,6 @@ public:
 	~Graph();
 
 	void post(double);
-	SDL_Surface* getTexture();
+	SDL_Surface* retrieveImage();
 };
 

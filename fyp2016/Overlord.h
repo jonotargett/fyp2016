@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "Log.h"
-
 #include "Window.h"
 #include "HardwareInterface.h"
 #include "DummyHardware.h"
@@ -12,6 +10,7 @@
 #include "NavigationSystem.h"
 #include "SimpleNavigator.h"
 #include "Communications.h"
+#include "VirtualPlatform.h"
 
 class Overlord
 {
@@ -24,6 +23,7 @@ private:
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;
+	VirtualPlatform* vp;
 
 public:
 	Overlord();

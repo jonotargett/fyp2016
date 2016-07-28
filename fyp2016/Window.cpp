@@ -1,19 +1,47 @@
 #include "Window.h"
-
+#include "SimpleTexture.h"
 
 
 Window::Window()
 {
+	
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		Log::e << "SDL could not be initialised. " << SDL_GetError() << std::endl;
+		Log::e << "SDL could not be initialised. " 
+			<< SDL_GetError() << std::endl;
+
+		quit = true;
 		return;
 	}
 
-	window = SDL_CreateWindow("Signal Processing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							1200, 600, SDL_WINDOW_HIDDEN);
+	window = SDL_CreateWindow(
+		"FYP 2099 Control Program", 
+		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		1200, 600, SDL_WINDOW_HIDDEN);
 
+	if (window == NULL) {
+		Log::e << "SDL Window could not be created. "
+			<< SDL_GetError() << endl;
+		quit = true;
+		return;
+	}
+
+	renderer = SDL_CreateRenderer(window, -1, 
+		SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	if (renderer == NULL) {
+		Log::e << "SDL Renderer could not be created. " 
+			<< SDL_GetError() << endl;
+		quit = true;
+		return;
+	}
+
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+
+
+	/*
 	surface = SDL_GetWindowSurface(window);
 
 	SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF));
@@ -23,17 +51,21 @@ Window::Window()
 	Log::i << "SDL Window created." << std::endl;
 
 	// -----------------------------//
+	*/
 
 }
 
 
 Window::~Window()
 {
-	SDL_FreeSurface(surface);
-	surface = NULL;
-
 	SDL_DestroyWindow(window);
 	window = NULL;
+
+	SDL_DestroyRenderer(renderer);
+	renderer = NULL;
+
+	//SDL_DestroyTexture(texture);
+	//texture = NULL;
 }
 
 
@@ -51,16 +83,33 @@ void Window::showWindow(bool b) {
 	}
 }
 
+void Window::clearWindow() {
+	SDL_RenderClear(renderer);
+}
 
-void Window::update(SDL_Surface* newImage) {
+void Window::update(SDL_Texture* newImage) {
 
-	SDL_BlitSurface(newImage, NULL, surface, NULL);
+	int w, h;
+	SDL_QueryTexture(newImage, NULL, NULL, &w, &h);
+	SDL_Rect destination;
+	destination.x = 0;
+	destination.y = 0;
+	destination.w = w;
+	destination.h = h;
 
-	SDL_UpdateWindowSurface(window);
+	// this is donw in clearWindow() now
+	//SDL_RenderClear(renderer);
+
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderCopy(renderer, newImage, NULL, &destination);
+	SDL_RenderPresent(renderer);
 
 	Log::d << "Window frame changed." << std::endl;
 }
 
+SDL_Renderer* Window::getRenderer() {
+	return renderer;
+}
 
 void Window::handleEvents() {
 	while (SDL_PollEvent(&event) != 0) {
@@ -68,7 +117,6 @@ void Window::handleEvents() {
 			quit = true;
 		}
 	}
-
 	SDL_Delay(10);
 }
 
@@ -76,4 +124,3 @@ void Window::handleEvents() {
 bool Window::shouldQuit() {
 	return quit;
 }
-

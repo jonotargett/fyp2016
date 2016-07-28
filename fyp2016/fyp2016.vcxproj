@@ -127,6 +127,7 @@
     <ClCompile Include="Communications.cpp" />
     <ClCompile Include="DummyHardware.cpp" />
     <ClCompile Include="FeatureDetector.cpp" />
+    <ClCompile Include="GPR.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -137,6 +138,9 @@
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="SimpleController.cpp" />
     <ClCompile Include="SimpleNavigator.cpp" />
+    <ClCompile Include="SimpleTexture.cpp" />
+    <ClCompile Include="QuadBike.cpp" />
+    <ClCompile Include="VirtualPlatform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -149,12 +153,16 @@
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
     <ClInclude Include="Communications.h" />
+    <ClInclude Include="csirousb.h" />
     <ClInclude Include="DriveController.h" />
     <ClInclude Include="DummyHardware.h" />
     <ClInclude Include="FeatureDetector.h" />
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="QuadBike.h" />
+    <ClInclude Include="SimpleTexture.h" />
+    <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="NavigationEdge.h" />

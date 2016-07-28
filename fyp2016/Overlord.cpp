@@ -34,41 +34,48 @@ bool Overlord::initialise() {
 	ns->initialise(dc, hwi);
 	Log::d << "-> NAVIGATION SYSTEM DONE" << endl;
 
-	fd = new FeatureDetector(hwi);
+	fd = new FeatureDetector(hwi, window->getRenderer());
 	fd->initialise();
-	
 	Log::d << "-> FEATURE DETECTOR DONE" << endl;
 
+	vp = new VirtualPlatform();
+	vp->initialise(ns, window->getRenderer());
+	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
+	
 	initialised = true;
 	return true;
 }
 
 
 void Overlord::run() {
-	
-
-	fd->createImage(DISPLAY_KERNEL);
 
 	window->showWindow(true);
+
+	// Feature detector stuff
+	fd->loadScan();
+	fd->createImage(DISPLAY_KERNEL);
 	window->update(fd->retrieveImage());
 
-	ns->addPoint(Point(0, 100));
-	ns->startPath();
-	dc->setEnabled(true);
+	
 
 	Log::setVerbosity(LOG_INFORMATIVE);
-	
-	Graph* g = new Graph(400, 200, -10, 110);
-	window->showWindow(true);
 
 	while (!window->shouldQuit()) {
+
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
 		window->handleEvents();
 		// waste time
 
-		g->post(hwi->getThrottlePercentage());
-		//window->update(g->getTexture());
+		// Virtual platform stuff
+		vp->update();
+		vp->drawTexture();
+		window->update(vp->retrieveImage());
 
-		SDL_Delay(50);
+		//fd->runScan();
+		//fd->createImage(DISPLAY_RAW);
+		//window->update(fd->retrieveImage());
+
+		SDL_Delay(5);
 	}
 }

@@ -10,26 +10,25 @@
 
 class Window
 {
-private:
-	SDL_Window* window;
-	SDL_Surface* surface;
-
-	SDL_Event event;
-
-	bool quit;
-	bool visible;
-
 public:
 	Window();
 	~Window();
 
+
 	bool shouldQuit();
 	void showWindow(bool);
+	void clearWindow();
 
 	void handleEvents();
+	void update(SDL_Texture*);
+	SDL_Renderer* getRenderer();
 
+private:
+	SDL_Window* window;
+	SDL_Renderer* renderer;
+	SDL_Event event;
 
-	void update(SDL_Surface*);
-
+	bool quit;
+	bool visible;
 };
 

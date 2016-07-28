@@ -57,7 +57,7 @@ inline const Logger& Logger::operator<<(const T& v) const {
 		sprintf(buf, "%12.6f", seconds.count());
 
 		if (Log::repostTime)
-			std::cout << "[" << buf << "] " << v;
+			std::cout << "[" << buf << "]\t" << v;
 		else
 			std::cout << v;
 

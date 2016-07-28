@@ -46,12 +46,13 @@ void Bscan::load(std::string filename) {
 
 	while (offset < size) {
 
-		int* v = new int[ASCAN_STRIDE];
+		uint16_t* v = new uint16_t[ASCAN_STRIDE];
 		int count = 0;
 		
 		while ((count < ASCAN_STRIDE) && offset < size) {
 
-			int e = (uint8_t)memblock[offset+1]*256 + (uint8_t)memblock[offset];
+			//TODO(Jono) check whether this is meant to be unsigned or 2s complement
+			uint16_t e = (uint8_t)memblock[offset+1]*256 + (uint8_t)memblock[offset];
 
 			v[count] = e;
 
@@ -84,6 +85,26 @@ Ascan* Bscan::element(int index) {
 	return NULL;
 }
 
+// adds an Ascan to this Bscan. rejects
+// and returns false if the Ascan is not the same length as the rest of the Bscan
+bool Bscan::add(Ascan* a) {
+	if (this->scans.size() == 0) {
+		scans.push_back(a);
+		return true;
+	}
+
+	if (a->getSize() == scans.at(0)->getSize()) {
+		scans.push_back(a);
+
+		if (scans.size() > MAX_LENGTH) {
+			scans.erase(scans.begin(), scans.begin() + (scans.size() - MAX_LENGTH));
+		}
+
+		return true;
+	}
+
+	return false;
+}
 
 Ascan* Bscan::produceNormal(int firstXscans) {
 
@@ -93,7 +114,7 @@ Ascan* Bscan::produceNormal(int firstXscans) {
 
 
 	int size = scans.at(0)->getSize();
-	int* v = new int[size];
+	uint16_t* v = new uint16_t[size];
 	
 
 	for (int i = 0; i < size; i++) {
@@ -120,12 +141,12 @@ void Bscan::normalise(Ascan* normal) {
 
 	for (int i = 0; i < (int)scans.size(); i++) {
 		int size = scans.at(i)->getSize();
-		int* v = new int[size];
+		uint16_t* v = new uint16_t[size];
 
-		for (int j = 0; j < normal->getSize(); j++) {
+		for (unsigned int j = 0; j < normal->getSize(); j++) {
 			int dif = scans.at(i)->getIndex(j) - normal->getIndex(j);
 
-			v[j] = (127*256 + dif);
+			v[j] = (uint16_t)(127*256 + dif);
 		}
 		
 		Ascan* newScan = new Ascan(size, v);
@@ -144,9 +165,9 @@ void Bscan::normalise(Ascan* normal) {
 
 
 
-int Bscan::Kernel(int dimension, int h, int d) {
+int Bscan::Kernel(int dimension, unsigned int h, unsigned int d) {
 
-	if (h < 1 || h > (int)scans.size() - 2)
+	if (h < 1 || h > scans.size() - 2)
 		return 0;
 	if (d < 1 || d > scans.at(0)->getSize() - 2)
 		return 0;
@@ -168,19 +189,23 @@ int Bscan::Kernel(int dimension, int h, int d) {
 	6	7	8		-1	-2	-1
 
 	*/
-
-	v[0] = +1 * scans.at(h - 1)->getIndex(d - 1);
-	v[1] = +2 * scans.at(h + 0)->getIndex(d - 1);
-	v[2] = +1 * scans.at(h + 1)->getIndex(d - 1);
+	Ascan* hn1 = scans.at(h - 1);
+	Ascan* h0 = scans.at(h + 0);
+	Ascan* hp1 = scans.at(h + 1);
+	
+	
+	v[0] = +1 * hn1->getIndex(d - 1);
+	v[1] = +2 * h0->getIndex(d - 1);
+	v[2] = +1 * hp1->getIndex(d - 1);
 
 	v[3] = 0;
 	v[4] = 0;
 	v[5] = 0;
 
-	v[6] = -1 * scans.at(h - 1)->getIndex(d + 1);
-	v[7] = -2 * scans.at(h + 0)->getIndex(d + 1);
-	v[8] = -1 * scans.at(h + 1)->getIndex(d + 1);
-
+	v[6] = -1 * hn1->getIndex(d + 1);
+	v[7] = -2 * h0->getIndex(d + 1);
+	v[8] = -1 * hp1->getIndex(d + 1);
+	
 
 	for (int i = 0; i < items; i++) {
 		yDif += v[i];
@@ -196,6 +221,7 @@ int Bscan::Kernel(int dimension, int h, int d) {
 	6	7	8		+1	 0	-1
 
 	*/
+	/*
 
 	v[0] = +1 * scans.at(h - 1)->getIndex(d - 1);
 	v[1] =  0 * scans.at(h + 0)->getIndex(d - 1);
@@ -215,9 +241,10 @@ int Bscan::Kernel(int dimension, int h, int d) {
 	}
 	xDif /= items;
 
+	*/
 
+	yDif = (int)std::sqrt((yDif * yDif)*VERTICAL_GAIN + (xDif * xDif)*HORIZONTAL_GAIN) * KERNEL_GAIN;
 
-	yDif = (int)std::sqrt(yDif * yDif + xDif * xDif) * 32;
 
 	delete v;
 	v = NULL;
