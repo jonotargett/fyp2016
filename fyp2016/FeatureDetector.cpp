@@ -30,11 +30,12 @@ bool FeatureDetector::initialise() {
 	01021000.DAT	- PVC10x15-para-at0.5cm SS10x05-at0.5cm
 	*/
 	
-	empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
+	//empty->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01011329.DAT");
+	empty->load("C:/Users/Racqui/Documents/Visual Studio 2015/Projects/01011329.DAT");
 	Log::i << "empty scan loaded." << std::endl;
-	scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
+	//scan->load("C:/Users/Jono/Documents/Visual Studio 2015/Projects/fyp2016/Debug/01031453.DAT");
+	scan->load("C:/Users/Racqui/Documents/Visual Studio 2015/Projects/01031453.DAT");
 	Log::i << "feature scan loaded." << std::endl;
-
 	Ascan* normal = scan->produceNormal(scan->length());
 	Log::i << "background noise identified." << std::endl;
 	scan->normalise(normal);

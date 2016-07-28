@@ -40,7 +40,7 @@ void Bscan::load(std::string filename) {
 
 
 	Log::d << "Filesize: " << size << std::endl;
-
+	
 
 	int ASCAN_STRIDE = 512;
 
