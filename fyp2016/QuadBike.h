@@ -14,8 +14,8 @@ public:
 	double getVelocity();
 	double getSteerAng();
 
-	void setThrottle(int t);
-	void setSteerAng(int s);
+	void setThrottle(double percent);
+	void setSteerAng(double s);
 	void setBrake(bool b);
 	void setGear(int g);
 
@@ -37,8 +37,11 @@ public:
 
 private:
 	Point location = Point(1.33, 1.33);
-	double velocity = 0;
-	double heading = 0; // heading in degrees clockwise from vertical axis (+y).
-	double steerAngle = 0;
-	double requestedSteerAngle = 0;
+	double velocity;
+	double heading; // heading in degrees clockwise from vertical axis (+y).
+	double steerAngle;
+	double requestedSteerAngle;
+	double throttle;
+	double throttleSpeed;
+	double acceleration;
 };

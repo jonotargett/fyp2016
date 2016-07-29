@@ -1,7 +1,6 @@
 #include "VirtualPlatform.h"
 
 
-
 VirtualPlatform::VirtualPlatform()
 {
 	
@@ -24,6 +23,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 }
 
 void VirtualPlatform::update() {
+	quad.setThrottle(50);
 	quad.update();
 }
 

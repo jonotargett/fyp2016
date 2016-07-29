@@ -5,8 +5,13 @@ QuadBike::QuadBike()
 {
 	location.x = 0;
 	location.y = 0;
-	velocity = 1;
+	velocity = 0;
 	heading = 0 * 3.141592 / 180;
+	throttle = 0;
+	steerAngle = 0;
+	requestedSteerAngle = 0;
+	throttleSpeed = 0;
+	acceleration = 2; //m/s/s
 }
 QuadBike::~QuadBike()
 {
@@ -15,20 +20,23 @@ QuadBike::~QuadBike()
 
 void QuadBike::update() {
 
-	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
-	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
-
-	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle * 3.14159 / 180;
-	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle * 3.14159 / 180;
-
 	// loop is runnin approx every 0.014 seconds (70 fps)
 	//TODO: implement a proper loop so fps is actually accurate and not a guess
+
 	double fps = 70;
 	double distanceTravelled = velocity * 1 / fps;
 	double distanceForward = 0;
 	double distanceRight = 0;
 	double angleTurned = 0;
 
+	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
+	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
+	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle * 3.14159 / 180;
+	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle * 3.14159 / 180;
+
+	if (velocity < throttleSpeed) velocity += acceleration/fps;
+	if (velocity > throttleSpeed) velocity -= acceleration / fps;
+	
 	if (steerAngle == 0) {
 		distanceForward = distanceTravelled;
 	}
@@ -44,10 +52,16 @@ void QuadBike::update() {
 	heading += angleTurned;
 }
 
-void QuadBike::setThrottle(int t) {
-	//TODO
+void QuadBike::setThrottle(double percent) {
+	// to mimic real life conditions, speed at 0% =~ 0.25 m/s, and speed at 100% = 15m/s.
+	// speed will gradually approach corresponding throttle speed.
+	// Throttle speed = 0.25 + 0.1475 * percent
+	if (percent > 100) percent = 100;
+	if (percent < 0) percent = 0;
+	throttle = percent;
+	throttleSpeed = 0.25 + 0.1475 * percent;
 }
-void QuadBike::setSteerAng(int s) {
+void QuadBike::setSteerAng(double s) {
 	requestedSteerAngle = s;
 }
 void QuadBike::setBrake(bool b) {
