@@ -19,6 +19,7 @@ void QuadBike::update() {
 	if (steerAngle < -20 * 3.1415 / 180) steerAngle = -20 * 3.1415 / 180;
 
 	// loop is runnin approx every 0.014 seconds (70 fps)
+	//TODO: implement a proper loop so fps is actually accurate and not a guess
 	double fps = 70;
 	double distanceTravelled = velocity * 1 / fps;
 	double distanceForward = 0;
