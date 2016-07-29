@@ -74,7 +74,14 @@ void VirtualPlatform::drawTexture() {
 												(int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y);
 	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y,
 												(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);
+	//rear wheel:
+	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(Point(quadLoc.x + quad.getRearC().x + sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius,0)).x,
+												(int)transform(Point(0, quadLoc.y + quad.getRearC().y + cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius)).y,
+												(int)transform(Point(quadLoc.x + quad.getRearC().x - sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius, 0)).x,
+												(int)transform(Point(0, quadLoc.y + quad.getRearC().y - cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius)).y);
 	SDL_SetRenderTarget(texture->getRenderer(), NULL);
+
+
 }
 
 Point VirtualPlatform::transform(Point p) {
