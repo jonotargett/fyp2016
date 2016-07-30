@@ -1,5 +1,5 @@
 #include "VirtualPlatform.h"
-
+#include "SDL\SDL_ttf.h"
 
 VirtualPlatform::VirtualPlatform()
 {
@@ -18,6 +18,13 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	textureHeight = 600;
 
 	texture->createBlank(textureWidth, textureHeight);
+
+	if (TTF_Init() == -1) {
+		cout << "ttf failed " << SDL_GetError() << endl;
+	}
+	else {
+		cout << "ttf successs" << endl;
+	}
 
 	return true;
 }

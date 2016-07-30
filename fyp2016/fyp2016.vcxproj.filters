@@ -89,6 +89,9 @@
     <Library Include="GPRDLL.LIB">
       <Filter>Resource Files</Filter>
     </Library>
+    <Library Include="SDL2_ttf.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
