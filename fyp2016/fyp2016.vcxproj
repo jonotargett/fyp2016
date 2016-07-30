@@ -185,10 +185,6 @@
     <None Include="gprdll.dll" />
     <None Include="GPRDLL.EXP" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.freetype.txt" />
-    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.zlib.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
