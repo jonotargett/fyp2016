@@ -144,7 +144,6 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\SDL2_ttf.lib" />
     <Library Include="GPRDLL.LIB" />
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
@@ -175,9 +174,6 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\libfreetype-6.dll" />
-    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\SDL2_ttf.dll" />
-    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\zlib1.dll" />
     <None Include="..\.travis.yml" />
     <None Include="..\makefile" />
     <None Include="csirousb.inf" />
