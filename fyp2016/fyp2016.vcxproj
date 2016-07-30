@@ -144,6 +144,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\SDL2_ttf.lib" />
     <Library Include="GPRDLL.LIB" />
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
@@ -174,12 +175,19 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\libfreetype-6.dll" />
+    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\SDL2_ttf.dll" />
+    <None Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\zlib1.dll" />
     <None Include="..\.travis.yml" />
     <None Include="..\makefile" />
     <None Include="csirousb.inf" />
     <None Include="csirousb.sys" />
     <None Include="gprdll.dll" />
     <None Include="GPRDLL.EXP" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.freetype.txt" />
+    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.zlib.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,5 @@
 #include "VirtualPlatform.h"
+#include "SDL\SDL_ttf.h"
 
 
 VirtualPlatform::VirtualPlatform()

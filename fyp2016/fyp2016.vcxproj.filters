@@ -89,6 +89,9 @@
     <Library Include="GPRDLL.LIB">
       <Filter>Resource Files</Filter>
     </Library>
+    <Library Include="SDL2_ttf.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -177,5 +180,22 @@
     <None Include="GPRDLL.EXP">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="libfreetype-6.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="SDL2_ttf.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="zlib1.dll">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.freetype.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="..\..\..\..\Desktop\SDL2_ttf-devel-2.0.14-VC\SDL2_ttf-2.0.14\lib\x86\LICENSE.zlib.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
