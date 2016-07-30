@@ -5,6 +5,7 @@
 #include "SimpleTexture.h"
 #include "NavigationSystem.h"
 #include "QuadBike.h"
+#include "SDL\SDL_ttf.h"
 
 class VirtualPlatform
 {
@@ -20,6 +21,7 @@ public:
 private:
 	NavigationSystem* ns;
 	SimpleTexture* texture;
+	TTF_Font* standardFont;
 
 	int textureWidth;
 	int textureHeight;
@@ -31,5 +33,7 @@ private:
 	QuadBike quad;
 
 	Point transform(Point p);
+	void setupFont();
+	void VirtualPlatform::drawText(std::string textToRender, int x, int y);
 };
 

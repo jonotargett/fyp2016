@@ -31,8 +31,8 @@ void QuadBike::update() {
 
 	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
 	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
-	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle * 3.14159 / 180;
-	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle * 3.14159 / 180;
+	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle;
+	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle;
 
 	if (velocity < throttleSpeed) velocity += acceleration/fps;
 	if (velocity > throttleSpeed) velocity -= acceleration / fps;
@@ -50,6 +50,8 @@ void QuadBike::update() {
 	location.x += distanceForward * sin(heading) + distanceRight * cos(heading);
 	location.y += distanceForward * cos(heading) - distanceRight * sin(heading);
 	heading += angleTurned;
+	if (heading > 3.14159265) heading -= 2 * 3.14159265;
+	if (heading < -3.14159265) heading += 2 * 3.14159265;
 }
 
 void QuadBike::setThrottle(double percent) {
@@ -85,6 +87,10 @@ double QuadBike::getVelocity() {
 
 double QuadBike::getSteerAng() {
 	return steerAngle;
+}
+
+double QuadBike::getThrottle() {
+	return throttle;
 }
 
 Point QuadBike::getRearL() {

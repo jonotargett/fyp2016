@@ -13,6 +13,7 @@ public:
 	double getHeading();
 	double getVelocity();
 	double getSteerAng();
+	double getThrottle();
 
 	void setThrottle(double percent);
 	void setSteerAng(double s);

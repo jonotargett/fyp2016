@@ -41,7 +41,7 @@ bool Overlord::initialise() {
 	vp = new VirtualPlatform();
 	vp->initialise(ns, window->getRenderer());
 	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
-	
+
 	initialised = true;
 	return true;
 }
