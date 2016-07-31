@@ -4,7 +4,7 @@
 QuadBike::QuadBike()
 {
 	location.x = -0.1;
-	location.y = 0;
+	location.y = -4;
 	velocity = 0;
 	heading = 0 * 3.141592 / 180;
 	throttle = 0;

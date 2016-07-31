@@ -82,7 +82,7 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(0, -3);
+	Point dummyPoints = Point(0, -2);
 	addPoint(dummyPoints);
 	dummyPoints = Point(0, 0);
 	addPoint(dummyPoints);

@@ -31,6 +31,7 @@ private:
 	int drawScale = 1;
 	int focusX = 0;
 	int focusY = 0;
+	int currentPathPoint = 0;
 	double timer = 0;
 
 	QuadBike quad;

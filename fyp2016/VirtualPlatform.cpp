@@ -26,15 +26,29 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 
 	setupFont();
 
+	drawScale = 80;
+	focusX = 0;
+	focusY = -2;
+
 	return true;
 }
 
 void VirtualPlatform::update() {
 	quad.setBrake(false);
 	quad.setGear(1);
-	quad.setThrottlePercentage(5);
-	quad.setSteerAng(20 * 3.1416 / 180);
+	quad.setThrottlePercentage(0);
 	quad.update();
+
+	// find angle between heading and to the next path point
+	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
+	double alpha = angleToPathPoint - quad.getHeading();
+	double distance = sqrt(pow(quad.getLocation().x - ns->getPath().at(currentPathPoint)->x, 2) + pow(quad.getLocation().y - ns->getPath().at(currentPathPoint)->y, 2));
+	double steerAngleReq = atan(2 * quad.wheelBase * sin(alpha) / distance);
+	quad.setSteerAng(-steerAngleReq);
+
+	if (distance < 0.4) {
+		currentPathPoint++;
+	}
 }
 
 /*
@@ -47,10 +61,6 @@ void VirtualPlatform::drawTexture() {
 	//clear screen
 	SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(mainCanvas->getRenderer());
-
-	drawScale = 80;
-	focusX = 0;
-	focusY = 0;
 	
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
