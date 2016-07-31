@@ -4,7 +4,7 @@
 QuadBike::QuadBike()
 {
 	location.x = -0.1;
-	location.y = -3;
+	location.y = 0;
 	velocity = 0;
 	heading = 0 * 3.141592 / 180;
 	throttle = 0;
@@ -32,10 +32,10 @@ void QuadBike::update() {
 	double angleTurned = 0;
 
 	// steering stuff
-	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
-	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
-	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle;
-	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle;
+	if (steerAngle < requestedSteerAngle) steerAngle += 0.01;
+	if (steerAngle > requestedSteerAngle) steerAngle -= 0.01;
+	if (steerAngle > maxSteerAngle) steerAngle = maxSteerAngle;
+	if (steerAngle < -maxSteerAngle) steerAngle = -maxSteerAngle;
 
 	// velocity/throttle stuff
 	if (gear == -1) { // reverse
@@ -197,14 +197,14 @@ Point QuadBike::getRearC() {
 
 Point QuadBike::getRWheel() {
 	Point rearRight;
-	rearRight.x = -(wheelBase - wheelRadii)*sin(getHeading()) + (width / 2 - wheelWidth) * cos(getHeading()) - wheelRadii;
-	rearRight.y = -(wheelBase - wheelRadii)*cos(getHeading()) - (width / 2 - wheelWidth) * sin(getHeading()) + wheelWidth;
+	rearRight.x = -(wheelBase)*sin(getHeading()) + (width / 2 - wheelWidth / 2) * cos(getHeading()) - wheelWidth / 2;
+	rearRight.y = -(wheelBase)*cos(getHeading()) - (width / 2 - wheelWidth / 2) * sin(getHeading()) + wheelRadii;
 	return rearRight;
 }
 
 Point QuadBike::getLWheel() {
 	Point rearLeft;
-	rearLeft.x = -(wheelBase - wheelRadii)*sin(getHeading()) - (width / 2) * cos(getHeading()) - wheelRadii;
-	rearLeft.y = -(wheelBase - wheelRadii)*cos(getHeading()) + (width / 2) * sin(getHeading()) + wheelWidth;
+	rearLeft.x = -(wheelBase)*sin(getHeading()) - (width / 2 - wheelWidth / 2) * cos(getHeading()) - wheelWidth / 2;
+	rearLeft.y = -(wheelBase)*cos(getHeading()) + (width / 2 - wheelWidth / 2) * sin(getHeading()) + wheelRadii;
 	return rearLeft;
 }

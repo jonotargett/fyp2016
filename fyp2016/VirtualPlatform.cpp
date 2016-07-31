@@ -75,15 +75,11 @@ void VirtualPlatform::drawTexture() {
 
 	Point quadLoc = quad.getLocation();
 	// drawing the quadbike wheels
-	timer+=0.3;
 
-	/*SDL_Rect leftWheelRect = { transform(quadLoc + quad.getLWheel()).x, transform(quadLoc + quad.getLWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
+	SDL_Rect leftWheelRect = { transform(quadLoc + quad.getLWheel()).x, transform(quadLoc + quad.getLWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
 	SDL_Rect rightWheelRect = { transform(quadLoc + quad.getRWheel()).x, transform(quadLoc + quad.getRWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
-	SDL_Point rotationLeftCenter = { quad.wheelWidth / 2, -quad.wheelRadii };
-	SDL_Point rotationRightCenter = { quad.wheelWidth / 2, -quad.wheelRadii };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, -90 + timer, &rotationLeftCenter, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, -90 + timer, &rotationRightCenter, SDL_FLIP_NONE);
-	quad.heading = 3.1415 / 2;*/
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (quad.getHeading() + quad.getSteerAng() + quad.getSteerAng()/5) * 180/3.1416, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (quad.getHeading() + quad.getSteerAng() - quad.getSteerAng()/5) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
 	
 	// drawing the quadbike png image
 	SDL_Point rotationCenter = { quad.width / 2, quad.length - quad.wheelBase };
@@ -108,12 +104,12 @@ void VirtualPlatform::drawTexture() {
 	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y-1);
 	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x-1, (int)transform(quadLoc).y);
 
-	//rear wheel (line):
+	/*//rear wheel (line):
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + quad.getRearC().x + sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii,0)).x,
 												(int)transform(Point(0, quadLoc.y + quad.getRearC().y + cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii)).y,
 												(int)transform(Point(quadLoc.x + quad.getRearC().x - sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii, 0)).x,
 												(int)transform(Point(0, quadLoc.y + quad.getRearC().y - cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii)).y);
-	
+	*/
 
 	// rendering text
 	drawText("Hey, you fools!", 10, 10);

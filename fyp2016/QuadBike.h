@@ -39,12 +39,11 @@ public:
 	Point getRWheel();
 
 	void update();
-	double heading; // heading in degrees clockwise from vertical axis (+y).
 
 private:
 	Point location;
 	double velocity;
-
+	double heading; // heading in degrees clockwise from vertical axis (+y).
 	double steerAngle;
 	double requestedSteerAngle;
 	double throttle;
