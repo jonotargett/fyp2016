@@ -147,6 +147,7 @@
     <Library Include="GPRDLL.LIB" />
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
+    <Library Include="SDL2_image.lib" />
     <Library Include="SDL2_net.lib" />
     <Library Include="SDL2_ttf.lib" />
   </ItemGroup>
