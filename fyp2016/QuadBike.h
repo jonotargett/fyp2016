@@ -26,7 +26,8 @@ public:
 	double const length = 1.86;
 	double const wheelBase = 1.28;
 	double const overHang = (length - wheelBase) / 2;
-	double const wheelRadius = 0.2;
+	double const wheelRadii = 0.3;
+	double const wheelWidth = 0.25;
 	double const maxSteerAngle = 22 * 3.141592 / 180;
 
 	Point getRearL();
@@ -34,14 +35,16 @@ public:
 	Point getFrontL();
 	Point getFrontR();
 	Point getRearC();
+	Point getLWheel();
+	Point getRWheel();
 
 	void update();
-	
+	double heading; // heading in degrees clockwise from vertical axis (+y).
 
 private:
 	Point location;
 	double velocity;
-	double heading; // heading in degrees clockwise from vertical axis (+y).
+
 	double steerAngle;
 	double requestedSteerAngle;
 	double throttle;

@@ -20,7 +20,9 @@ public:
 	
 private:
 	NavigationSystem* ns;
-	SimpleTexture* texture;
+	SimpleTexture* mainCanvas;
+	SimpleTexture* quadTexture;
+	SimpleTexture* wheelTexture;
 	TTF_Font* standardFont;
 
 	int textureWidth;
@@ -29,7 +31,7 @@ private:
 	int drawScale = 1;
 	int focusX = 0;
 	int focusY = 0;
-	int timer = 0;
+	double timer = 0;
 
 	QuadBike quad;
 

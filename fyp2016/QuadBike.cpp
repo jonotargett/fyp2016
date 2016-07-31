@@ -194,3 +194,17 @@ Point QuadBike::getRearC() {
 	rearCenter.y = -(wheelBase)*cos(getHeading());
 	return rearCenter;
 }
+
+Point QuadBike::getRWheel() {
+	Point rearRight;
+	rearRight.x = -(wheelBase - wheelRadii)*sin(getHeading()) + (width / 2 - wheelWidth) * cos(getHeading()) - wheelRadii;
+	rearRight.y = -(wheelBase - wheelRadii)*cos(getHeading()) - (width / 2 - wheelWidth) * sin(getHeading()) + wheelWidth;
+	return rearRight;
+}
+
+Point QuadBike::getLWheel() {
+	Point rearLeft;
+	rearLeft.x = -(wheelBase - wheelRadii)*sin(getHeading()) - (width / 2) * cos(getHeading()) - wheelRadii;
+	rearLeft.y = -(wheelBase - wheelRadii)*cos(getHeading()) + (width / 2) * sin(getHeading()) + wheelWidth;
+	return rearLeft;
+}
