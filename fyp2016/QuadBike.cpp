@@ -3,8 +3,8 @@
 
 QuadBike::QuadBike()
 {
-	location.x = 0;
-	location.y = 0;
+	location.x = -0.1;
+	location.y = -3;
 	velocity = 0;
 	heading = 0 * 3.141592 / 180;
 	throttle = 0;
@@ -12,6 +12,8 @@ QuadBike::QuadBike()
 	requestedSteerAngle = 0;
 	throttleSpeed = 0;
 	acceleration = 2; //m/s/s
+	brakes = true;
+	gear = 0; // -1 reverse, 0 neutral, 1 drive
 }
 QuadBike::~QuadBike()
 {
@@ -29,14 +31,57 @@ void QuadBike::update() {
 	double distanceRight = 0;
 	double angleTurned = 0;
 
+	// steering stuff
 	if (steerAngle < requestedSteerAngle) steerAngle += 0.001;
 	if (steerAngle > requestedSteerAngle) steerAngle -= 0.001;
 	if (steerAngle > maxSteerAngle * 3.14159 / 180) steerAngle = maxSteerAngle;
 	if (steerAngle < -maxSteerAngle * 3.14159 / 180) steerAngle = -maxSteerAngle;
 
-	if (velocity < throttleSpeed) velocity += acceleration/fps;
-	if (velocity > throttleSpeed) velocity -= acceleration / fps;
-	
+	// velocity/throttle stuff
+	if (gear == -1) { // reverse
+		//if vel is pretty close to desired value, set it to desired value
+		if (abs(velocity - throttleSpeed * gear) < acceleration / fps) {
+			velocity = throttleSpeed * gear;
+		}
+		else {
+			if (velocity < throttleSpeed * gear) velocity += acceleration / 2 / fps;
+			if (velocity > throttleSpeed * gear) velocity -= acceleration / fps;
+		}
+	}
+	else if (gear == 1) { // forward
+		//if vel is pretty close to desired value, set it to desired value
+		if (abs(velocity - throttleSpeed) < acceleration / fps) {
+			velocity = throttleSpeed;
+			
+		} else {
+			if (velocity < throttleSpeed) velocity += acceleration / fps;
+			if (velocity > throttleSpeed) velocity -= acceleration / 2 / fps;
+		}
+	}
+	else if (gear == 0) { // neutral
+		//if vel is pretty close to desired value, set it to desired value
+		if (abs(velocity) < acceleration / 2 / fps) {
+			velocity = 0;
+		}
+		else {
+			if (velocity > 0) velocity -= acceleration / 2 / fps;
+			if (velocity < 0) velocity += acceleration / 2 / fps;
+		}
+	}
+
+	// brake stuff
+	if (brakes) {
+		//if vel is pretty close to desired value, set it to desired value
+		if (abs(velocity) < acceleration / fps) {
+			velocity = 0;
+		}
+		else {
+			if (velocity > 0) velocity -= acceleration / fps;
+			if (velocity < 0) velocity += acceleration / fps;
+		}
+	}
+
+	// calculating next position based on steer angle and velocity
 	if (steerAngle == 0) {
 		distanceForward = distanceTravelled;
 	}
@@ -47,6 +92,7 @@ void QuadBike::update() {
 		distanceRight = turnRadius - turnRadius * cos(angleTurned);
 	}
 
+	// updating position
 	location.x += distanceForward * sin(heading) + distanceRight * cos(heading);
 	location.y += distanceForward * cos(heading) - distanceRight * sin(heading);
 	heading += angleTurned;
@@ -54,7 +100,7 @@ void QuadBike::update() {
 	if (heading < -3.14159265) heading += 2 * 3.14159265;
 }
 
-void QuadBike::setThrottle(double percent) {
+void QuadBike::setThrottlePercentage(double percent) {
 	// to mimic real life conditions, speed at 0% =~ 0.25 m/s, and speed at 100% = 15m/s.
 	// speed will gradually approach corresponding throttle speed.
 	// Throttle speed = 0.25 + 0.1475 * percent
@@ -64,13 +110,30 @@ void QuadBike::setThrottle(double percent) {
 	throttleSpeed = 0.25 + 0.1475 * percent;
 }
 void QuadBike::setSteerAng(double s) {
+	if (s > maxSteerAngle) s = maxSteerAngle;
+	if (s < -maxSteerAngle) s = -maxSteerAngle;
 	requestedSteerAngle = s;
 }
 void QuadBike::setBrake(bool b) {
-	//TODO
+	brakes = b;
 }
-void QuadBike::setGear(int g) {
-	//TODO
+bool QuadBike::setGear(int g) {
+	// can go into neutral anytime
+	// returns true if successful gear change, false otherwise
+	if (g > 1) return false;
+	if (g < -1) return false;
+	if (velocity == 0) {
+		gear = g;
+		return true;
+	}
+	else {
+		if (g == 0) {
+			gear = g;
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
 Point QuadBike::getLocation() {
@@ -91,6 +154,14 @@ double QuadBike::getSteerAng() {
 
 double QuadBike::getThrottle() {
 	return throttle;
+}
+
+bool QuadBike::getBrakes() {
+	return brakes;
+}
+
+int QuadBike::getGear() {
+	return gear;
 }
 
 Point QuadBike::getRearL() {

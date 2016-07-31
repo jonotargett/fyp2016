@@ -29,6 +29,7 @@ private:
 	int drawScale = 1;
 	int focusX = 0;
 	int focusY = 0;
+	int timer = 0;
 
 	QuadBike quad;
 

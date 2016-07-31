@@ -57,12 +57,9 @@ void Overlord::run() {
 	window->update(fd->retrieveImage());
 
 	
-
 	Log::setVerbosity(LOG_INFORMATIVE);
 
 	while (!window->shouldQuit()) {
-
-		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
 		window->handleEvents();
 		// waste time

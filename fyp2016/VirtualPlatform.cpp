@@ -24,8 +24,6 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 }
 
 void VirtualPlatform::update() {
-	quad.setThrottle(10);
-	quad.setSteerAng(-20*3.1415/180);
 	quad.update();
 }
 
@@ -76,6 +74,13 @@ void VirtualPlatform::drawTexture() {
 												(int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y);
 	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y,
 												(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);
+	// point at quads local (0,0)
+	SDL_RenderDrawPoint(texture->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(texture->getRenderer(), (int)transform(quadLoc).x+1, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(texture->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y+1);
+	SDL_RenderDrawPoint(texture->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y-1);
+	SDL_RenderDrawPoint(texture->getRenderer(), (int)transform(quadLoc).x-1, (int)transform(quadLoc).y);
+
 	//rear wheel:
 	SDL_RenderDrawLine(texture->getRenderer(), (int)transform(Point(quadLoc.x + quad.getRearC().x + sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius,0)).x,
 												(int)transform(Point(0, quadLoc.y + quad.getRearC().y + cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadius)).y,
