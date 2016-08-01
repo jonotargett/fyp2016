@@ -1,10 +1,10 @@
 #include "Window.h"
 #include "SimpleTexture.h"
+#include "SDL\SDL_opengl.h"
 
 
 Window::Window()
 {
-	
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -39,7 +39,7 @@ Window::Window()
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-
+	
 
 	/*
 	surface = SDL_GetWindowSurface(window);

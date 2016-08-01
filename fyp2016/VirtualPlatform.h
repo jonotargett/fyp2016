@@ -23,6 +23,7 @@ private:
 	SimpleTexture* mainCanvas;
 	SimpleTexture* quadTexture;
 	SimpleTexture* wheelTexture;
+	SimpleTexture* sensorTexture;
 	TTF_Font* standardFont;
 
 	int textureWidth;

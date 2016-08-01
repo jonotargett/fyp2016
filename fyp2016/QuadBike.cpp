@@ -4,7 +4,7 @@
 QuadBike::QuadBike()
 {
 	location.x = -0.1;
-	location.y = -4;
+	location.y = -2.5;
 	velocity = 0;
 	heading = 0 * 3.141592 / 180;
 	throttle = 0;
@@ -25,15 +25,15 @@ void QuadBike::update() {
 	// loop is runnin approx every 0.014 seconds (70 fps)
 	//TODO: implement a proper loop so fps is actually accurate and not a guess
 
-	double fps = 70;
+	double fps = 50;
 	double distanceTravelled = velocity * 1 / fps;
 	double distanceForward = 0;
 	double distanceRight = 0;
 	double angleTurned = 0;
 
 	// steering stuff
-	if (steerAngle < requestedSteerAngle) steerAngle += 0.01;
-	if (steerAngle > requestedSteerAngle) steerAngle -= 0.01;
+	if (steerAngle < requestedSteerAngle) steerAngle += 0.004;
+	if (steerAngle > requestedSteerAngle) steerAngle -= 0.004;
 	if (steerAngle > maxSteerAngle) steerAngle = maxSteerAngle;
 	if (steerAngle < -maxSteerAngle) steerAngle = -maxSteerAngle;
 
@@ -109,6 +109,7 @@ void QuadBike::setThrottlePercentage(double percent) {
 	throttle = percent;
 	throttleSpeed = 0.25 + 0.1475 * percent;
 }
+
 void QuadBike::setSteerAng(double s) {
 	if (s > maxSteerAngle) s = maxSteerAngle;
 	if (s < -maxSteerAngle) s = -maxSteerAngle;
@@ -134,6 +135,13 @@ bool QuadBike::setGear(int g) {
 			return false;
 		}
 	}
+}
+
+void QuadBike::setState(std::string s) {
+	state = s;
+}
+std::string QuadBike::getState() {
+	return state;
 }
 
 Point QuadBike::getLocation() {
@@ -207,4 +215,11 @@ Point QuadBike::getLWheel() {
 	rearLeft.x = -(wheelBase)*sin(getHeading()) - (width / 2 - wheelWidth / 2) * cos(getHeading()) - wheelWidth / 2;
 	rearLeft.y = -(wheelBase)*cos(getHeading()) + (width / 2 - wheelWidth / 2) * sin(getHeading()) + wheelRadii;
 	return rearLeft;
+}
+
+Point QuadBike::getSensorTopLeft() {
+	Point frontLeft;
+	frontLeft.x = overHang * sin(getHeading()) - (1.5) * cos(getHeading());
+	frontLeft.y = overHang * cos(getHeading()) + (1.5) * sin(getHeading());
+	return frontLeft;
 }

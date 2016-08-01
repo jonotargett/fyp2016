@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Point.h"
+#include <iostream>
 #include <cmath>
 
 class QuadBike
@@ -16,11 +17,13 @@ public:
 	double getThrottle();
 	bool getBrakes();
 	int getGear();
+	std::string getState();
 
 	void setThrottlePercentage(double percent);
 	void setSteerAng(double s);
 	void setBrake(bool b);
 	bool setGear(int g);
+	void setState(std::string s);
 
 	double const width = 1.18;
 	double const length = 1.86;
@@ -37,6 +40,7 @@ public:
 	Point getRearC();
 	Point getLWheel();
 	Point getRWheel();
+	Point getSensorTopLeft();
 
 	void update();
 
@@ -51,4 +55,5 @@ private:
 	double acceleration;
 	bool brakes;
 	int gear;
+	std::string state;
 };

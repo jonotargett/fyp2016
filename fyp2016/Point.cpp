@@ -18,6 +18,11 @@ Point::~Point()
 {
 }
 
+double Point::getDistanceTo(Point p) {
+	double distance = sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
+	return distance;
+}
+
 void Point::normalise()
 {
 	double length = sqrt(x*x + y*y);

@@ -23,6 +23,8 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	quadTexture->loadImage("quadBikeImage.png");
 	wheelTexture = new SimpleTexture(r);
 	wheelTexture->loadImage("quadWheelImage.png");
+	sensorTexture = new SimpleTexture(r);
+	sensorTexture->loadImage("sensorImage.png");
 
 	setupFont();
 
@@ -30,25 +32,39 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	focusX = 0;
 	focusY = -2;
 
+	quad.setState("cruise");
+
 	return true;
 }
 
 void VirtualPlatform::update() {
-	quad.setBrake(false);
-	quad.setGear(1);
-	quad.setThrottlePercentage(0);
-	quad.update();
-
+	
 	// find angle between heading and to the next path point
 	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
 	double alpha = angleToPathPoint - quad.getHeading();
-	double distance = sqrt(pow(quad.getLocation().x - ns->getPath().at(currentPathPoint)->x, 2) + pow(quad.getLocation().y - ns->getPath().at(currentPathPoint)->y, 2));
+	double distance = quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint));
 	double steerAngleReq = atan(2 * quad.wheelBase * sin(alpha) / distance);
 	quad.setSteerAng(-steerAngleReq);
 
-	if (distance < 0.4) {
-		currentPathPoint++;
+	if (distance > quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint + 1))) {
+		// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
+		quad.setState("turnInbound");
 	}
+
+	if (quad.getState() == "turnInbound") {
+		quad.setGear(0);
+		quad.setBrake(false);
+	}
+	else if (quad.getState() == "cruise") {
+		quad.setGear(1); //TODO: maybe its -1, i dunno.
+		quad.setBrake(false);
+		quad.setThrottlePercentage(7);
+		if (distance < 0.8) currentPathPoint++;
+	}
+
+	
+
+	quad.update();
 }
 
 /*
@@ -85,19 +101,23 @@ void VirtualPlatform::drawTexture() {
 
 	Point quadLoc = quad.getLocation();
 	// drawing the quadbike wheels
-
 	SDL_Rect leftWheelRect = { transform(quadLoc + quad.getLWheel()).x, transform(quadLoc + quad.getLWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
 	SDL_Rect rightWheelRect = { transform(quadLoc + quad.getRWheel()).x, transform(quadLoc + quad.getRWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (quad.getHeading() + quad.getSteerAng() + quad.getSteerAng()/5) * 180/3.1416, NULL, SDL_FLIP_NONE);
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (quad.getHeading() + quad.getSteerAng() - quad.getSteerAng()/5) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
-	
+
+	// drawing the sensor mount
+	SDL_Rect sensorRect = { transform(quadLoc + quad.getSensorTopLeft()).x, transform(quadLoc + quad.getSensorTopLeft()).y, 1.5 * drawScale, 3 * drawScale };
+	SDL_Point sensorCenter = { 0,0 };
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, quad.getHeading() * 180 / 3.1416 - 90, &sensorCenter, SDL_FLIP_NONE);
+
 	// drawing the quadbike png image
 	SDL_Point rotationCenter = { quad.width / 2, quad.length - quad.wheelBase };
 	SDL_Rect quadRect = { transform(quadLoc + quad.getFrontL()).x, transform(quadLoc + quad.getFrontL()).y, quad.width * drawScale, quad.length * drawScale };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, quad.getHeading() * 180/3.1416, &rotationCenter, SDL_FLIP_NONE);
 	
 	// drawing the quadbike outline
-	SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y,
 												(int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y);
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y,
@@ -105,7 +125,7 @@ void VirtualPlatform::drawTexture() {
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getFrontR()).x, (int)transform(quadLoc + quad.getFrontR()).y,
 												(int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y);
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y,
-												(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);
+												(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);*/
 
 	// point at quads local (0,0)
 	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
