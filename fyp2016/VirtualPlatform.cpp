@@ -38,33 +38,148 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 }
 
 void VirtualPlatform::update() {
-	
+
 	// find angle between heading and to the next path point
 	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
+	if (angleToPathPoint > 3.141593) angleToPathPoint -= 2 * 3.141593;
+	if (angleToPathPoint < -3.141593) angleToPathPoint += 2 * 3.141593;
 	double alpha = angleToPathPoint - quad.getHeading();
 	double distance = quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint));
-	double steerAngleReq = atan(2 * quad.wheelBase * sin(alpha) / distance);
-	quad.setSteerAng(-steerAngleReq);
+	double steerAngleReq = -atan(2 * quad.wheelBase * sin(alpha) / distance);
 
+	if (steerAngleReq > quad.maxSteerAngle) steerAngleReq = quad.maxSteerAngle;
+	if (steerAngleReq < -quad.maxSteerAngle) steerAngleReq = -quad.maxSteerAngle;
+	quad.setSteerAng(steerAngleReq);
+
+
+	if (currentPathPoint + 1 >= ns->getPath().size()) {
+		// next point doesnt exist
+		return;
+	}
+	
 	if (distance > quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint + 1))) {
-		// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
-		quad.setState("turnInbound");
+		if (quad.getState() != "turnInbound") {
+			// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
+			quad.setState("turnInbound");
+		}
+	}
+
+	// are we going forward (1) or backward (-1)
+	int direction;
+	if (alpha < -3.1416 / 2 || alpha > 3.1416 / 2) {
+		direction = -1;
+	}
+	else {
+		direction = 1;
 	}
 
 	if (quad.getState() == "turnInbound") {
-		quad.setGear(0);
-		quad.setBrake(false);
+		// kinda bad because if quad overshoots it will keep going.
+		desiredVelocity = direction * 2 * distance;
+		if (abs(desiredVelocity) > quad.cruisesVelocity) 
+			desiredVelocity = direction * quad.cruisesVelocity;
+		
+		if (distance < 0.1) {
+			quad.setState("cruise");
+			currentPathPoint++;
+		}
 	}
 	else if (quad.getState() == "cruise") {
-		quad.setGear(1); //TODO: maybe its -1, i dunno.
-		quad.setBrake(false);
-		quad.setThrottlePercentage(7);
-		if (distance < 0.8) currentPathPoint++;
+		desiredVelocity = quad.cruisesVelocity * direction;
+		if (distance < 1.2) currentPathPoint++;
 	}
 
-	
+	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
+		desiredVelocity = 0;
+	}
 
+	setDesiredVelocity();
 	quad.update();
+}
+
+// assumes correct gear is selected
+void VirtualPlatform::setDesiredVelocity() {
+	if (desiredVelocity == 0) {
+		quad.setThrottlePercentage(0);
+		quad.setGear(0);
+		quad.setBrake(true);
+	}
+	else if (desiredVelocity > 0) {
+		// if we are travelling in the wrong direction
+		if (quad.getVelocity() < 0) {
+			quad.setThrottlePercentage(0);
+			quad.setGear(0);
+			quad.setBrake(true);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			quad.setGear(1);
+			quad.setBrake(false);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (desiredVelocity < quad.getIdleSpeed()) {
+			if (quad.getVelocity() < desiredVelocity) {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(false);
+			}
+			else {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(true);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large 
+		// difference in actual speed and desired speed
+		else {
+			if (quad.getVelocity() < desiredVelocity) {
+				quad.setThrottlePercentage(quad.getThrottle() + 0.1);
+			}
+			if (quad.getVelocity() > desiredVelocity) {
+				quad.setThrottlePercentage(quad.getThrottle() - 1);
+				//quad.setBrake(true);
+			}
+		}
+	}
+	else if (desiredVelocity < 0) {
+		// if we are travelling in the wrong direction
+		if (quad.getVelocity() > 0) {
+			quad.setThrottlePercentage(0);
+			quad.setGear(0);
+			quad.setBrake(true);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			quad.setGear(-1);
+			quad.setBrake(false);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (abs(desiredVelocity) < quad.getIdleSpeed()) {
+			if (quad.getVelocity() < desiredVelocity) {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(true);
+			}
+			else {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(false);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large
+		// difference in actual speed and desired speed
+		else {
+			//REMEMBER WE'RE IN REVERSE HERE
+			if (quad.getVelocity() < desiredVelocity) {
+				quad.setThrottlePercentage(quad.getThrottle() - 0.1);
+			}
+			if (quad.getVelocity() > desiredVelocity) {
+				quad.setThrottlePercentage(quad.getThrottle() + 0.1);
+			}
+		}
+	}
 }
 
 /*
@@ -159,6 +274,11 @@ void VirtualPlatform::drawTexture() {
 	titleText += std::to_string((int) quad.getThrottle());
 	titleText += " %";
 	drawText(titleText, 10, 380);
+
+	titleText = "Rounded Velocity:  ";
+	titleText += std::to_string(round(quad.getVelocity() * 10)/10);
+	titleText += " m/s";
+	drawText(titleText, 10, 420);
 
 	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
 }

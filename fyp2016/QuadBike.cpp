@@ -3,15 +3,15 @@
 
 QuadBike::QuadBike()
 {
-	location.x = -0.1;
-	location.y = -2.5;
+	location.x = -2.05;
+	location.y = -6.2;
 	velocity = 0;
 	heading = 0 * 3.141592 / 180;
 	throttle = 0;
 	steerAngle = 0;
 	requestedSteerAngle = 0;
 	throttleSpeed = 0;
-	acceleration = 2; //m/s/s
+	acceleration = 1; //m/s/s
 	brakes = true;
 	gear = 0; // -1 reverse, 0 neutral, 1 drive
 }
@@ -32,8 +32,8 @@ void QuadBike::update() {
 	double angleTurned = 0;
 
 	// steering stuff
-	if (steerAngle < requestedSteerAngle) steerAngle += 0.004;
-	if (steerAngle > requestedSteerAngle) steerAngle -= 0.004;
+	if (steerAngle < requestedSteerAngle) steerAngle += 0.008;
+	if (steerAngle > requestedSteerAngle) steerAngle -= 0.008;
 	if (steerAngle > maxSteerAngle) steerAngle = maxSteerAngle;
 	if (steerAngle < -maxSteerAngle) steerAngle = -maxSteerAngle;
 
@@ -76,8 +76,8 @@ void QuadBike::update() {
 			velocity = 0;
 		}
 		else {
-			if (velocity > 0) velocity -= acceleration / fps;
-			if (velocity < 0) velocity += acceleration / fps;
+			if (velocity > 0) velocity -= 2 * acceleration / fps;
+			if (velocity < 0) velocity += 2 * acceleration / fps;
 		}
 	}
 
@@ -107,6 +107,7 @@ void QuadBike::setThrottlePercentage(double percent) {
 	if (percent > 100) percent = 100;
 	if (percent < 0) percent = 0;
 	throttle = percent;
+	// CHANGE THIS EQUATION AND IT NEEDS TO BE CHANGED IN GETIDLESPEED AS WELL!!!
 	throttleSpeed = 0.25 + 0.1475 * percent;
 }
 
@@ -142,6 +143,10 @@ void QuadBike::setState(std::string s) {
 }
 std::string QuadBike::getState() {
 	return state;
+}
+
+double QuadBike::getIdleSpeed() {
+	return 0.25;
 }
 
 Point QuadBike::getLocation() {

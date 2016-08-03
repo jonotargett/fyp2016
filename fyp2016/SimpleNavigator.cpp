@@ -82,13 +82,15 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(0, -2);
+	Point dummyPoints = Point(-2, -4);
 	addPoint(dummyPoints);
-	dummyPoints = Point(0, 0);
+	dummyPoints = Point(-2, -2);
 	addPoint(dummyPoints);
-	dummyPoints = Point(3, 0);
+	dummyPoints = Point(1, -2);
 	addPoint(dummyPoints);
-	dummyPoints = Point(5, 5);
+	dummyPoints = Point(3, 1);
+	addPoint(dummyPoints);
+	dummyPoints = Point(6, -10);
 	addPoint(dummyPoints);
 
 	// for each line segment (each line between two 'ultimate' waypoints)
@@ -214,8 +216,6 @@ bool SimpleNavigator::subdivide() {
 
 					Point pp = Point(centreX + newVecX, centreY + newVecY);
 					subdividedPath.push_back(pp);
-
-					//cout << pp.x << ", " << pp.y << endl;
 				}
 				if (hasReachedCorrectAngle) {
 					break;

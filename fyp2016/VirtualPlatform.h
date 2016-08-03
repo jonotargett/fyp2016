@@ -17,6 +17,7 @@ public:
 	void update();
 	void drawTexture();
 	SDL_Texture* retrieveImage();
+	void setDesiredVelocity();
 	
 private:
 	NavigationSystem* ns;
@@ -34,6 +35,7 @@ private:
 	int focusY = 0;
 	int currentPathPoint = 0;
 	double timer = 0;
+	double desiredVelocity = 0;
 
 	QuadBike quad;
 

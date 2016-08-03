@@ -17,6 +17,7 @@ public:
 	double getThrottle();
 	bool getBrakes();
 	int getGear();
+	double getIdleSpeed();
 	std::string getState();
 
 	void setThrottlePercentage(double percent);
@@ -31,7 +32,8 @@ public:
 	double const overHang = (length - wheelBase) / 2;
 	double const wheelRadii = 0.3;
 	double const wheelWidth = 0.25;
-	double const maxSteerAngle = 22 * 3.141592 / 180;
+	double const maxSteerAngle = 25 * 3.141592 / 180;
+	double const cruisesVelocity = 1.2;
 
 	Point getRearL();
 	Point getRearR();
