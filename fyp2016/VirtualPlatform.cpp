@@ -218,8 +218,8 @@ void VirtualPlatform::drawTexture() {
 	// drawing the quadbike wheels
 	SDL_Rect leftWheelRect = { transform(quadLoc + quad.getLWheel()).x, transform(quadLoc + quad.getLWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
 	SDL_Rect rightWheelRect = { transform(quadLoc + quad.getRWheel()).x, transform(quadLoc + quad.getRWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (quad.getHeading() + quad.getSteerAng() + quad.getSteerAng()/5) * 180/3.1416, NULL, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (quad.getHeading() + quad.getSteerAng() - quad.getSteerAng()/5) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (quad.getHeading() + quad.getSteerAng() + abs(quad.getSteerAng()/5.5)) * 180/3.1416, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (quad.getHeading() + quad.getSteerAng() - abs(quad.getSteerAng()/5.5)) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
 
 	// drawing the sensor mount
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
