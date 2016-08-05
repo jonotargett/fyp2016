@@ -258,28 +258,35 @@ void VirtualPlatform::drawTexture() {
 	*/
 
 	// rendering text
-	drawText("Hey, you fools!", 10, 10);
-	
 	std::string titleText;
-	titleText = "Velocity:  ";
-	titleText += std::to_string(quad.getVelocity());
-	titleText += " m/s";
-	drawText(titleText, 10, 300);
 
-	titleText = "Heading:  ";
+	titleText = "Heading: ";
 	titleText += std::to_string((int)(quad.getHeading() * 180 / 3.1416));
 	titleText += " degrees";
-	drawText(titleText, 10, 340);
+	drawText(titleText, 10, 300);
 
-	titleText = "Throttle:  ";
+	std::string vel = std::to_string(abs(quad.getVelocity()));
+	vel.erase(3, 99);
+	titleText = "Speed: ";
+	titleText += vel;
+	titleText += " m/s";
+	drawText(titleText, 10, 320);
+
+	titleText = "Throttle: ";
 	titleText += std::to_string((int) quad.getThrottle());
 	titleText += " %";
-	drawText(titleText, 10, 380);
+	drawText(titleText, 10, 340);
 
-	titleText = "Rounded Velocity:  ";
-	titleText += std::to_string(round(quad.getVelocity() * 10)/10);
-	titleText += " m/s";
-	drawText(titleText, 10, 420);
+	titleText = "Gear: ";
+	if (quad.getGear() == 1) titleText += "Drive";
+	if (quad.getGear() == 0) titleText += "Neutral";
+	if (quad.getGear() == -1) titleText += "Reverse";
+	drawText(titleText, 10, 360);
+
+	titleText = "Brakes: ";
+	if (quad.getBrakes()) titleText += "Applied";
+	if (!quad.getBrakes()) titleText += "Released";
+	drawText(titleText, 10, 380);
 
 	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
 }
@@ -312,6 +319,6 @@ void VirtualPlatform::setupFont() {
 	if (TTF_Init() == -1) {
 		Log::e << " Failed to initialise TTF : " << SDL_GetError() << endl;
 	}
-	std::string fontName = "Pacifico.ttf";
-	standardFont = TTF_OpenFont(fontName.c_str(), 16);
+	std::string fontName = "OpenSans-Regular.ttf";
+	standardFont = TTF_OpenFont(fontName.c_str(), 12);
 }

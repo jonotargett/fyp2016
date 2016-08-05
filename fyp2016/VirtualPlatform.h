@@ -6,6 +6,7 @@
 #include "NavigationSystem.h"
 #include "QuadBike.h"
 #include "SDL\SDL_ttf.h"
+#include <sstream>
 
 class VirtualPlatform
 {
