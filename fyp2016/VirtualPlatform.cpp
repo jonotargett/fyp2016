@@ -223,7 +223,7 @@ void VirtualPlatform::drawTexture() {
 
 	// drawing the sensor mount
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
-	SDL_Rect sensorRect = { transform(quadLoc + quad.getSensorTopLeft()).x, transform(quadLoc + quad.getSensorTopLeft()).y, sensorTexture->getWidth() * drawScale / sensorFactor, sensorTexture->getHeight() * drawScale /sensorFactor};
+	SDL_Rect sensorRect = { transform(quadLoc + quad.getSensorTopLeft()).x, transform(quadLoc + quad.getSensorTopLeft()).y, sensorTexture->getWidth() * drawScale / sensorFactor / 1.25, sensorTexture->getHeight() * drawScale /sensorFactor};
 	SDL_Point sensorCenter = { 0,0 };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, quad.getHeading() * 180 / 3.1416 - 90, &sensorCenter, SDL_FLIP_NONE);
 
