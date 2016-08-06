@@ -12,6 +12,17 @@
 #define MAXLEN 1024
 #define TIMEOUT 1000	// milliseconds before connection deemed inactive
 
+struct Packet {
+	char packetID;
+	int length;
+	float* data;
+
+	Packet() {
+
+	}
+};
+
+
 class Communications
 {
 private:

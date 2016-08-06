@@ -256,7 +256,7 @@ void VirtualPlatform::drawTexture() {
 												(int)transform(Point(quadLoc.x + quad.getRearC().x - sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii, 0)).x,
 												(int)transform(Point(0, quadLoc.y + quad.getRearC().y - cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii)).y);
 	*/
-
+	
 	// rendering text
 	std::string titleText;
 
@@ -287,7 +287,7 @@ void VirtualPlatform::drawTexture() {
 	if (quad.getBrakes()) titleText += "Applied";
 	if (!quad.getBrakes()) titleText += "Released";
 	drawText(titleText, 10, 380);
-
+	
 	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
 }
 
@@ -313,6 +313,8 @@ void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
 	SDL_QueryTexture(mTexture, NULL, NULL, &renderQuad.w, &renderQuad.h);
 
 	SDL_RenderCopy(mainCanvas->getRenderer(), mTexture, NULL, &renderQuad);
+
+	SDL_DestroyTexture(mTexture);
 }
 
 void VirtualPlatform::setupFont() {
