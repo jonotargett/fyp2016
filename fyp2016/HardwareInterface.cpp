@@ -40,7 +40,7 @@ bool HardwareInterface::start() {
 
 	updater = new std::thread(&HardwareInterface::updateLoop, this);
 
-	Log::i << "Hardware communication sub-thread started." << std::endl;
+	Log::d << "Hardware communication sub-thread started." << std::endl;
 
 	// return true if everything worked
 	return true;

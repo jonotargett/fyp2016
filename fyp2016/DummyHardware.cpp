@@ -32,7 +32,7 @@ bool DummyHardware::initialise() {
 	// return true once everything is initialised.
 	// seeing as there is no actual hardware here,
 	// just return true. oh yeah
-	Log::i << "DummyHardware initialised." << std::endl;
+	Log::d << "DummyHardware initialised." << std::endl;
 
 	start();
 

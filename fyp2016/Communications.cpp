@@ -10,6 +10,10 @@ Communications::Communications() : socket(2099)
 	collectingPacket = false;
 }
 
+/*
+I really need to fix these constructors to eliminate this duplication
+I've definitely forgotten how to call one constructor from within the other though
+*/
 Communications::Communications(int s) : socket(s) {
 	SDLNet_Init();
 	hasClient = false;
@@ -24,6 +28,9 @@ Communications::~Communications()
 	alive = false;
 }
 
+/*
+Alive here means: is the subthread running?
+*/
 bool Communications::isAlive() {
 	return alive;
 }
@@ -47,6 +54,8 @@ bool Communications::initialise() {
 	}
 	Log::i << "Server socket opened... " << socket << " (" << ip.port << ")" << endl;
 
+
+	// starts our subthread.
 	start();
 
 	return true;
@@ -59,14 +68,23 @@ void Communications::start() {
 
 	updater = new std::thread(&Communications::communicationsLoop, this);
 
-	Log::i << "Communiation sub-thread started." << std::endl;
+	Log::d << "Communiation sub-thread started." << std::endl;
 }
 
+/*
+I need to fix this to be more thread-safe. public access (which will be on a different
+thread) should set a flag indicating that the thread should end, then this commsLoop
+should check to end itself. this is good enough for now though because i dont think
+::close() is ever called...
+*/
 void Communications::close() {
 	SDLNet_TCP_Close(client);
 	SDLNet_TCP_Close(server);
 }
 
+/*
+Converts an IP address into a user readable format.
+*/
 char* Communications::formatIP(Uint32 addr) {
 	int b1, b2, b3, b4;
 
@@ -81,6 +99,11 @@ char* Communications::formatIP(Uint32 addr) {
 	return buf;
 }
 
+/*
+Checks the open server port, to see if a client has connected.
+If a client is already connected, just returns true;
+If not, returns whether a client has been accepted to the server connection
+*/
 bool Communications::acceptClient() {
 	if (hasClient)
 		return hasClient;
@@ -88,24 +111,32 @@ bool Communications::acceptClient() {
 	client = NULL;
 	client = SDLNet_TCP_Accept(server);
 
-	// prevent this from going overboard and pinging for clients
-	// unecessarily. hold ye horses o' computah
-	//SDL_Delay(50);
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
 	if (client) {
 		hasClient = true;
 		IPaddress* clientAddr = SDLNet_TCP_GetPeerAddress(client);
 		Log::i << "Client " << formatIP(clientAddr->host) << " connected to server socket." << std::endl;
 	}
+	else {
+		// prevent this from going overboard and pinging for clients
+		// unecessarily. hold ye horses o' computah
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+	
 	return hasClient;
 }
 
-
+/*
+Public access to see if a persistent TCP connection exists.
+IE, if the quad bike is communicating with this server.
+*/
 bool Communications::isConnected() {
 	return hasClient;
 }
 
+/*
+Publicly accessible function, allowing systems to push data
+or requests to the quad bike. 
+*/
 bool Communications::send(Packet* p) {
 	sendBuffer.push(p);
 
@@ -119,6 +150,7 @@ bool Communications::communicationsLoop() {
 	set = SDLNet_AllocSocketSet(1);
 
 	while (isAlive()) {
+		std::this_thread::sleep_for(std::chrono::microseconds(50));
 
 		if (!hasClient) {
 			acceptClient();
@@ -138,32 +170,30 @@ bool Communications::communicationsLoop() {
 			// HANDLE OUTGOING COMMUNICATIONS ------------------------------------------
 
 			if (sendBuffer.size() > 0) {
-//there are packets waiting to be sent. 
+				//there are packets waiting to be sent. 
 
-int packets = sendBuffer.size();
+				int packets = sendBuffer.size();
 
-// handle those
-while (sendBuffer.size() > 0) {
-	Log::d << "sending outgoing packet "
-		<< (packets - sendBuffer.size() + 1)
-		<< " of " << (packets) << "..." << endl;
+				// handle those
+				while (sendBuffer.size() > 0) {
+					Log::d << "sending outgoing packet "
+						<< (packets - sendBuffer.size() + 1)
+						<< " of " << (packets) << "..." << endl;
 
-	Packet* p = sendBuffer.front();
+					Packet* p = sendBuffer.front();
 
-	uint8_t* bytes = p->toBytes();
-	uint8_t len = p->getByteLength();
-	result = SDLNet_TCP_Send(client, bytes, len);
+					uint8_t* bytes = p->toBytes();
+					uint16_t len = p->getByteLength();
+					result = SDLNet_TCP_Send(client, bytes, len);
 
-	if (result < len) {
-		Log::e << "Communications Error: interrupted incomplete transmission" << endl;
-	}
-
-
-	delete bytes;
-	sendBuffer.pop();
-}
+					if (result < len) {
+						Log::e << "Communications Error: interrupted incomplete transmission" << endl;
+					}
 
 
+					delete bytes;
+					sendBuffer.pop();
+				}
 			}
 			else {
 				seconds = current - lastSent;
@@ -239,11 +269,14 @@ bool Communications::processPacket() {
 	p->data = new float[p->length];
 
 	if (receivedBuffer.size() == (p->length*4)) {
-		Log::e << "completed packet" << endl;
+		//Log::e << "completed packet" << endl;
 	}
 	else {
-		Log::e << "invalid packet length" << endl;
+		Log::e << "Communications error: corrupted/invalid packet received" << endl;
 		delete p;
+		while (receivedBuffer.size() > 0) {
+			receivedBuffer.pop();
+		}
 		return false;
 	}
 
@@ -267,9 +300,19 @@ bool Communications::processPacket() {
 		p->data[i] = result;
 	}
 
-	Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
-	Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
+	//Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
+	//Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
+
+	listener->onEvent(p);
 
 	return true;
 }
 
+/*
+Set where the packets are sent to
+*/
+void Communications::setListener(CommsListener* cl) {
+	listener = cl;
+
+	Log::d << "Event listener set" << endl;
+}

@@ -271,7 +271,9 @@ bool GPR::checkStatus(bool verbose) {
 
 	while (!success && attempts < MAX_ATTEMPTS) {
 
+		Log::suppressCout(true);
 		status = read_data(dataBuffer, 0, ids);
+		Log::suppressCout(false);
 		success = processStatusCode();
 
 		if (success) {
@@ -325,7 +327,9 @@ bool GPR::initialise() {
 	Log::i << "Synchronising data stream..." << endl;
 
 	while (!success) {
+		Log::suppressCout(true);
 		status = read_data(dataBuffer, -1, ids);
+		Log::suppressCout(false);
 		success = processStatusCode();
 		attempts++;
 

@@ -6,36 +6,34 @@
 
 #include "Log.h"
 #include "Packet.h"
+#include "CommsListener.h"
 
 //#include "Thread.h"
 #include <thread>
 #include <chrono>
 
 #define MAXLEN 1024
-#define POLL 4000		// milliseconds of inactivity before sending synchronous idle keep-alive
-#define TIMEOUT 10000	// milliseconds before connection deemed inactive
+#define POLL 1000		// milliseconds of inactivity before sending synchronous idle keep-alive
+#define TIMEOUT 3000	// milliseconds before connection deemed inactive
 
 
 
 
-class Communications
+class Communications 
 {
 public:
 	Communications();
 	Communications(int);
 	~Communications();
 
-	bool isAlive();
-	bool isConnected();
-
-
 	bool initialise();
-	void start();
-	void close();
 
 	bool acceptClient();
 	bool communicationsLoop();
 	bool send(Packet*);
+
+	bool isConnected();
+	void setListener(CommsListener*);
 
 private:
 	const int socket;
@@ -51,6 +49,7 @@ private:
 	bool alive;
 	std::queue<uint8_t> receivedBuffer;
 	std::queue<Packet*> sendBuffer;
+	CommsListener* listener;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastReceived;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastSent;
@@ -58,6 +57,9 @@ private:
 
 	char* formatIP(Uint32);
 	bool processPacket();
+	bool isAlive();
+	void start();
+	void close();
 };
 
 

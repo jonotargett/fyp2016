@@ -6,6 +6,7 @@
 
 Overlord::Overlord()
 {
+	showvp = true;
 	initialised = false;
 }
 
@@ -16,82 +17,163 @@ Overlord::~Overlord()
 
 
 bool Overlord::initialise() {
+	Log::i << "--------------------------------------------------------------" << endl;
 
+	Log::i << "-> Creating Window..." << endl;
 	window = new Window();
-	Log::d << "-> WINDOW DONE" << endl;
+	Log::i << "-> WINDOW DONE" << endl << endl;
 
+	Log::i << "-> Initialising communications..." << endl;
 	comms = new Communications(2099);
 	comms->initialise();
-	Log::d << "-> COMMUNICATIONS DONE" << endl;
+	comms->setListener(this);
+	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
+	Log::i << "-> Initialising hardware interface..." << endl;
 	hwi = new DummyHardware();
 	hwi->initialise();
-	Log::d << "-> HARDWARE INTERFACE DONE" << endl;
+	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 
+	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
 	dc->initialise(hwi);
-	Log::d << "-> DRIVE CONTROLLER DONE" << endl;
+	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
+	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise(dc, hwi);
-	Log::d << "-> NAVIGATION SYSTEM DONE" << endl;
+	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 
-	//fd = new FeatureDetector(hwi, window->getRenderer());
+	Log::i << "-> Starting feature detection system..." << endl;
+	fd = new FeatureDetector(hwi, window->getRenderer());
+	// just comment this line if the GPR isnt plugged in
 	//fd->initialise();
-	//Log::d << "-> FEATURE DETECTOR DONE" << endl;
+	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 
+	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
 	vp->initialise(ns, window->getRenderer());
-	Log::d << "-> VIRTUAL PLATFORM DONE" << endl;
+	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 
 	initialised = true;
+
+	Log::i << "--------------------------------------------------------------" << endl;
+
 	return true;
 }
 
 
 void Overlord::run() {
 
-	//window->showWindow(true);
+	std::chrono::duration<double> seconds;
+	
 
 	// Feature detector stuff
-	//fd->loadScan();
-	//fd->createImage(DISPLAY_KERNEL);
-	//window->update(fd->retrieveImage());
+	fd->loadScan();
+	fd->createImage(DISPLAY_KERNEL);
 
-
-	Log::e << "PACKET" << endl;
-	Packet* p = new Packet();
-	p->packetID = ID_DEBUG;
-	p->length = 4;
-	p->data = new float[p->length];
-	p->data[0] = 6.4096906e-10f;
-	p->data[1] = 2.9764932e29f;
-	p->data[2] = -1.180104e-38f;
-	p->data[3] = -2.7211347e-19f;
-
-	comms->send(p);
-
-	
-	Log::setVerbosity(LOG_INFORMATIVE);
-	Log::setVerbosity(LOG_ALL);
-
+	// display the window for the first time
+	window->showWindow(true);
+	window->update(fd->retrieveImage());
 
 	while (!window->shouldQuit()) {
 
+		// event handling in here. this stuff runs continuously ---------------//
+		
 		window->handleEvents();
+		this->handleEvents();
+		
 
+		// periodic refresh shit. runs at 60Hz ish. ---------------------------//
+		Log::setVerbosity(LOG_INFORMATIVE);
 
-		// waste time
+		current = std::chrono::high_resolution_clock::now();
+		seconds = current - lastWindowUpdate;
 
-		// Virtual platform stuff
-		//vp->update();
-		//vp->drawTexture();
-		//window->update(vp->retrieveImage());
+		if (seconds.count() > (1.0/(double)REFRESH_RATE)) {
+			lastWindowUpdate = current;
+			
+			// Virtual platform stuff
+			vp->update();
+			vp->drawTexture();
 
-		//fd->runScan();
-		//fd->createImage(DISPLAY_RAW);
-		//window->update(fd->retrieveImage());
+			window->clearWindow();
+			
+			if (showvp) {
+				window->update(vp->retrieveImage());
+			}
+			else {
+				window->update(fd->retrieveImage());
+			}
 
-		SDL_Delay(1000);
+		}
+
+		Log::setVerbosity(LOG_ALL);
+		// ---------------------------------------------------------------------//
 	}
 }
+
+
+
+void Overlord::onEvent(Packet* packet) {
+	packets.push(packet);
+}
+
+
+void Overlord::handleEvents() {
+
+	while (packets.size() > 0) {
+		// do stuff with the packets
+		Packet* p = packets.front();
+		bool handled = false;
+		Log::d << "Processing packet..." << endl;
+
+		switch (p->packetID) {
+		case ID_DEBUG:
+			Log::d << "Debug packet received" << endl;
+			handled = true;
+			break;
+		case ID_SHOW_FD:
+			//window->update(fd->retrieveImage());
+			showvp = false;
+			handled = true;
+			break;
+		case ID_SHOW_VP:
+			//window->update(vp->retrieveImage());
+			showvp = true;
+			handled = true;
+			break;
+		default:
+			Log::e << "Packet Error: Unrecognised command received." << endl;
+			handled = true;
+		}
+
+		if (handled) {
+			packets.pop();
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+Log::e << "PACKET" << endl;
+Packet* p = new Packet();
+p->packetID = ID_DEBUG;
+p->length = 4;
+p->data = new float[p->length];
+p->data[0] = 6.4096906e-10f;
+p->data[1] = 2.9764932e29f;
+p->data[2] = -1.180104e-38f;
+p->data[3] = -2.7211347e-19f;
+
+comms->send(p);
+*/

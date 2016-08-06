@@ -8,14 +8,45 @@ enum ID : uint8_t {
 	ID_NULL = 0x00,
 	ID_SOH = 0x01,			// start of transmission block
 	ID_EOT = 0x04,			// end of transmission
-	ID_IDLE = 0x16,			// synchronous idle
+	ID_IDLE = 0x7e,// 0x16,			// synchronous idle
 	ID_ETB = 0x17,			// end of transmission block
 	ID_CANCEL = 0x18,		// transmission cancelled (throw away whats received, 
 							// urgent shit coming like an e-stop command)
 
-	ID_DEBUG = 0x40
+	ID_DEBUG = 0x40,
+	ID_SHOW_FD = 0x41,
+	ID_SHOW_VP = 0x42,
+
+	ID_QUAD_POSITION = 0x50,
+	ID_QUAD_HEADING = 0x51,
+	ID_QUAD_SPEED = 0x52,
+
+
+	ID_CLEAR_NAV_POINTS = 0x60,
+	ID_NAV_POINTS = 0x61,
+
+	ID_EMERGENCY_STOP = 0xFF
+
 };
 
+
+/*
+PACKET STRUCTURE:
+
+PACKET ID: this will be something from the enum above.
+			the value of this ID will indicate to the receiver what the
+			packet data is. This could be a command, or an indicator
+			of what the data type is and where it should go to. 
+
+PACKET LENGTH: indicates the length (IN FLOATS) of the float array
+				passed in this packet. in the range 0 - 255. for 
+				packets carrying no data, this will be zero. YOU MUST
+				SET THIS LENGTH YOURSELF. THE PACKET STRUCT WONT 
+				CALCULATE IT FOR YOU
+
+PACKET DATA:	an array of floats, length as specified. 
+
+*/
 
 struct Packet {
 	ID packetID;

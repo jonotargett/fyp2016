@@ -20,7 +20,7 @@ bool SimpleController::initialise(HardwareInterface* h) {
 	//hrt = HRTimer();
 	start = std::chrono::high_resolution_clock::now();
 
-	Log::i << "SimpleController initialised." << std::endl;
+	Log::d << "SimpleController initialised." << std::endl;
 
 	/*************************************************************/
 	/*
@@ -35,7 +35,7 @@ bool SimpleController::initialise(HardwareInterface* h) {
 
 	updater = new std::thread(&SimpleController::updateLoop, this);
 
-	Log::i << "Auto-controller sub-thread started." << std::endl;
+	Log::d << "Auto-controller sub-thread started." << std::endl;
 
 	return true;
 }

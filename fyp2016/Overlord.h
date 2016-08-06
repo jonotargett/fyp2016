@@ -11,11 +11,26 @@
 #include "SimpleNavigator.h"
 #include "Communications.h"
 #include "VirtualPlatform.h"
+#include "CommsListener.h"
 
-class Overlord
+#define REFRESH_RATE 60
+
+
+class Overlord :
+	public CommsListener
 {
+public:
+	Overlord();
+	~Overlord();
+
+	bool initialise();
+	void run();
+	virtual void onEvent(Packet*);
+	void handleEvents();
+
 private:
 	bool initialised;
+	bool showvp;
 
 	Window* window;
 	Communications* comms;
@@ -25,12 +40,8 @@ private:
 	FeatureDetector* fd;
 	VirtualPlatform* vp;
 
-public:
-	Overlord();
-	~Overlord();
-
-	bool initialise();
-
-	void run();
+	
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowUpdate;
+	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 };
 

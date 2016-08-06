@@ -19,7 +19,7 @@ bool SimpleNavigator::initialise(DriveController* controller, HardwareInterface*
 	// TODO(): subdivide() here for testing purposes at the moment
 	subdivide();
 
-	Log::i << "Navigator initialised." << std::endl;
+	Log::d << "Navigator initialised." << std::endl;
 	return true;
 }
 
@@ -259,7 +259,7 @@ bool SimpleNavigator::subdivide() {
 		addPoint(subdividedPath.at(i));
 	}
 	subdividedPath.clear();
-	Log::i << "Path subdivision completed" << endl;
+	Log::d << "Path subdivision completed" << endl;
 	return false;
 }
 
