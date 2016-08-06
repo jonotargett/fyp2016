@@ -216,20 +216,20 @@ void VirtualPlatform::drawTexture() {
 
 	Point quadLoc = quad.getLocation();
 	// drawing the quadbike wheels
-	SDL_Rect leftWheelRect = { transform(quadLoc + quad.getLWheel()).x, transform(quadLoc + quad.getLWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
-	SDL_Rect rightWheelRect = { transform(quadLoc + quad.getRWheel()).x, transform(quadLoc + quad.getRWheel()).y, quad.wheelWidth * drawScale, quad.wheelRadii * 2 * drawScale };
+	SDL_Rect leftWheelRect = { (int)transform(quadLoc + quad.getLWheel()).x, (int)transform(quadLoc + quad.getLWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
+	SDL_Rect rightWheelRect = { (int)transform(quadLoc + quad.getRWheel()).x,(int)transform(quadLoc + quad.getRWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (quad.getHeading() + quad.getSteerAng() + abs(quad.getSteerAng()/5.5)) * 180/3.1416, NULL, SDL_FLIP_NONE);
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (quad.getHeading() + quad.getSteerAng() - abs(quad.getSteerAng()/5.5)) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
 
 	// drawing the sensor mount
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
-	SDL_Rect sensorRect = { transform(quadLoc + quad.getSensorTopLeft()).x, transform(quadLoc + quad.getSensorTopLeft()).y, sensorTexture->getWidth() * drawScale / sensorFactor / 1.25, sensorTexture->getHeight() * drawScale /sensorFactor};
+	SDL_Rect sensorRect = { (int)transform(quadLoc + quad.getSensorTopLeft()).x, (int)transform(quadLoc + quad.getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale /sensorFactor)};
 	SDL_Point sensorCenter = { 0,0 };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, quad.getHeading() * 180 / 3.1416 - 90, &sensorCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike png image
-	SDL_Point rotationCenter = { quad.width / 2, quad.length - quad.wheelBase };
-	SDL_Rect quadRect = { transform(quadLoc + quad.getFrontL()).x, transform(quadLoc + quad.getFrontL()).y, quad.width * drawScale, quad.length * drawScale };
+	SDL_Point rotationCenter = { (int)(quad.width / 2), (int)(quad.length - quad.wheelBase) };
+	SDL_Rect quadRect = { (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y, (int)(quad.width * drawScale), (int)(quad.length * drawScale) };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, quad.getHeading() * 180/3.1416, &rotationCenter, SDL_FLIP_NONE);
 	
 	// drawing the quadbike outline
