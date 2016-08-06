@@ -2,6 +2,8 @@
 
 #include "Graph.h"
 
+#include "Packet.h"
+
 Overlord::Overlord()
 {
 	initialised = false;
@@ -49,18 +51,29 @@ bool Overlord::initialise() {
 
 void Overlord::run() {
 
-	window->showWindow(true);
+	//window->showWindow(true);
 
 	// Feature detector stuff
 	//fd->loadScan();
 	//fd->createImage(DISPLAY_KERNEL);
 	//window->update(fd->retrieveImage());
 
+
+	Log::e << "PACKET" << endl;
+	Packet p = Packet();
+	p.packetID = ID_DEBUG;
+	p.length = 4;
+	p.data = new float[p.length];
+	p.data[0] = 6.4096906e-10;
+	p.data[1] = 2.9764932e29;
+	p.data[2] = -1.180104e-38;
+	p.data[3] = -2.7211347e-19;
+
+
+
 	
 	Log::setVerbosity(LOG_INFORMATIVE);
 
-	vp->update();
-	vp->drawTexture();
 
 	while (!window->shouldQuit()) {
 
@@ -68,9 +81,9 @@ void Overlord::run() {
 		// waste time
 
 		// Virtual platform stuff
-		vp->update();
-		vp->drawTexture();
-		window->update(vp->retrieveImage());
+		//vp->update();
+		//vp->drawTexture();
+		//window->update(vp->retrieveImage());
 
 		//fd->runScan();
 		//fd->createImage(DISPLAY_RAW);

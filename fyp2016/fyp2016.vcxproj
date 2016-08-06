@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
+    <ClInclude Include="CommsListener.h" />
     <ClInclude Include="Communications.h" />
     <ClInclude Include="csirousb.h" />
     <ClInclude Include="DriveController.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="QuadBike.h" />
     <ClInclude Include="SimpleTexture.h" />
     <ClInclude Include="VirtualPlatform.h" />

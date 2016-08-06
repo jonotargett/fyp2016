@@ -101,35 +101,80 @@ bool Communications::acceptClient() {
 
 bool Communications::communicationsLoop() {
 
+	SDLNet_SocketSet set;
+	set = SDLNet_AllocSocketSet(1);
+
 	while (isAlive()) {
 
 		if (!hasClient) {
 			acceptClient();
 		}
 		else {
+			current = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> seconds;
+
 			char msg = 0x16;	// synchronous idle character, a keep-alive indicating no data
 			int result = -1;
 
-			SDLNet_SocketSet set;
-			set = SDLNet_AllocSocketSet(1);
+			
 			SDLNet_TCP_AddSocket(set, client);
 
-			SDLNet_TCP_Send(client, &msg, 1);
-			result = SDLNet_CheckSockets(set, TIMEOUT);
+			
 
-			if (result <= 0) {
-				Log::e << endl << "Communications Error: client has reached unresponsive timeout" << endl;
-				hasClient = false;
+			// HANDLE OUTGOING COMMUNICATIONS ------------------------------------------
+
+			if (sendBuffer.size() > 0) {
+				//there are packets waiting to be sent. 
+
+				// handle those
+			}
+			else {
+				seconds = current - lastSent;
+
+				if (seconds.count() * 1000 > POLL) {
+					// havent sent a packet in a while, quad is going to think
+					// that we have lost comms. so, send a keep-alive packet
+					// just so it knows we're still here
+
+					SDLNet_TCP_Send(client, &msg, 1);
+					lastSent = std::chrono::high_resolution_clock::now();
+				}
 			}
 
-			result = SDLNet_TCP_Recv(client, &msg, 1);
+			
+
+			// CHECK FOR INCOMING COMMUNICATIONS ---------------------------------------
+
+			// thread blocking check
+			//result = SDLNet_CheckSockets(set, TIMEOUT);
+			result = SDLNet_CheckSockets(set, 0);
 
 			if (result <= 0) {
-				Log::e << std::endl << "Communications Error: client has disconnected." << std::endl;
-				hasClient = false;
+				seconds = current - lastReceived;
+
+				if (seconds.count()*1000 > TIMEOUT) {
+					Log::e << endl << "Communications Error: client has reached unresponsive timeout" << endl;
+					hasClient = false;
+				}
+			}
+			else {
+				lastReceived = std::chrono::high_resolution_clock::now();
+
+				result = SDLNet_TCP_Recv(client, &msg, 1);
+
+				if (result <= 0) {
+					Log::e << std::endl << "Communications Error: client has disconnected." << std::endl;
+					hasClient = false;
+				}
+				else {
+					Log::e << msg << endl;
+					receivedBuffer.push((char)(msg+32));
+				}
 			}
 
-			receivedBuffer.push_back(msg);
+			
+
+			SDLNet_TCP_DelSocket(set, client);
 		}
 	}
 

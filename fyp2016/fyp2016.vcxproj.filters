@@ -163,6 +163,12 @@
     <ClInclude Include="QuadBike.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CommsListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\makefile">
