@@ -60,24 +60,27 @@ void Overlord::run() {
 
 
 	Log::e << "PACKET" << endl;
-	Packet p = Packet();
-	p.packetID = ID_DEBUG;
-	p.length = 4;
-	p.data = new float[p.length];
-	p.data[0] = 6.4096906e-10;
-	p.data[1] = 2.9764932e29;
-	p.data[2] = -1.180104e-38;
-	p.data[3] = -2.7211347e-19;
+	Packet* p = new Packet();
+	p->packetID = ID_DEBUG;
+	p->length = 4;
+	p->data = new float[p->length];
+	p->data[0] = 6.4096906e-10f;
+	p->data[1] = 2.9764932e29f;
+	p->data[2] = -1.180104e-38f;
+	p->data[3] = -2.7211347e-19f;
 
-
+	comms->send(p);
 
 	
 	Log::setVerbosity(LOG_INFORMATIVE);
+	Log::setVerbosity(LOG_ALL);
 
 
 	while (!window->shouldQuit()) {
 
 		window->handleEvents();
+
+
 		// waste time
 
 		// Virtual platform stuff
@@ -89,6 +92,6 @@ void Overlord::run() {
 		//fd->createImage(DISPLAY_RAW);
 		//window->update(fd->retrieveImage());
 
-		SDL_Delay(5);
+		SDL_Delay(1000);
 	}
 }

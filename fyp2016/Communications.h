@@ -12,7 +12,7 @@
 #include <chrono>
 
 #define MAXLEN 1024
-#define POLL 100		// milliseconds of inactivity before sending synchronous idle keep-alive
+#define POLL 4000		// milliseconds of inactivity before sending synchronous idle keep-alive
 #define TIMEOUT 10000	// milliseconds before connection deemed inactive
 
 
@@ -26,7 +26,8 @@ public:
 	~Communications();
 
 	bool isAlive();
-	bool hasClient;
+	bool isConnected();
+
 
 	bool initialise();
 	void start();
@@ -34,13 +35,16 @@ public:
 
 	bool acceptClient();
 	bool communicationsLoop();
-	bool send(Packet&);
+	bool send(Packet*);
 
 private:
 	const int socket;
 	IPaddress ip;
 	TCPsocket server;
 	TCPsocket client;
+
+	bool hasClient;
+	bool collectingPacket;
 
 	//Thread* updater;
 	std::thread* updater;
@@ -53,7 +57,7 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 
 	char* formatIP(Uint32);
-
+	bool processPacket();
 };
 
 

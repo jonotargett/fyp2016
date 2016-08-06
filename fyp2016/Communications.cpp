@@ -7,12 +7,14 @@ Communications::Communications() : socket(2099)
 	SDLNet_Init();
 	hasClient = false;
 	alive = true;
+	collectingPacket = false;
 }
 
 Communications::Communications(int s) : socket(s) {
 	SDLNet_Init();
 	hasClient = false;
 	alive = true;
+	collectingPacket = false;
 }
 
 
@@ -99,6 +101,18 @@ bool Communications::acceptClient() {
 	return hasClient;
 }
 
+
+bool Communications::isConnected() {
+	return hasClient;
+}
+
+bool Communications::send(Packet* p) {
+	sendBuffer.push(p);
+
+	return true;
+}
+ 
+
 bool Communications::communicationsLoop() {
 
 	SDLNet_SocketSet set;
@@ -113,7 +127,7 @@ bool Communications::communicationsLoop() {
 			current = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> seconds;
 
-			char msg = 0x16;	// synchronous idle character, a keep-alive indicating no data
+			uint8_t msg = ID_IDLE;	// synchronous idle character, a keep-alive indicating no data
 			int result = -1;
 
 			
@@ -124,9 +138,32 @@ bool Communications::communicationsLoop() {
 			// HANDLE OUTGOING COMMUNICATIONS ------------------------------------------
 
 			if (sendBuffer.size() > 0) {
-				//there are packets waiting to be sent. 
+//there are packets waiting to be sent. 
 
-				// handle those
+int packets = sendBuffer.size();
+
+// handle those
+while (sendBuffer.size() > 0) {
+	Log::d << "sending outgoing packet "
+		<< (packets - sendBuffer.size() + 1)
+		<< " of " << (packets) << "..." << endl;
+
+	Packet* p = sendBuffer.front();
+
+	uint8_t* bytes = p->toBytes();
+	uint8_t len = p->getByteLength();
+	result = SDLNet_TCP_Send(client, bytes, len);
+
+	if (result < len) {
+		Log::e << "Communications Error: interrupted incomplete transmission" << endl;
+	}
+
+
+	delete bytes;
+	sendBuffer.pop();
+}
+
+
 			}
 			else {
 				seconds = current - lastSent;
@@ -141,7 +178,7 @@ bool Communications::communicationsLoop() {
 				}
 			}
 
-			
+
 
 			// CHECK FOR INCOMING COMMUNICATIONS ---------------------------------------
 
@@ -152,7 +189,7 @@ bool Communications::communicationsLoop() {
 			if (result <= 0) {
 				seconds = current - lastReceived;
 
-				if (seconds.count()*1000 > TIMEOUT) {
+				if (seconds.count() * 1000 > TIMEOUT) {
 					Log::e << endl << "Communications Error: client has reached unresponsive timeout" << endl;
 					hasClient = false;
 				}
@@ -167,12 +204,20 @@ bool Communications::communicationsLoop() {
 					hasClient = false;
 				}
 				else {
-					Log::e << msg << endl;
-					receivedBuffer.push((char)(msg+32));
+					if (msg == ID_SOH) {
+						collectingPacket = true;
+					}
+					else if (msg == ID_ETB) {
+						collectingPacket = false;
+						processPacket();
+					}
+					else if (collectingPacket) {
+						receivedBuffer.push(msg);
+					}
 				}
 			}
 
-			
+
 
 			SDLNet_TCP_DelSocket(set, client);
 		}
@@ -183,5 +228,48 @@ bool Communications::communicationsLoop() {
 
 
 
+bool Communications::processPacket() {
+	Packet* p = new Packet();
 
+	p->packetID = (ID)receivedBuffer.front();
+	receivedBuffer.pop();
+	p->length = receivedBuffer.front();
+	receivedBuffer.pop();
+
+	p->data = new float[p->length];
+
+	if (receivedBuffer.size() == (p->length*4)) {
+		Log::e << "completed packet" << endl;
+	}
+	else {
+		Log::e << "invalid packet length" << endl;
+		delete p;
+		return false;
+	}
+
+	for (int i = 0; i < p->length; i++) {
+		float result;
+		uint8_t b0 = receivedBuffer.front();
+		receivedBuffer.pop();
+		uint8_t b1 = receivedBuffer.front();
+		receivedBuffer.pop();
+		uint8_t b2 = receivedBuffer.front();
+		receivedBuffer.pop();
+		uint8_t b3 = receivedBuffer.front();
+		receivedBuffer.pop();
+
+		uint8_t byte_array[] = { b0, b1, b2, b3 };
+
+		std::copy(reinterpret_cast<const uint8_t*>(&byte_array[0]),
+			reinterpret_cast<const uint8_t*>(&byte_array[4]),
+			reinterpret_cast<uint8_t*>(&result));
+
+		p->data[i] = result;
+	}
+
+	Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
+	Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
+
+	return true;
+}
 

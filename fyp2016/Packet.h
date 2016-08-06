@@ -6,10 +6,12 @@
 
 enum ID : uint8_t {
 	ID_NULL = 0x00,
-	ID_EOT = 0x04,
-	ID_IDLE = 0x16,
-	ID_ETB = 0x17,
-	ID_CANCEL = 0x18,
+	ID_SOH = 0x01,			// start of transmission block
+	ID_EOT = 0x04,			// end of transmission
+	ID_IDLE = 0x16,			// synchronous idle
+	ID_ETB = 0x17,			// end of transmission block
+	ID_CANCEL = 0x18,		// transmission cancelled (throw away whats received, 
+							// urgent shit coming like an e-stop command)
 
 	ID_DEBUG = 0x40
 };
@@ -17,7 +19,7 @@ enum ID : uint8_t {
 
 struct Packet {
 	ID packetID;
-	uint8_t length;
+	uint16_t length;
 	float* data;
 
 	Packet() {
@@ -25,19 +27,27 @@ struct Packet {
 		length = 0;
 		data = NULL;
 	}
+	~Packet() {
+		delete data;
+		data = NULL;
+	}
 
-	uint8_t getByteLength() {
+	uint16_t getByteLength() {
 		return (2 + length * 4);
 	}
 
 	uint8_t* toBytes() {
 		int byte_length = getByteLength();
+		if (byte_length > 254) {
+			byte_length = 254;
+		}
 
 		uint8_t* bytes = new uint8_t[byte_length];
 
-		bytes[0] = (uint8_t)packetID;
-		bytes[1] = (uint8_t)length;
-		uint8_t offset = 1;
+		bytes[0] = ID_SOH;
+		bytes[1] = (uint8_t)packetID;
+		bytes[2] = (uint8_t)length;
+		uint8_t offset = 2;
 
 		for (uint8_t i = 0; i < length; i++) {
 
@@ -45,11 +55,13 @@ struct Packet {
 			uint8_t const* p = reinterpret_cast<uint8_t const*>(&f);
 
 			for (uint8_t j = 0; j < 4; ++j) {
-				bytes[++offset] = p[j];
+				if (offset < 254) {
+					bytes[++offset] = p[j];
+				}
 			}
 		}
 
-		bytes[++offset] = 0x17;
+		bytes[++offset] = ID_ETB;
 
 		return bytes;
 	}
