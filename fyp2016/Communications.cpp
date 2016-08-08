@@ -1,6 +1,6 @@
 #include "Communications.h"
 
-
+/* Communications using TCP/IP */
 
 Communications::Communications() : socket(2099)
 {

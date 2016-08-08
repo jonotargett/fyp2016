@@ -1,7 +1,7 @@
 #include "Overlord.h"
 
 #include "Graph.h"
-
+/* File that controls all functions of the other classes */
 Overlord::Overlord()
 {
 	initialised = false;
