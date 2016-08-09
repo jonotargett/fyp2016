@@ -39,20 +39,14 @@ bool QuadInterface::initialise() {
 		Log::d << "Searching for open COM connections..." << endl;
 
 		while (comPort <= MAX_COM_SEARCH) {
-			/*
-			Log::d << "Open COM" << comPort << "...";
-			success = (bool)serial.Open(comPort, BAUD_RATE);
-			if (success) {
-				Log::d << endl;
-				break;
-			} else {
-				Log::d << " failure" << endl;
-			}
-			*/
 			success = establishCOM(comPort);
 			if (success)
 				break;
 
+			//just hang for a bit. if we hammer the serial ports,
+			// Windows slows down opening/reopening and we'll miss the timeout
+			// window. so just chill for a bit after a failed connect.
+			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
 			++comPort;
 		}
 		if(!success)
@@ -70,6 +64,8 @@ bool QuadInterface::initialise() {
 
 
 	start();
+
+	serial.Close();
 
 	return true;
 }

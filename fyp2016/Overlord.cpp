@@ -72,7 +72,7 @@ void Overlord::run() {
 	fd->createImage(DISPLAY_KERNEL);
 
 	// display the window for the first time
-	window->showWindow(true);
+	//window->showWindow(true);
 	window->update(fd->retrieveImage());
 
 	while (!window->shouldQuit()) {
