@@ -4,6 +4,7 @@
 
 #include "Point.h"
 //#include "Thread.h"
+//#include "HRTimer.h"
 
 #include <thread>
 #include <chrono>
@@ -26,6 +27,9 @@ private:
 protected:
 	//Thread* updater;
 	std::thread* updater;
+	//HRTimer hrt;
+	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
 
 	/*
 	Locks for each of the sensor variables

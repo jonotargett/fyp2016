@@ -1,8 +1,6 @@
 #include "Overlord.h"
 
-#include "Graph.h"
 
-#include "Packet.h"
 
 Overlord::Overlord()
 {
@@ -30,7 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	hwi = new DummyHardware();
+	//hwi = new DummyHardware();
+	hwi = new QuadInterface();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 

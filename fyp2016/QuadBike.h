@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Point.h"
-#include <iostream>
+// @ Harry: NO. this is entirely why i wrote the Log class.
+// please use it. its so simple that there is no reason to ever use cout directly.
+//#include <iostream>
 #include <cmath>
+#include <string>
 
 class QuadBike
 {

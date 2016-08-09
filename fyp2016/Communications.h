@@ -1,16 +1,21 @@
 #pragma once
 
+
+#include <thread>
+#include <chrono>
 #include <vector>
 #include <queue>
+#include <winsock.h>	// this doesnt need to be included for any reason than
+						// to get rid of those damn macro-redefinition errors
+						// that SDL_Net generates if the include order isnt correct
+
 #include "SDL\SDL_Net.h"
 
 #include "Log.h"
 #include "Packet.h"
 #include "CommsListener.h"
-
 //#include "Thread.h"
-#include <thread>
-#include <chrono>
+
 
 #define MAXLEN 1024
 #define POLL 1000		// milliseconds of inactivity before sending synchronous idle keep-alive

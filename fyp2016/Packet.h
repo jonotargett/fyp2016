@@ -64,7 +64,7 @@ struct Packet {
 	}
 
 	uint16_t getByteLength() {
-		return (2 + length * 4);
+		return (4 + length * 4);
 	}
 
 	uint8_t* toBytes() {

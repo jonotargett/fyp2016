@@ -136,6 +136,8 @@
     <ClCompile Include="NavigationEdge.cpp" />
     <ClCompile Include="Overlord.cpp" />
     <ClCompile Include="Point.cpp" />
+    <ClCompile Include="QuadInterface.cpp" />
+    <ClCompile Include="Serial.cpp" />
     <ClCompile Include="SimpleController.cpp" />
     <ClCompile Include="SimpleNavigator.cpp" />
     <ClCompile Include="SimpleTexture.cpp" />
@@ -165,6 +167,8 @@
     <ClInclude Include="HardwareInterface.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="QuadBike.h" />
+    <ClInclude Include="QuadInterface.h" />
+    <ClInclude Include="Serial.h" />
     <ClInclude Include="SimpleTexture.h" />
     <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="Log.h" />
