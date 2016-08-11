@@ -20,6 +20,10 @@ SDL_Renderer* SimpleTexture::getRenderer() {
 	return renderer;
 }
 
+void SimpleTexture::loadFromSurface(SDL_Surface* s) {
+	texture = SDL_CreateTextureFromSurface(renderer, s);
+}
+
 void SimpleTexture::loadImage(std::string path) {
 	//initialise image loading
 	IMG_Init(IMG_INIT_PNG);

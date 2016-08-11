@@ -57,7 +57,7 @@ private:
 	double requestedSteerAngle;
 	double throttle;
 	double throttleSpeed;
-	double acceleration;
+	double maxAcc;
 	bool brakes;
 	int gear;
 	std::string state;
