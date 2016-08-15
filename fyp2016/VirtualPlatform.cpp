@@ -14,7 +14,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	ns = nav;
 	mainCanvas = new SimpleTexture(r);
 
-	textureWidth = 800;
+	textureWidth = 1200;
 	textureHeight = 600;
 
 	mainCanvas->createBlank(textureWidth, textureHeight);
@@ -29,7 +29,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	setupFont();
 
 	drawScale = 80;
-	focusX = 0;
+	focusX = 3;
 	focusY = -2;
 
 	quad.setState("cruise");
@@ -38,6 +38,11 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 }
 
 void VirtualPlatform::update() {
+
+	velocityGraph.post(quad.getVelocity());
+	steerGraph.post(quad.getSteerAng() * 180 / 3.1416);
+	gearGraph.post(quad.getGear());
+	throttleGraph.post(quad.getThrottle());
 
 	// find angle between heading and to the next path point
 	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
@@ -95,9 +100,10 @@ void VirtualPlatform::update() {
 
 	setDesiredVelocity();
 	quad.update();
+
 }
 
-// assumes correct gear is selected
+// handles gear changes as well
 void VirtualPlatform::setDesiredVelocity() {
 	if (desiredVelocity == 0) {
 		quad.setThrottlePercentage(0);
@@ -137,7 +143,7 @@ void VirtualPlatform::setDesiredVelocity() {
 				quad.setThrottlePercentage(quad.getThrottle() + 0.1);
 			}
 			if (quad.getVelocity() > desiredVelocity) {
-				quad.setThrottlePercentage(quad.getThrottle() - 1);
+				quad.setThrottlePercentage(quad.getThrottle() - 0.4);
 				//quad.setBrake(true);
 			}
 		}
@@ -173,7 +179,7 @@ void VirtualPlatform::setDesiredVelocity() {
 		else {
 			//REMEMBER WE'RE IN REVERSE HERE
 			if (quad.getVelocity() < desiredVelocity) {
-				quad.setThrottlePercentage(quad.getThrottle() - 0.1);
+				quad.setThrottlePercentage(quad.getThrottle() - 0.4);
 			}
 			if (quad.getVelocity() > desiredVelocity) {
 				quad.setThrottlePercentage(quad.getThrottle() + 0.1);
@@ -263,30 +269,57 @@ void VirtualPlatform::drawTexture() {
 	titleText = "Heading: ";
 	titleText += std::to_string((int)(quad.getHeading() * 180 / 3.1416));
 	titleText += " degrees";
-	drawText(titleText, 10, 300);
+	drawText(titleText, 840, 420);
 
 	std::string vel = std::to_string(abs(quad.getVelocity()));
 	vel.erase(3, 99);
 	titleText = "Speed: ";
 	titleText += vel;
 	titleText += " m/s";
-	drawText(titleText, 10, 320);
+	drawText(titleText, 840, 76);
 
 	titleText = "Throttle: ";
 	titleText += std::to_string((int) quad.getThrottle());
 	titleText += " %";
-	drawText(titleText, 10, 340);
+	drawText(titleText, 840, 376);
 
 	titleText = "Gear: ";
 	if (quad.getGear() == 1) titleText += "Drive";
 	if (quad.getGear() == 0) titleText += "Neutral";
 	if (quad.getGear() == -1) titleText += "Reverse";
-	drawText(titleText, 10, 360);
+	drawText(titleText, 840, 276);
 
 	titleText = "Brakes: ";
 	if (quad.getBrakes()) titleText += "Applied";
 	if (!quad.getBrakes()) titleText += "Released";
-	drawText(titleText, 10, 380);
+	drawText(titleText, 840, 440);
+
+	titleText = "Steer Angle";
+	std::string stang = std::to_string((int)abs(quad.getSteerAng() * 180 / 3.1416));
+	titleText = "Steer Angle: ";
+	titleText += stang;
+	drawText(titleText, 840, 176);
+
+	SimpleTexture graph1 = SimpleTexture(mainCanvas->getRenderer());
+	graph1.loadFromSurface(velocityGraph.retrieveImage());
+	SDL_Rect destRect1 = { 840, 0, 360, 76};
+
+	SimpleTexture graph2 = SimpleTexture(mainCanvas->getRenderer());
+	graph2.loadFromSurface(steerGraph.retrieveImage());
+	SDL_Rect destRect2 = { 840, 100, 360, 76 };
+
+	SimpleTexture graph3 = SimpleTexture(mainCanvas->getRenderer());
+	graph3.loadFromSurface(gearGraph.retrieveImage());
+	SDL_Rect destRect3 = { 840, 200, 360, 76 };
+
+	SimpleTexture graph4 = SimpleTexture(mainCanvas->getRenderer());
+	graph4.loadFromSurface(throttleGraph.retrieveImage());
+	SDL_Rect destRect4 = { 840, 300, 360, 76 };
+
+	SDL_RenderCopy(mainCanvas->getRenderer(), graph1.getTexture(), NULL, &destRect1);
+	SDL_RenderCopy(mainCanvas->getRenderer(), graph2.getTexture(), NULL, &destRect2);
+	SDL_RenderCopy(mainCanvas->getRenderer(), graph3.getTexture(), NULL, &destRect3);
+	SDL_RenderCopy(mainCanvas->getRenderer(), graph4.getTexture(), NULL, &destRect4);
 	
 	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
 }

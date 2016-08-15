@@ -11,7 +11,7 @@ QuadBike::QuadBike()
 	steerAngle = 0;
 	requestedSteerAngle = 0;
 	throttleSpeed = 0;
-	acceleration = 1; //m/s/s
+	maxAcc = 1; //m/s/s
 	brakes = true;
 	gear = 0; // -1 reverse, 0 neutral, 1 drive
 }
@@ -38,46 +38,42 @@ void QuadBike::update() {
 	if (steerAngle < -maxSteerAngle) steerAngle = -maxSteerAngle;
 
 	// velocity/throttle stuff
-	if (gear == -1) { // reverse
+	if (gear == -1 || gear == 1) { // reverse or drive
 		//if vel is pretty close to desired value, set it to desired value
-		if (abs(velocity - throttleSpeed * gear) < acceleration / fps) {
+		if (abs(velocity - throttleSpeed * gear) < maxAcc / fps) {
 			velocity = throttleSpeed * gear;
 		}
 		else {
-			if (velocity < throttleSpeed * gear) velocity += acceleration / 2 / fps;
-			if (velocity > throttleSpeed * gear) velocity -= acceleration / fps;
-		}
-	}
-	else if (gear == 1) { // forward
-		//if vel is pretty close to desired value, set it to desired value
-		if (abs(velocity - throttleSpeed) < acceleration / fps) {
-			velocity = throttleSpeed;
-			
-		} else {
-			if (velocity < throttleSpeed) velocity += acceleration / fps;
-			if (velocity > throttleSpeed) velocity -= acceleration / 2 / fps;
+			double acc = abs(velocity - throttleSpeed);
+			if (acc > maxAcc) acc = 1;
+			if (velocity < throttleSpeed * gear) velocity += acc / 2 / fps;
+			if (velocity > throttleSpeed * gear) velocity -= acc / 2 / fps;
 		}
 	}
 	else if (gear == 0) { // neutral
 		//if vel is pretty close to desired value, set it to desired value
-		if (abs(velocity) < acceleration / 2 / fps) {
+		if (abs(velocity) < maxAcc / fps) {
 			velocity = 0;
 		}
 		else {
-			if (velocity > 0) velocity -= acceleration / 2 / fps;
-			if (velocity < 0) velocity += acceleration / 2 / fps;
+			//if (velocity > 0) velocity -= maxAcc / 2 / fps;
+			//if (velocity < 0) velocity += maxAcc / 2 / fps;
+			double acc = abs(velocity);
+			if (acc > maxAcc) acc = 1;
+			if (velocity < throttleSpeed * gear) velocity += acc / fps;
+			if (velocity > throttleSpeed * gear) velocity -= acc / fps;
 		}
 	}
 
 	// brake stuff
 	if (brakes) {
 		//if vel is pretty close to desired value, set it to desired value
-		if (abs(velocity) < acceleration / fps) {
+		if (abs(velocity) < maxAcc / fps) {
 			velocity = 0;
 		}
 		else {
-			if (velocity > 0) velocity -= 2 * acceleration / fps;
-			if (velocity < 0) velocity += 2 * acceleration / fps;
+			if (velocity > 0) velocity -= 2 * maxAcc / fps;
+			if (velocity < 0) velocity += 2 * maxAcc / fps;
 		}
 	}
 

@@ -19,6 +19,7 @@ public:
 	
 	void createBlank(int width, int height);
 	void loadImage(std::string path);
+	void loadFromSurface(SDL_Surface* s);
 	void freeSimpleTexture();
 
 	void setAsRenderTarget();
