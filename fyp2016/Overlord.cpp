@@ -72,7 +72,7 @@ void Overlord::run() {
 	fd->createImage(DISPLAY_KERNEL);
 
 	// display the window for the first time
-	window->showWindow(true);
+	//window->showWindow(true);
 	window->update(fd->retrieveImage());
 
 	while (!window->shouldQuit()) {
@@ -93,8 +93,8 @@ void Overlord::run() {
 			lastWindowUpdate = current;
 			
 			// Virtual platform stuff
-			vp->update();
-			vp->drawTexture();
+			//vp->update();
+			//vp->drawTexture();
 
 			window->clearWindow();
 			
@@ -132,18 +132,24 @@ void Overlord::handleEvents() {
 			Log::d << "Debug packet received" << endl;
 			handled = true;
 			break;
+		case ID_CLEAR_NAV_POINTS:
+			Log::d << "Action: clear navigation points" << endl;
+			handled = true;
+			break;
 		case ID_SHOW_FD:
+			Log::d << "Action: show feature detector" << endl;
 			//window->update(fd->retrieveImage());
 			showvp = false;
 			handled = true;
 			break;
 		case ID_SHOW_VP:
+			Log::d << "Action: show virtual platform" << endl;
 			//window->update(vp->retrieveImage());
 			showvp = true;
 			handled = true;
 			break;
 		default:
-			Log::e << "Packet Error: Unrecognised command received." << endl;
+			Log::e << "Packet Error: Unrecognised command received. [" << p->packetID << "]" << endl;
 			handled = true;
 		}
 

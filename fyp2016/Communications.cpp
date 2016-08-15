@@ -115,6 +115,8 @@ bool Communications::acceptClient() {
 		hasClient = true;
 		IPaddress* clientAddr = SDLNet_TCP_GetPeerAddress(client);
 		Log::i << "Client " << formatIP(clientAddr->host) << " connected to server socket." << std::endl;
+	
+		lastReceived = std::chrono::high_resolution_clock::now();
 	}
 	else {
 		// prevent this from going overboard and pinging for clients
@@ -273,6 +275,7 @@ bool Communications::processPacket() {
 	}
 	else {
 		Log::e << "Communications error: corrupted/invalid packet received" << endl;
+		Log::d << "ID: " << (int)p->packetID << endl;
 		delete p;
 		while (receivedBuffer.size() > 0) {
 			receivedBuffer.pop();

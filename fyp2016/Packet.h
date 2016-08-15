@@ -8,7 +8,7 @@ enum ID : uint8_t {
 	ID_NULL = 0x00,
 	ID_SOH = 0x01,			// start of transmission block
 	ID_EOT = 0x04,			// end of transmission
-	ID_IDLE = 0x7e,// 0x16,			// synchronous idle
+	ID_IDLE = 0x16,			// synchronous idle
 	ID_ETB = 0x17,			// end of transmission block
 	ID_CANCEL = 0x18,		// transmission cancelled (throw away whats received, 
 							// urgent shit coming like an e-stop command)
@@ -20,10 +20,19 @@ enum ID : uint8_t {
 	ID_QUAD_POSITION = 0x50,
 	ID_QUAD_HEADING = 0x51,
 	ID_QUAD_SPEED = 0x52,
-
+	ID_REQ_QUAD_POSITION = 0x53,
+	ID_REQ_QUAD_HEADING = 0x54,
+	ID_RQ_QUAD_SPEED = 0x55,
 
 	ID_CLEAR_NAV_POINTS = 0x60,
 	ID_NAV_POINTS = 0x61,
+
+	ID_STOP_ENGINE = 0x80,
+	ID_HANDBRAKE_ON = 0x81,
+	ID_HANDBRAKE_OFF = 0x82,
+	ID_MANUALCONTROL_ON = 0x83,
+	ID_MANUALJOYSTICK = 0x84,
+	ID_BRAKE = 0x85,
 
 	ID_EMERGENCY_STOP = 0xFF
 
