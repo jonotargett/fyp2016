@@ -46,7 +46,7 @@ bool QuadInterface::initialise() {
 			//just hang for a bit. if we hammer the serial ports,
 			// Windows slows down opening/reopening and we'll miss the timeout
 			// window. so just chill for a bit after a failed connect.
-			std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+			std::this_thread::sleep_for(std::chrono::milliseconds(SEARCH_INTERVAL));
 			++comPort;
 		}
 		if(!success)
