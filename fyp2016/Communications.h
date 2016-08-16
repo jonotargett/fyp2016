@@ -32,9 +32,6 @@ public:
 	~Communications();
 
 	bool initialise();
-
-	bool acceptClient();
-	bool communicationsLoop();
 	bool send(Packet*);
 
 	bool isConnected();
@@ -48,11 +45,13 @@ private:
 
 	bool hasClient;
 	bool collectingPacket;
+	uint8_t byteNum;
+	uint8_t length;
 
 	//Thread* updater;
 	std::thread* updater;
 	bool alive;
-	std::queue<uint8_t> receivedBuffer;
+	std::queue<uint8_t>* receivedBuffer;
 	std::queue<Packet*> sendBuffer;
 	CommsListener* listener;
 
@@ -61,6 +60,8 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 
 	char* formatIP(Uint32);
+	bool acceptClient();
+	bool communicationsLoop();
 	bool processPacket();
 	bool isAlive();
 	void start();

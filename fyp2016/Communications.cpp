@@ -8,6 +8,7 @@ Communications::Communications() : socket(2099)
 	hasClient = false;
 	alive = true;
 	collectingPacket = false;
+	receivedBuffer = new std::queue<uint8_t>();
 }
 
 /*
@@ -19,6 +20,7 @@ Communications::Communications(int s) : socket(s) {
 	hasClient = false;
 	alive = true;
 	collectingPacket = false;
+	receivedBuffer = new std::queue<uint8_t>();
 }
 
 
@@ -238,13 +240,29 @@ bool Communications::communicationsLoop() {
 				else {
 					if (msg == ID_SOH) {
 						collectingPacket = true;
+						byteNum = 0;
+						length = 0;
 					}
 					else if (msg == ID_ETB) {
-						collectingPacket = false;
-						processPacket();
+						//Log::i << receivedBuffer->size() << "/" << (length * 4 + 2) << endl;
+
+						if (receivedBuffer->size() == (length * 4 + 2)) {
+							collectingPacket = false;
+							processPacket();
+						}
+						else if (receivedBuffer->size() > (length * 4 + 2)) {
+							collectingPacket = false;
+							while (!receivedBuffer->empty()) {
+								receivedBuffer->pop();
+							}
+						}
 					}
 					else if (collectingPacket) {
-						receivedBuffer.push(msg);
+						if (byteNum == 1) {
+							length = msg;
+						}
+						receivedBuffer->push(msg);
+						++byteNum;
 					}
 				}
 			}
@@ -261,38 +279,52 @@ bool Communications::communicationsLoop() {
 
 
 bool Communications::processPacket() {
+
+	if (receivedBuffer->size() < 2) {
+		Log::e << "No packet" << endl;
+
+		while (receivedBuffer->size() > 0) {
+			receivedBuffer->pop();
+		}
+
+		return false;
+	}
+
 	Packet* p = new Packet();
 
-	p->packetID = (ID)receivedBuffer.front();
-	receivedBuffer.pop();
-	p->length = receivedBuffer.front();
-	receivedBuffer.pop();
+	p->packetID = (ID)receivedBuffer->front();
+	receivedBuffer->pop();
+	p->length = receivedBuffer->front();
+	receivedBuffer->pop();
 
 	p->data = new float[p->length];
 
-	if (receivedBuffer.size() == (p->length*4)) {
+	
+	if (receivedBuffer->size() == (p->length*4)) {
 		//Log::e << "completed packet" << endl;
 	}
 	else {
-		Log::e << "Communications error: corrupted/invalid packet received" << endl;
-		Log::d << "ID: " << (int)p->packetID << endl;
+		Log::e << "Corrupted packet [" << (int)p->packetID << "] - " 
+			<< receivedBuffer->size() << "/" << (p->length * 4) << " " << endl;
+
 		delete p;
-		while (receivedBuffer.size() > 0) {
-			receivedBuffer.pop();
+		while (receivedBuffer->size() > 0) {
+			receivedBuffer->pop();
 		}
 		return false;
 	}
 
+	
 	for (int i = 0; i < p->length; i++) {
 		float result;
-		uint8_t b0 = receivedBuffer.front();
-		receivedBuffer.pop();
-		uint8_t b1 = receivedBuffer.front();
-		receivedBuffer.pop();
-		uint8_t b2 = receivedBuffer.front();
-		receivedBuffer.pop();
-		uint8_t b3 = receivedBuffer.front();
-		receivedBuffer.pop();
+		uint8_t b0 = receivedBuffer->front();
+		receivedBuffer->pop();
+		uint8_t b1 = receivedBuffer->front();
+		receivedBuffer->pop();
+		uint8_t b2 = receivedBuffer->front();
+		receivedBuffer->pop();
+		uint8_t b3 = receivedBuffer->front();
+		receivedBuffer->pop();
 
 		uint8_t byte_array[] = { b0, b1, b2, b3 };
 

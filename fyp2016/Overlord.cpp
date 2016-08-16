@@ -125,7 +125,7 @@ void Overlord::handleEvents() {
 		// do stuff with the packets
 		Packet* p = packets.front();
 		bool handled = false;
-		Log::d << "Processing packet..." << endl;
+		//Log::d << "Processing packet..." << endl;
 
 		switch (p->packetID) {
 		case ID_DEBUG:
@@ -138,14 +138,32 @@ void Overlord::handleEvents() {
 			break;
 		case ID_SHOW_FD:
 			Log::d << "Action: show feature detector" << endl;
-			//window->update(fd->retrieveImage());
 			showvp = false;
 			handled = true;
 			break;
 		case ID_SHOW_VP:
 			Log::d << "Action: show virtual platform" << endl;
-			//window->update(vp->retrieveImage());
 			showvp = true;
+			handled = true;
+			break;
+		case ID_STOP_ENGINE:
+			Log::d << "Action: stop engine" << endl;
+			handled = true;
+			break;
+		case ID_MANUALJOYSTICK:
+			Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
+			handled = true;
+			break;
+		case ID_JOYSTICK_HELD:
+			Log::d << "Action: joystick enabled" << endl;
+			handled = true;
+			break;
+		case ID_JOYSTICK_RELEASED:
+			Log::d << "Action: joystick disabled" << endl;
+			handled = true;
+			break;
+		case ID_MANUALCONTROL_ON:
+			Log::d << "Action: manual control enabled" << endl;
 			handled = true;
 			break;
 		default:
