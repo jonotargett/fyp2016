@@ -128,6 +128,10 @@ void Overlord::handleEvents() {
 		//Log::d << "Processing packet..." << endl;
 
 		switch (p->packetID) {
+		case ID_EMERGENCY_STOP:
+			Log::e << "Action: EMERGENCY STOP" << endl;
+			handled = true;
+			break;
 		case ID_DEBUG:
 			Log::d << "Debug packet received" << endl;
 			handled = true;
@@ -164,6 +168,18 @@ void Overlord::handleEvents() {
 			break;
 		case ID_MANUALCONTROL_ON:
 			Log::d << "Action: manual control enabled" << endl;
+			handled = true;
+			break;
+		case ID_BRAKE:
+			Log::d << "Action: brake" << endl;
+			handled = true;
+			break;
+		case ID_HANDBRAKE_OFF:
+			Log::d << "Action: handbrake off" << endl;
+			handled = true;
+			break;
+		case ID_HANDBRAKE_ON:
+			Log::d << "Action: handbrake on" << endl;
 			handled = true;
 			break;
 		default:
