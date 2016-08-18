@@ -44,6 +44,7 @@ private:
 	unsigned int currentPathPoint = 0;
 	double timer = 0;
 	double desiredVelocity = 0;
+	bool landmineDetected = false;
 
 	QuadBike quad;
 

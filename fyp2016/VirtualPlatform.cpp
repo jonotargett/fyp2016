@@ -44,6 +44,11 @@ void VirtualPlatform::update() {
 	gearGraph.post(quad.getGear());
 	throttleGraph.post(quad.getThrottle());
 
+	SDL_PumpEvents();
+	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+		landmineDetected = true;
+	}
+	
 	updateDynamics();
 	setDesiredVelocity();
 	quad.update();
@@ -102,6 +107,9 @@ void VirtualPlatform::updateDynamics() {
 	}
 
 	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
+		desiredVelocity = 0;
+	}
+	if (landmineDetected) {
 		desiredVelocity = 0;
 	}
 }
