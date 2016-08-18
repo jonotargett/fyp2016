@@ -45,6 +45,7 @@ private:
 	double timer = 0;
 	double desiredVelocity = 0;
 	bool landmineDetected = false;
+	int pathTravDir = 1;
 
 	QuadBike quad;
 

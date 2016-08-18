@@ -46,6 +46,7 @@ void VirtualPlatform::update() {
 
 	SDL_PumpEvents();
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+		quad.setState("landmineDetected");
 		landmineDetected = true;
 	}
 	
@@ -56,6 +57,12 @@ void VirtualPlatform::update() {
 }
 
 void VirtualPlatform::updateDynamics() {
+
+	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
+		// next point doesnt exist
+		return;
+	}
+
 	// find angle between heading and to the next path point
 	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
 	if (angleToPathPoint > 3.141593) angleToPathPoint -= 2 * 3.141593;
@@ -67,15 +74,10 @@ void VirtualPlatform::updateDynamics() {
 	if (steerAngleReq > quad.maxSteerAngle) steerAngleReq = quad.maxSteerAngle;
 	if (steerAngleReq < -quad.maxSteerAngle) steerAngleReq = -quad.maxSteerAngle;
 	quad.setSteerAng(steerAngleReq);
+	
 
-
-	if (currentPathPoint + 1 >= ns->getPath().size()) {
-		// next point doesnt exist
-		return;
-	}
-
-	if (distance > quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint + 1))) {
-		if (quad.getState() != "turnInbound") {
+	if (distance > quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint + pathTravDir))) {
+		if (quad.getState() != "landmineDetected") {
 			// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
 			quad.setState("turnInbound");
 		}
@@ -98,20 +100,40 @@ void VirtualPlatform::updateDynamics() {
 
 		if (distance < 0.1) {
 			quad.setState("cruise");
-			currentPathPoint++;
+			currentPathPoint += pathTravDir;
 		}
 	}
 	else if (quad.getState() == "cruise") {
 		desiredVelocity = quad.cruisesVelocity * direction;
-		if (distance < 1.2) currentPathPoint++;
+		if (distance < 1.2) currentPathPoint += pathTravDir;
+	}
+	else if (quad.getState() == "landmineDetected") {
+		desiredVelocity = 0;
+		if (quad.getVelocity() == 0) {
+			quad.setState("cruise");
+			pathTravDir = -1;
+
+			// reset currentPathPoint to point near quadbike
+			double initialDist = distance;
+			double diff = 0;
+			bool loop = true;
+			while (loop) {
+				currentPathPoint--;
+				distance = quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint));
+				if (initialDist - distance < diff) {
+					loop = false;
+				}
+				else {
+					diff = initialDist - distance;
+				}
+			}
+		}
 	}
 
 	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
 		desiredVelocity = 0;
 	}
-	if (landmineDetected) {
-		desiredVelocity = 0;
-	}
+	
 }
 
 void VirtualPlatform::detectMineMethod() {
