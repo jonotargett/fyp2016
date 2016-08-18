@@ -30,7 +30,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	setupFont();
 
 	drawScale = 80;
-	focusX = 3;
+	focusX = 4;
 	focusY = -2;
 
 	quad.setState("cruise");
@@ -130,7 +130,7 @@ void VirtualPlatform::updateDynamics() {
 		}
 	}
 
-	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
+	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180 && quad.getState() == "turnInbound") {
 		desiredVelocity = 0;
 	}
 	

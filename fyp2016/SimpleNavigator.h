@@ -14,6 +14,7 @@ private:
 	HardwareInterface* hwi;
 	std::vector<Point*> path;
 
+	double simpleTurnMaxAngleRad;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
