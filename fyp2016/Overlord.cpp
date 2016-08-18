@@ -72,8 +72,10 @@ void Overlord::run() {
 	fd->createImage(DISPLAY_KERNEL);
 
 	// display the window for the first time
-	//window->showWindow(true);
+	window->showWindow(true);
 	window->update(fd->retrieveImage());
+
+	showvp = true;
 
 	while (!window->shouldQuit()) {
 
@@ -92,14 +94,12 @@ void Overlord::run() {
 		if (seconds.count() > (1.0/(double)REFRESH_RATE)) {
 			lastWindowUpdate = current;
 			
-			// Virtual platform stuff
-			//vp->update();
-			//vp->drawTexture();
-
 			window->clearWindow();
 			
 			if (showvp) {
-				window->update(vp->retrieveImage());
+				vp->update();							// update logic
+				vp->drawTexture();						// render to texture
+				window->update(vp->retrieveImage());	// render texture to window
 			}
 			else {
 				window->update(fd->retrieveImage());

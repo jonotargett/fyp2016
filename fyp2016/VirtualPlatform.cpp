@@ -14,6 +14,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	ns = nav;
 	mainCanvas = new SimpleTexture(r);
 
+
 	textureWidth = 1200;
 	textureHeight = 600;
 
@@ -38,12 +39,18 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 }
 
 void VirtualPlatform::update() {
-
 	velocityGraph.post(quad.getVelocity());
 	steerGraph.post(quad.getSteerAng() * 180 / 3.1416);
 	gearGraph.post(quad.getGear());
 	throttleGraph.post(quad.getThrottle());
 
+	updateDynamics();
+	setDesiredVelocity();
+	quad.update();
+
+}
+
+void VirtualPlatform::updateDynamics() {
 	// find angle between heading and to the next path point
 	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - quad.getLocation().y, ns->getPath().at(currentPathPoint)->x - quad.getLocation().x) + 3.14159265 / 2;
 	if (angleToPathPoint > 3.141593) angleToPathPoint -= 2 * 3.141593;
@@ -61,7 +68,7 @@ void VirtualPlatform::update() {
 		// next point doesnt exist
 		return;
 	}
-	
+
 	if (distance > quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint + 1))) {
 		if (quad.getState() != "turnInbound") {
 			// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
@@ -81,9 +88,9 @@ void VirtualPlatform::update() {
 	if (quad.getState() == "turnInbound") {
 		// kinda bad because if quad overshoots it will keep going.
 		desiredVelocity = direction * 2 * distance;
-		if (abs(desiredVelocity) > quad.cruisesVelocity) 
+		if (abs(desiredVelocity) > quad.cruisesVelocity)
 			desiredVelocity = direction * quad.cruisesVelocity;
-		
+
 		if (distance < 0.1) {
 			quad.setState("cruise");
 			currentPathPoint++;
@@ -97,10 +104,11 @@ void VirtualPlatform::update() {
 	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
 		desiredVelocity = 0;
 	}
+}
 
-	setDesiredVelocity();
-	quad.update();
-
+void VirtualPlatform::detectMineMethod() {
+	// stop the quadbike.
+	// insert new points into the subdivision.
 }
 
 // handles gear changes as well

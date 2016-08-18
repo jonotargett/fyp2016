@@ -39,8 +39,8 @@ private:
 	int textureHeight;
 
 	int drawScale = 1;
-	int focusX = 0;
-	int focusY = 0;
+	double focusX = 0;
+	double focusY = 0;
 	unsigned int currentPathPoint = 0;
 	double timer = 0;
 	double desiredVelocity = 0;
@@ -49,6 +49,8 @@ private:
 
 	Point transform(Point p);
 	void setupFont();
-	void VirtualPlatform::drawText(std::string textToRender, int x, int y);
+	void detectMineMethod();
+	void drawText(std::string textToRender, int x, int y);
+	void updateDynamics();
 };
 
