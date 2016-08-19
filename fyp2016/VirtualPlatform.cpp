@@ -130,7 +130,13 @@ void VirtualPlatform::updateDynamics() {
 		}
 	}
 
-	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180 && quad.getState() == "turnInbound") {
+	
+	if (abs(quad.getSteerAng() - steerAngleReq) > 3 * 3.1416 / 180) {
+		desiredVelocity -= 1;
+	}
+	
+	if (landmineDetected) distanceSinceMine += abs(quad.getVelocity()) * 1 / 60;
+	if (distanceSinceMine >= 1.5) {
 		desiredVelocity = 0;
 	}
 	
