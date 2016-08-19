@@ -51,7 +51,6 @@ private:
 
 	Point transform(Point p);
 	void setupFont();
-	void detectMineMethod();
 	void drawText(std::string textToRender, int x, int y);
 	void updateDynamics();
 };

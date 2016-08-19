@@ -98,7 +98,7 @@ void VirtualPlatform::updateDynamics() {
 		if (abs(desiredVelocity) > quad.cruisesVelocity)
 			desiredVelocity = direction * quad.cruisesVelocity;
 
-		if (distance < 0.1) {
+		if (distance < 0.2) {
 			quad.setState("cruise");
 			currentPathPoint += pathTravDir;
 		}
@@ -134,11 +134,6 @@ void VirtualPlatform::updateDynamics() {
 		desiredVelocity = 0;
 	}
 	
-}
-
-void VirtualPlatform::detectMineMethod() {
-	// stop the quadbike.
-	// insert new points into the subdivision.
 }
 
 // handles gear changes as well
