@@ -1,4 +1,4 @@
-#include "VirtualPlatform.h"
+#include "VirtualPlatformOld.h"
 
 
 VirtualPlatformOld::VirtualPlatformOld()
@@ -57,7 +57,7 @@ void VirtualPlatformOld::update() {
 
 }
 
-/*void VirtualPlatformOld::updateDynamics() {
+void VirtualPlatformOld::updateDynamics() {
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist
@@ -141,7 +141,7 @@ void VirtualPlatformOld::update() {
 		desiredVelocity = 0;
 	}
 	
-}*/
+}
 
 // handles gear changes as well
 void VirtualPlatformOld::setDesiredVelocity() {

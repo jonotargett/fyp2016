@@ -30,6 +30,9 @@ bool DummyHardware::initialise() {
 	realThrottlePercentage = 0.0;
 	setGear(GEAR_NULL);
 
+	desiredSteeringAngle = 0.0;
+	desiredVelocity = 0.0;
+
 	// return true once everything is initialised.
 	// seeing as there is no actual hardware here,
 	// just return true. oh yeah
@@ -40,45 +43,77 @@ bool DummyHardware::initialise() {
 	return true;
 }
 
-bool DummyHardware::updateLoop() {
-	while (isAlive()) {
+void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_RATE
+	//all hardware update logic goes here (not needed for real quad bike)
 
-		// loop continuously
-		//get loop time
-		//double seconds = hrt.getElapsedTimeSeconds();
-		//hrt.reset
-		endTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> seconds = endTime - startTime;
+	// fake a slow merge towards actuator positions
+	if (getSteeringAngle() < desiredSteeringAngle) realSteeringAngle += 0.008;
+	if (getSteeringAngle() > desiredSteeringAngle) realSteeringAngle -= 0.008;
 
-		// fake a slow merge towards actuator positions
-
-		realSteeringAngle = (getSteeringAngle() + realSteeringAngle) / 2.0;
-		realThrottlePercentage = (getThrottlePercentage() + realThrottlePercentage) / 2.0;
-
-		// implement motion - faked
-
-		double bikeLength = 1.8212;		// 71.7 inches
-		double bikeWidth = 1.1557;		// 45.5 inches
-		double wheelbase = 1.2166;		// 47.9 inches
-		double turningRadius = 3.2004;	// 10.5 feet
-
-		realVelocity = 0.1 * (realVelocity + (realThrottlePercentage / 2.0))*(1 - seconds.count());
-		realPosition = Point(realPosition.x, realPosition.y + realVelocity * seconds.count());
-
-		// return values back to the hardware interface, as if theyd been measured.
-		setPosition(Point(realPosition.x + random()*0.5, realPosition.y + random()*0.5));
-		setAbsoluteHeading(realHeading + 5 * random());
-		setVelocity(realVelocity + 0.2*random());
-
-		startTime = endTime;
-
-		//Cap at 1000Hz. No point blazing through this any faster
-		std::this_thread::sleep_for(std::chrono::microseconds(1000));
+	// fake accelerating to throttle speed
+	// each throttle percent corresponds to a certian speed given by throttleSpeed
+	// not entirely realistic when on hills and stuff but for flat ground close enough
+	// this will be handled by a proper controller with actual hardware
+	if (getGear() == GEAR_FORWARD || getGear() == GEAR_REVERSE) {
+		double throttleSpeed = 0.25 + 0.1475 * realThrottlePercentage;
+		if (getVelocity() < throttleSpeed) realVelocity += 0.01;
+		if (getVelocity() > throttleSpeed) realVelocity -= 0.01;
 	}
+	if (getGear() == GEAR_NEUTRAL) { // neutral
+		realVelocity /= 1.2;
+	}
+
+	// brake stuff
+	if (getBrake()) {
+		realVelocity /= 1.6;
+	}
+
 	
-	return true;
+	// calculating next position based on steer angle and velocity
+	double distanceTravelled = realVelocity * 1 / REFRESH_RATE;
+	double distanceForward = 0;
+	double distanceRight = 0;
+	double angleTurned = 0;
+	
+	if (realSteeringAngle == 0) {
+		distanceForward = distanceTravelled;
+	}
+	else {
+		double turnRadius = wheelBase / tan(-realSteeringAngle);
+		angleTurned = distanceTravelled / turnRadius;
+		distanceForward = turnRadius * sin(angleTurned);
+		distanceRight = turnRadius - turnRadius * cos(angleTurned);
+	}
+
+	// updating position
+	realPosition.x += distanceForward * sin(realHeading) + distanceRight * cos(realHeading);
+	realPosition.y += distanceForward * cos(realHeading) - distanceRight * sin(realHeading);
+	realHeading += angleTurned;
+	
+	while (realHeading > 3.14159265) realHeading -= 2 * 3.14159265;
+	while (realHeading < -3.14159265) realHeading += 2 * 3.14159265;
+
+	
+	// return values back to the hardware interface, as if theyd been measured.
+	setPosition(Point(realPosition.x + random()*0.0, realPosition.y + random()*0.0));
+	setAbsoluteHeading(realHeading + random()*0.0);
+	setVelocity(realVelocity + random()*0.0);
 }
 
+void DummyHardware::setDesiredSteeringAngle(double x) {
+	if (x > 24 / 180 * 3.141592) x = 24 / 180 * 3.141592;
+	if (x < -24 / 180 * 3.141592) x = -24 / 180 * 3.141592;
+	desiredSteeringAngle = x;
+}
+void DummyHardware::setDesiredThrottlePercentage(double x) {
+	setThrottlePercentage(x);
+}
+void DummyHardware::setDesiredBrake(bool x) {
+	setBrake(x);
+}
+void DummyHardware::setDesiredGear(HardwareInterface::Gear x) {
+	setGear(x);
+}
 
 // handles gear changes as well
 void DummyHardware::setDesiredVelocity(double desiredVelocity) {
@@ -90,26 +125,26 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 	else if (desiredVelocity > 0) {
 		// if we are travelling in the wrong direction
 		if (getVelocity() < 0) {
-			quad.setDesiredThrottlePercentage(0);
-			quad.setDesiredGear(0);
-			quad.setDesiredBrake(true);
+			setDesiredThrottlePercentage(0);
+			setDesiredGear(GEAR_NEUTRAL);
+			setDesiredBrake(true);
 			return;
 		}
 		// if we are travelling in the correct direction
 		else {
-			quad.setDesiredGear(1);
-			quad.setDesiredBrake(false);
+			setDesiredGear(GEAR_FORWARD);
+			setDesiredBrake(false);
 		}
 
 		// if desiredVelocity is so slow that we need to feather the brakes
-		if (desiredVelocity < quad.getIdleSpeed()) {
-			if (quad.getVelocity() < desiredVelocity) {
-				quad.setDesiredThrottlePercentage(0);
-				quad.setDesiredBrake(false);
+		if (desiredVelocity < idleSpeed) {
+			if (getVelocity() < desiredVelocity) {
+				setDesiredThrottlePercentage(0);
+				setDesiredBrake(false);
 			}
 			else {
-				quad.setDesiredThrottlePercentage(0);
-				quad.setDesiredBrake(true);
+				setDesiredThrottlePercentage(0);
+				setDesiredBrake(true);
 			}
 		}
 		// otherwise we'll feather the throttle
@@ -117,10 +152,10 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 		// difference in actual speed and desired speed
 		else {
 			if (getVelocity() < desiredVelocity) {
-				setDesiredThrottlePercentage(quad.getThrottle() + 0.1);
+				setDesiredThrottlePercentage(getThrottlePercentage() + 0.1);
 			}
 			if (getVelocity() > desiredVelocity) {
-				setDesiredThrottlePercentage(quad.getThrottle() - 0.4);
+				setDesiredThrottlePercentage(getThrottlePercentage() - 0.4);
 				//quad.setBrake(true);
 			}
 		}
@@ -140,7 +175,7 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 		}
 
 		// if desiredVelocity is so slow that we need to feather the brakes
-		if (abs(desiredVelocity) < quad.getIdleSpeed()) {
+		if (abs(desiredVelocity) < idleSpeed) {
 			if (getVelocity() < desiredVelocity) {
 				setDesiredThrottlePercentage(0);
 				setDesiredBrake(true);
@@ -156,11 +191,34 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 		else {
 			//REMEMBER WE'RE IN REVERSE HERE
 			if (getVelocity() < desiredVelocity) {
-				setDesiredThrottlePercentage(quad.getThrottle() - 0.4);
+				setDesiredThrottlePercentage(getThrottlePercentage() - 0.4);
 			}
 			if (getVelocity() > desiredVelocity) {
-				setDesiredThrottlePercentage(quad.getThrottle() + 0.1);
+				setDesiredThrottlePercentage(getThrottlePercentage() + 0.1);
 			}
 		}
 	}
+}
+
+bool DummyHardware::updateLoop() {
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowUpdate = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point<std::chrono::high_resolution_clock> current;
+
+	std::chrono::duration<double> seconds;
+
+	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
+
+		current = std::chrono::high_resolution_clock::now();
+		seconds = current - lastWindowUpdate;
+
+		if (seconds.count() > (1.0 / REFRESH_RATE)) {
+			lastWindowUpdate = current;
+			update();
+		}
+		// no point blazing through this super fast
+		std::this_thread::sleep_for(std::chrono::microseconds(500));
+	}
+
+	return true;
 }

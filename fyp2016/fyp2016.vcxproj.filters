@@ -160,9 +160,6 @@
     <ClInclude Include="csirousb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VirtualPlatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SimpleTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -179,6 +176,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QuadInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualPlatformOld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

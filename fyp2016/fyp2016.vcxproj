@@ -170,7 +170,7 @@
     <ClInclude Include="QuadInterface.h" />
     <ClInclude Include="Serial.h" />
     <ClInclude Include="SimpleTexture.h" />
-    <ClInclude Include="VirtualPlatform.h" />
+    <ClInclude Include="VirtualPlatformOld.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="NavigationEdge.h" />

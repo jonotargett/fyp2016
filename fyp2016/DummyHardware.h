@@ -6,7 +6,8 @@
 
 #include "Log.h"
 
-
+// want our updateloop to run at 60hz.
+#define REFRESH_RATE 60
 
 class DummyHardware :
 	public HardwareInterface
@@ -15,11 +16,11 @@ private:
 	Point realPosition;
 	double realHeading;
 	double realVelocity;
-
 	double realSteeringAngle;
 	double realThrottlePercentage;
 
-	
+	double desiredSteeringAngle;
+	double desiredVelocity;
 
 	double random();
 
@@ -29,6 +30,7 @@ public:
 
 	bool initialise();
 	bool updateLoop();
+	void update();
 
 	Point getRealPosition();
 	double getRealHeading();

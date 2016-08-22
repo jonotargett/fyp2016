@@ -73,6 +73,13 @@ void* UpdaterRunnable::run() {
 */
 
 
+void HardwareInterface::setDesiredVelocity(double x) {}
+void HardwareInterface::setDesiredSteeringAngle(double x) {}
+void HardwareInterface::setDesiredThrottlePercentage(double x) {}
+void HardwareInterface::setDesiredBrake(bool x) {}
+void HardwareInterface::setDesiredGear(HardwareInterface::Gear x) {}
+
+
 /*********************************************************************************/
 // GETTERS AND SETTERS FOR HW VARIABLES FOR THREAD SAFETY
 /*********************************************************************************/

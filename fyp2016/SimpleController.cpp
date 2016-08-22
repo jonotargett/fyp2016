@@ -64,13 +64,13 @@ bool SimpleController::updateLoop() {
 			// implement discretised time PID controller in here
 
 			if (dist > 25) {
-				hwi->setThrottlePercentage(100.0);
+				hwi->setDesiredThrottlePercentage(100.0);
 			}
 			else if (dist > 1) {
-				hwi->setThrottlePercentage(dist * 4);
+				hwi->setDesiredThrottlePercentage(dist * 4);
 			}
 			else {
-				hwi->setThrottlePercentage(0);
+				hwi->setDesiredThrottlePercentage(0);
 			}
 
 		}
@@ -97,11 +97,11 @@ void SimpleController::updateDynamics() {
 	if (angleToPathPoint < -3.141593) angleToPathPoint += 2 * 3.141593;
 	double alpha = angleToPathPoint - hwi->getAbsoluteHeading();
 	double distance = hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint));
-	double steerAngleReq = -atan(2 * wheelBase * sin(alpha) / distance);
+	double steerAngleReq = -atan(2 * hwi->wheelBase * sin(alpha) / distance);
 
-	if (steerAngleReq > maxSteerAngle) steerAngleReq = maxSteerAngle;
-	if (steerAngleReq < -maxSteerAngle) steerAngleReq = -maxSteerAngle;
-	hwi->setSteeringAngle(steerAngleReq);
+	if (steerAngleReq > hwi->maxSteerAngle) steerAngleReq = hwi->maxSteerAngle;
+	if (steerAngleReq < -hwi->maxSteerAngle) steerAngleReq = -hwi->maxSteerAngle;
+	hwi->setDesiredSteeringAngle(steerAngleReq);
 
 
 	if (distance > hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint + pathTravDir))) {
@@ -123,8 +123,8 @@ void SimpleController::updateDynamics() {
 	if (navState == "turnInbound") {
 		// kinda bad because if quad overshoots it will keep going.
 		desiredVelocity = direction * 2 * distance;
-		if (abs(desiredVelocity) > cruisesVelocity)
-			desiredVelocity = direction * cruisesVelocity;
+		if (abs(desiredVelocity) > hwi->cruiseVelocity)
+			desiredVelocity = direction * hwi->cruiseVelocity;
 
 		if (distance < 0.2) {
 			navState = "cruise";
@@ -132,7 +132,7 @@ void SimpleController::updateDynamics() {
 		}
 	}
 	else if (navState == "cruise") {
-		desiredVelocity = cruisesVelocity * direction;
+		desiredVelocity = hwi->cruiseVelocity * direction;
 		if (distance < 1.2) currentPathPoint += pathTravDir;
 	}
 	else if (navState == "landmineDetected") {

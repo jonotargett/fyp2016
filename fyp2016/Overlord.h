@@ -11,7 +11,7 @@
 #include "NavigationSystem.h"
 #include "SimpleNavigator.h"
 #include "Communications.h"
-#include "VirtualPlatform.h"
+#include "VirtualPlatformOld.h"
 #include "CommsListener.h"
 
 #define REFRESH_RATE 60

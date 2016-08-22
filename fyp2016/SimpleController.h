@@ -8,16 +8,6 @@
 #include <chrono>
 #include <string>
 
-#define	width 1.18
-#define length 1.86
-#define wheelBase 1.28
-#define overHang (length - wheelBase) / 2
-#define wheelRadius 0.3
-#define wheelWidth 0.25
-#define maxSteerAngle 24 * 3.141592 / 180
-#define cruiseVelocity 1.2
-#define idleSpeed 0.25
-
 class SimpleController :
 	public DriveController
 {
@@ -31,7 +21,6 @@ private:
 	bool landmineDetected = false;
 	double distanceSinceMine = 0;
 	int pathTravDir = 1;
-	void updateDynamics();
 	std::string navState = "cruise";
 
 	double heading;
@@ -52,6 +41,7 @@ public:
 	bool initialise(HardwareInterface*, NavigationSystem*);
 	void setEnabled(bool);
 	bool isEnabled();
+	void updateDynamics();
 
 	bool updateLoop();
 };

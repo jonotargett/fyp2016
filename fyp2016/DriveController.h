@@ -19,6 +19,7 @@ public:
 	*/
 	virtual void setEnabled(bool) = 0;
 	virtual bool isEnabled() = 0;
+	virtual void updateDynamics() = 0;
 
 
 	/*
