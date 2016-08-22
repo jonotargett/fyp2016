@@ -1,7 +1,6 @@
 #include "SimpleController.h"
 
 
-
 SimpleController::SimpleController()
 {
 	alive = true;

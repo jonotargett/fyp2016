@@ -1,3 +1,4 @@
+/* Feature detector creates images from the relevant scans and produces correct windows*/
 #include "FeatureDetector.h"
 #include "Window.h"
 #include "SimpleTexture.h"

@@ -1,3 +1,5 @@
+/* Features quad bike functions with updates to current states for location, heading, velocity*/
+
 #include "QuadBike.h"
 #include <iostream>
 
