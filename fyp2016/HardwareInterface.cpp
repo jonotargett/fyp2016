@@ -78,6 +78,7 @@ void HardwareInterface::setDesiredSteeringAngle(double x) {}
 void HardwareInterface::setDesiredThrottlePercentage(double x) {}
 void HardwareInterface::setDesiredBrake(bool x) {}
 void HardwareInterface::setDesiredGear(HardwareInterface::Gear x) {}
+void HardwareInterface::updateVelocityActuators() {}
 
 
 /*********************************************************************************/
@@ -118,18 +119,18 @@ void HardwareInterface::setPosition(Point p) {
 
 
 double HardwareInterface::getAbsoluteHeading() {
-	while (vehicleAbsoluteHeadingLock) {
+	while (absoluteHeadingLock) {
 		//wait
 	}
-	return vehicleAbsoluteHeading;
+	return absoluteHeading;
 }
 void HardwareInterface::setAbsoluteHeading(double x) {
-	while (vehicleAbsoluteHeadingLock) {
+	while (absoluteHeadingLock) {
 		//wait
 	}
-	vehicleAbsoluteHeadingLock = true;
-	vehicleAbsoluteHeading = x;
-	vehicleAbsoluteHeadingLock = false;
+	absoluteHeadingLock = true;
+	absoluteHeading = x;
+	absoluteHeadingLock = false;
 }
 
 
@@ -147,23 +148,6 @@ void HardwareInterface::setVelocity(double x) {
 	velocity = x;
 	velocityLock = false;
 }
-
-
-double HardwareInterface::getVelocityHeading() {
-	while (velocityAbsoluteHeadingLock) {
-		//wait
-	}
-	return velocityAbsoluteHeading;
-}
-void HardwareInterface::setVelocityHeading(double x) {
-	while (velocityAbsoluteHeadingLock) {
-		//wait
-	}
-	velocityAbsoluteHeadingLock = true;
-	velocityAbsoluteHeading = x;
-	velocityAbsoluteHeadingLock = false;
-}
-
 
 double HardwareInterface::getSteeringAngle() {
 	while (steeringAngleLock) {

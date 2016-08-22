@@ -8,6 +8,8 @@
 #include "HardwareInterface.h"
 #include "DummyHardware.h"
 #include "NavigationSystem.h"
+#include "DriveController.h"
+#include "SimpleController.h"
 #include "QuadBike.h"
 
 #include <sstream>
@@ -18,7 +20,7 @@ public:
 	VirtualPlatform();
 	~VirtualPlatform();
 
-	bool initialise(HardwareInterface*, NavigationSystem*, SDL_Renderer*);
+	bool initialise(HardwareInterface*, NavigationSystem*, DriveController*, SDL_Renderer*);
 	void update();
 	void redrawTexture();
 	SDL_Texture* retrieveImage();
@@ -31,6 +33,7 @@ public:
 private:
 	DummyHardware* hw;
 	NavigationSystem* ns;
+	SimpleController* sc;
 
 	SimpleTexture* mainCanvas;
 	SimpleTexture* quadTexture;

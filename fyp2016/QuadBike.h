@@ -19,6 +19,7 @@ public:
 	double getSteerAng();
 	double getThrottle();
 	bool getBrakes();
+	void setHeading(double);
 	int getGear();
 	double getIdleSpeed();
 	std::string getState();

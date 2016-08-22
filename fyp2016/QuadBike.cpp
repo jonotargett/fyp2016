@@ -136,6 +136,11 @@ bool QuadBike::setGear(int g) {
 	}
 }
 
+
+void QuadBike::setHeading(double h) {
+	heading = h;
+}
+
 void QuadBike::setState(std::string s) {
 	state = s;
 }

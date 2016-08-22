@@ -15,22 +15,19 @@ private:
 	bool enabled;
 
 	unsigned int currentPathPoint = 0;
-	double desiredVelocity = 0;
 	bool landmineDetected = false;
-	double distanceSinceMine = 0;
 	int pathTravDir = 1;
 	std::string navState = "cruise";
 
-	double heading;
-	double dist;
-	double timeLast;
-	//HRTimer hrt;
 	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 	std::chrono::time_point<std::chrono::high_resolution_clock> end;
 
 	//Thread* updater;
 	std::thread* updater;
 	bool alive;
+
+	HardwareInterface* hwi;
+	NavigationSystem* ns;
 public:
 	SimpleController();
 	~SimpleController();
@@ -43,9 +40,7 @@ public:
 	void landMineDetected();
 
 	bool updateLoop();
-	
-	HardwareInterface* hwi;
-	NavigationSystem* ns;
+
 };
 
 /*

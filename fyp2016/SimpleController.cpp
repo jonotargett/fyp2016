@@ -65,20 +65,7 @@ bool SimpleController::updateLoop() {
 		end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> seconds = end - start;
 
-		/*if (enabled) {
-			// implement discretised time PID controller in here
-
-			if (dist > 25) {
-				hwi->setDesiredThrottlePercentage(100.0);
-			}
-			else if (dist > 1) {
-				hwi->setDesiredThrottlePercentage(dist * 4);
-			}
-			else {
-				hwi->setDesiredThrottlePercentage(0);
-			}
-
-		}*/
+		updateDynamics();
 
 		//hrt.reset();
 		start = end;
@@ -90,6 +77,8 @@ bool SimpleController::updateLoop() {
 }
 
 void SimpleController::updateDynamics() {
+
+	double desiredVel = 0;
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist
@@ -127,9 +116,9 @@ void SimpleController::updateDynamics() {
 
 	if (navState == "turnInbound") {
 		// kinda bad because if quad overshoots it will keep going.
-		desiredVelocity = direction * 2 * distance;
-		if (abs(desiredVelocity) > hwi->cruiseVelocity)
-			desiredVelocity = direction * hwi->cruiseVelocity;
+		desiredVel = direction * 2 * distance;
+		if (abs(desiredVel) > hwi->cruiseVelocity)
+			desiredVel = direction * hwi->cruiseVelocity;
 
 		if (distance < 0.2) {
 			navState = "cruise";
@@ -137,11 +126,11 @@ void SimpleController::updateDynamics() {
 		}
 	}
 	else if (navState == "cruise") {
-		desiredVelocity = hwi->cruiseVelocity * direction;
+		desiredVel = hwi->cruiseVelocity * direction;
 		if (distance < 1.2) currentPathPoint += pathTravDir;
 	}
 	else if (navState == "landmineDetected") {
-		desiredVelocity = 0;
+		desiredVel = 0;
 		if (hwi->getVelocity() == 0) {
 			navState = "cruise";
 			pathTravDir = -1;
@@ -162,36 +151,11 @@ void SimpleController::updateDynamics() {
 			}
 		}
 	}
-
-
+	
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 3 * 3.1416 / 180) {
-		desiredVelocity -= 1;
+		desiredVel = 0;
 	}
 
-	if (landmineDetected) distanceSinceMine += abs(hwi->getVelocity()) * 1 / 60;
-	if (distanceSinceMine >= 1.5) {
-		desiredVelocity = 0;
-	}
+	hwi->setDesiredVelocity(desiredVel);
 
 }
-
-/*
-void* ControlUpdaterRunnable::run() {
-
-	bool success = true;
-
-	while (controller->isAlive()) {
-		// no point in doing this as fast as humanly possible - the other end wont keep up
-		// CAP AT 1000Hz
-		//SDL_Delay(1);
-
-		success = controller->updateLoop();
-
-		if (!success) {
-			return (void*)false;
-		}
-	}
-
-	return (void*)true;
-}
-*/

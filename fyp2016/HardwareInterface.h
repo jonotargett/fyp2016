@@ -60,7 +60,6 @@ public:
 	double getVelocity();
 	Gear getGear();
 	bool getBrake();
-	double getVelocityHeading();
 	double getSteeringAngle();
 	double getThrottlePercentage();
 	
@@ -69,6 +68,7 @@ public:
 	virtual void setDesiredThrottlePercentage(double);
 	virtual void setDesiredBrake(bool);
 	virtual void setDesiredGear(Gear);
+	virtual void updateVelocityActuators();
 
 private:
 	
@@ -78,9 +78,8 @@ private:
 	*/
 
 	Point position;
-	double vehicleAbsoluteHeading;
+	double absoluteHeading;
 	double velocity;
-	double velocityAbsoluteHeading;
 
 	double steeringAngle;
 	double throttlePercentage;
@@ -105,7 +104,6 @@ protected:
 	void setVelocity(double);
 	void setGear(Gear);
 	void setBrake(bool);
-	void setVelocityHeading(double);
 	void setSteeringAngle(double);
 	void setThrottlePercentage(double);
 
@@ -114,9 +112,8 @@ protected:
 	Locks for each of the sensor variables
 	*/
 	bool positionLock;
-	bool vehicleAbsoluteHeadingLock;
+	bool absoluteHeadingLock;
 	bool velocityLock;
-	bool velocityAbsoluteHeadingLock;
 	bool steeringAngleLock;
 	bool throttlePercentageLock;
 	bool gearLock;

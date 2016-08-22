@@ -53,14 +53,14 @@ bool Overlord::initialise() {
 	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 
-	Log::i << "-> Starting virtual platform old display..." << endl;
+	/*Log::i << "-> Starting virtual platform old display..." << endl;
 	vpo = new VirtualPlatformOld();
 	vpo->initialise(ns, dc, window->getRenderer());
-	Log::i << "-> OLD VIRTUAL PLATFORM DONE" << endl << endl;
+	Log::i << "-> OLD VIRTUAL PLATFORM DONE" << endl << endl;*/
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
-	vp->initialise(dhwi, ns, window->getRenderer());
+	vp->initialise(dhwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
 
@@ -108,9 +108,9 @@ void Overlord::run() {
 			window->clearWindow();
 			
 			if (showvp) {
-				vpo->update();							// update logic
-				vpo->drawTexture();						// render to texture
-				window->update(vpo->retrieveImage());	// render texture to window
+				vp->update();							// update logic
+				vp->redrawTexture();						// render to texture
+				window->update(vp->retrieveImage());	// render texture to window
 			}
 			else {
 				window->update(fd->retrieveImage());

@@ -23,12 +23,12 @@ bool DummyHardware::initialise() {
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
-	realPosition = Point(0, 0);
+	realPosition = Point(-2.05, -4);
 	realAbsoluteHeading = 0.0;
 	realVelocity = 0.0;
-	realSteeringAngle = 0.0;
+	realSteeringAngle = -23.0 * 3.1415 / 180;
 	realThrottlePercentage = 0.0;
-	setGear(GEAR_NULL);
+	realGear = GEAR_NEUTRAL;
 
 	desiredSteeringAngle = 0.0;
 	desiredVelocity = 0.0;
@@ -45,28 +45,33 @@ bool DummyHardware::initialise() {
 
 void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_RATE
 	//all hardware update logic goes here (not needed for real quad bike)
-
 	// fake a slow merge towards actuator positions
-	if (getSteeringAngle() < desiredSteeringAngle) realSteeringAngle += 0.008;
-	if (getSteeringAngle() > desiredSteeringAngle) realSteeringAngle -= 0.008;
+	if (realSteeringAngle < desiredSteeringAngle) realSteeringAngle += 0.006;
+	if (realSteeringAngle > desiredSteeringAngle) realSteeringAngle -= 0.006;
 
 	// fake accelerating to throttle speed
 	// each throttle percent corresponds to a certian speed given by throttleSpeed
 	// not entirely realistic when on hills and stuff but for flat ground close enough
 	// this will be handled by a proper controller with actual hardware
-	if (getGear() == GEAR_FORWARD || getGear() == GEAR_REVERSE) {
+	if (realGear == GEAR_FORWARD || realGear == GEAR_REVERSE) {
 		double throttleSpeed = 0.25 + 0.1475 * realThrottlePercentage;
-		if (getVelocity() < throttleSpeed) realVelocity += 0.01;
-		if (getVelocity() > throttleSpeed) realVelocity -= 0.01;
+		if (realVelocity < throttleSpeed * realGear) realVelocity += 0.01;
+		if (realVelocity > throttleSpeed * realGear) realVelocity -= 0.01;
 	}
-	if (getGear() == GEAR_NEUTRAL) { // neutral
-		realVelocity /= 1.2;
+	if (realGear == GEAR_NEUTRAL) { // neutral
+		realVelocity /= 1.02;
 	}
 
 	// brake stuff
-	if (getBrake()) {
-		realVelocity /= 1.6;
+	if (realBrake) {
+		realVelocity /= 1.08;
 	}
+
+
+	//rounding stuff that needs to be done. wont have an issue in real life with this
+	if (abs(realVelocity - desiredVelocity) < 0.01) realVelocity = desiredVelocity;
+	if (abs(realVelocity) < 0.01) realVelocity = 0;
+
 
 	
 	// calculating next position based on steer angle and velocity
@@ -93,47 +98,41 @@ void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_R
 	while (realAbsoluteHeading > 3.14159265) realAbsoluteHeading -= 2 * 3.14159265;
 	while (realAbsoluteHeading < -3.14159265) realAbsoluteHeading += 2 * 3.14159265;
 
-	
+	// this keeps the quad going at a constant speed given by desiredVelocity.
+	updateVelocityActuators();
+
+
 	// return values back to the hardware interface, as if theyd been measured.
-	setPosition(Point(realPosition.x + random()*0.0, realPosition.y + random()*0.0));
-	setAbsoluteHeading(realAbsoluteHeading + random()*0.0);
-	setVelocity(realVelocity + random()*0.0);
-}
-
-
-Point DummyHardware::getRealPosition() {
-	return realPosition;
-}
-double DummyHardware::getRealAbsoluteHeading() {
-	return realAbsoluteHeading;
-}
-double DummyHardware::getRealSteeringAngle() {
-	return realSteeringAngle;
-}
-double DummyHardware::getRealThrottlePercentage() {
-	return realThrottlePercentage;
-}
-double DummyHardware::getRealVelocity() {
-	return realVelocity;
+	setPosition(Point(realPosition.x, realPosition.y));
+	setAbsoluteHeading(realAbsoluteHeading);
+	setVelocity(realVelocity);
+	setSteeringAngle(realSteeringAngle);
 }
 
 void DummyHardware::setDesiredSteeringAngle(double x) {
-	if (x > 24 / 180 * 3.141592) x = 24 / 180 * 3.141592;
-	if (x < -24 / 180 * 3.141592) x = -24 / 180 * 3.141592;
+	if (x > 24 * 3.141592 / 180) x = 24 * 3.141592 / 180;
+	if (x < -24 * 3.141592 / 180) x = -24 * 3.141592 / 180;
 	desiredSteeringAngle = x;
 }
 void DummyHardware::setDesiredThrottlePercentage(double x) {
 	setThrottlePercentage(x);
+	realThrottlePercentage = x;
 }
 void DummyHardware::setDesiredBrake(bool x) {
 	setBrake(x);
+	realBrake = x;
 }
 void DummyHardware::setDesiredGear(HardwareInterface::Gear x) {
 	setGear(x);
+	realGear = x;
+}
+
+void DummyHardware::setDesiredVelocity(double d) {
+	desiredVelocity = d;
 }
 
 // handles gear changes as well
-void DummyHardware::setDesiredVelocity(double desiredVelocity) {
+void DummyHardware::updateVelocityActuators() {
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
 		setDesiredGear(GEAR_NEUTRAL);
@@ -141,7 +140,7 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 	}
 	else if (desiredVelocity > 0) {
 		// if we are travelling in the wrong direction
-		if (getVelocity() < 0) {
+		if (realVelocity < 0) {
 			setDesiredThrottlePercentage(0);
 			setDesiredGear(GEAR_NEUTRAL);
 			setDesiredBrake(true);
@@ -155,7 +154,7 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 
 		// if desiredVelocity is so slow that we need to feather the brakes
 		if (desiredVelocity < idleSpeed) {
-			if (getVelocity() < desiredVelocity) {
+			if (realVelocity < desiredVelocity) {
 				setDesiredThrottlePercentage(0);
 				setDesiredBrake(false);
 			}
@@ -168,18 +167,17 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 		// maybe add brakes in here later for a really large 
 		// difference in actual speed and desired speed
 		else {
-			if (getVelocity() < desiredVelocity) {
-				setDesiredThrottlePercentage(getThrottlePercentage() + 0.1);
+			if (realVelocity < desiredVelocity) {
+				setDesiredThrottlePercentage(realThrottlePercentage + 0.1);
 			}
-			if (getVelocity() > desiredVelocity) {
-				setDesiredThrottlePercentage(getThrottlePercentage() - 0.4);
-				//quad.setBrake(true);
+			if (realVelocity > desiredVelocity) {
+				setDesiredThrottlePercentage(realThrottlePercentage - 0.4);
 			}
 		}
 	}
 	else if (desiredVelocity < 0) {
 		// if we are travelling in the wrong direction
-		if (getVelocity() > 0) {
+		if (realVelocity > 0) {
 			setDesiredThrottlePercentage(0);
 			setDesiredGear(GEAR_NEUTRAL);
 			setDesiredBrake(true);
@@ -193,7 +191,7 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 
 		// if desiredVelocity is so slow that we need to feather the brakes
 		if (abs(desiredVelocity) < idleSpeed) {
-			if (getVelocity() < desiredVelocity) {
+			if (realVelocity < desiredVelocity) {
 				setDesiredThrottlePercentage(0);
 				setDesiredBrake(true);
 			}
@@ -206,12 +204,13 @@ void DummyHardware::setDesiredVelocity(double desiredVelocity) {
 		// maybe add brakes in here later for a really large
 		// difference in actual speed and desired speed
 		else {
+			
 			//REMEMBER WE'RE IN REVERSE HERE
-			if (getVelocity() < desiredVelocity) {
-				setDesiredThrottlePercentage(getThrottlePercentage() - 0.4);
+			if (realVelocity < desiredVelocity) {
+				setDesiredThrottlePercentage(realThrottlePercentage - 0.4);
 			}
-			if (getVelocity() > desiredVelocity) {
-				setDesiredThrottlePercentage(getThrottlePercentage() + 0.1);
+			if (realVelocity > desiredVelocity) {
+				setDesiredThrottlePercentage(realThrottlePercentage + 0.1);
 			}
 		}
 	}

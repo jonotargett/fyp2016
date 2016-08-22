@@ -13,18 +13,21 @@ class DummyHardware :
 	public HardwareInterface
 {
 private:
+public:
 	Point realPosition;
 	double realAbsoluteHeading;
 	double realVelocity;
 	double realSteeringAngle;
 	double realThrottlePercentage;
+	int realGear;
+	bool realBrake;
 
 	double desiredSteeringAngle;
 	double desiredVelocity;
 
 	double random();
 
-public:
+
 	DummyHardware();
 	~DummyHardware();
 
@@ -32,17 +35,12 @@ public:
 	bool updateLoop();
 	void update();
 
-	Point getRealPosition();
-	double getRealAbsoluteHeading();
-	double getRealVelocity();
-	double getRealSteeringAngle();
-	double getRealThrottlePercentage();
-
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);
 	void setDesiredThrottlePercentage(double);
 	void setDesiredBrake(bool);
 	void setDesiredGear(Gear);
+	void updateVelocityActuators();
 };
 
 
