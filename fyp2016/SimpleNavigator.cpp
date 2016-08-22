@@ -13,9 +13,7 @@ SimpleNavigator::~SimpleNavigator()
 }
 
 
-bool SimpleNavigator::initialise(DriveController* controller, HardwareInterface* hardware) {
-	dc = controller;
-	hwi = hardware;
+bool SimpleNavigator::initialise() {
 	
 	// TODO(): subdivide() here for testing purposes at the moment
 	subdivide();
@@ -163,6 +161,7 @@ bool SimpleNavigator::subdivide() {
 			}
 
 			if (abs(turnAngle) <= simpleTurnMaxAngleRad) {// conduct a simple turn
+
 				// distance from waypoint to begin conducting hte turn
 				double d = abs(turnRadius * tan(turnAngle / 2));
 				Point endPoint = subdividedPath.at(subdividedPath.size() - 1);
@@ -344,25 +343,10 @@ void SimpleNavigator::loop() {
 	endTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> seconds = endTime - startTime;
 
-	Point curPos = hwi->getPosition();
-
 	if (path.size() <= 0)
 		return;
 
-	Point* nextPos = path.at(0);
-	Point dif = Point(nextPos->x, nextPos->y);
-	dif = Point(dif.x - curPos.x, dif.y - curPos.y);
-	double dist = sqrt(dif.x * dif.x + dif.y*dif.y);
-
 	while (true) {
-		curPos = hwi->getPosition();
-		dif = Point(nextPos->x, nextPos->y);
-		dif = Point(dif.x - curPos.x, dif.y - curPos.y);
-		dist = sqrt(dif.x * dif.x + dif.y*dif.y);
-
-
-		dc->setInputs(0, dist);
-
 		std::this_thread::sleep_for(std::chrono::microseconds(1000));
 	}
 

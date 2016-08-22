@@ -28,6 +28,7 @@ bool DummyHardware::initialise() {
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
 	realThrottlePercentage = 0.0;
+	setGear(GEAR_NULL);
 
 	// return true once everything is initialised.
 	// seeing as there is no actual hardware here,
@@ -76,4 +77,90 @@ bool DummyHardware::updateLoop() {
 	}
 	
 	return true;
+}
+
+
+// handles gear changes as well
+void DummyHardware::setDesiredVelocity(double desiredVelocity) {
+	if (desiredVelocity == 0) {
+		setThrottlePercentage(0);
+		setGear(GEAR_NEUTRAL);
+		setBrake(true);
+	}
+	else if (desiredVelocity > 0) {
+		// if we are travelling in the wrong direction
+		if (getVelocity() < 0) {
+			quad.setThrottlePercentage(0);
+			quad.setGear(0);
+			quad.setBrake(true);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			quad.setGear(1);
+			quad.setBrake(false);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (desiredVelocity < quad.getIdleSpeed()) {
+			if (quad.getVelocity() < desiredVelocity) {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(false);
+			}
+			else {
+				quad.setThrottlePercentage(0);
+				quad.setBrake(true);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large 
+		// difference in actual speed and desired speed
+		else {
+			if (getVelocity() < desiredVelocity) {
+				setThrottlePercentage(quad.getThrottle() + 0.1);
+			}
+			if (getVelocity() > desiredVelocity) {
+				setThrottlePercentage(quad.getThrottle() - 0.4);
+				//quad.setBrake(true);
+			}
+		}
+	}
+	else if (desiredVelocity < 0) {
+		// if we are travelling in the wrong direction
+		if (getVelocity() > 0) {
+			setThrottlePercentage(0);
+			setGear(GEAR_NEUTRAL);
+			setBrake(true);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			setGear(GEAR_REVERSE);
+			setBrake(false);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (abs(desiredVelocity) < quad.getIdleSpeed()) {
+			if (getVelocity() < desiredVelocity) {
+				setThrottlePercentage(0);
+				setBrake(true);
+			}
+			else {
+				setThrottlePercentage(0);
+				setBrake(false);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large
+		// difference in actual speed and desired speed
+		else {
+			//REMEMBER WE'RE IN REVERSE HERE
+			if (getVelocity() < desiredVelocity) {
+				setThrottlePercentage(quad.getThrottle() - 0.4);
+			}
+			if (getVelocity() > desiredVelocity) {
+				setThrottlePercentage(quad.getThrottle() + 0.1);
+			}
+		}
+	}
 }

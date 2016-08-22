@@ -28,20 +28,24 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	//hwi = new DummyHardware();
 	hwi = new QuadInterface();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 
-	Log::i << "-> Initialising drive controller..." << endl;
-	dc = new SimpleController();
-	dc->initialise(hwi);
-	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
-
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
-	ns->initialise(dc, hwi);
+	ns->initialise();
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
+
+	Log::i << "-> Initialising dummy hardware interface..." << endl;
+	dhwi = new DummyHardware();
+	dhwi->initialise();
+	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
+
+	Log::i << "-> Initialising drive controller..." << endl;
+	dc = new SimpleController();
+	dc->initialise(dhwi, ns);
+	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(hwi, window->getRenderer());
@@ -50,8 +54,8 @@ bool Overlord::initialise() {
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 
 	Log::i << "-> Starting virtual platform display..." << endl;
-	vp = new VirtualPlatform();
-	vp->initialise(ns, window->getRenderer());
+	vp = new VirtualPlatformOld();
+	vp->initialise(ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 
 	initialised = true;

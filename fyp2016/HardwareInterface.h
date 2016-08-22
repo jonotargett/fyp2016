@@ -11,11 +11,71 @@
 
 class HardwareInterface
 {
+
+public:
+	HardwareInterface();
+	virtual ~HardwareInterface();
+	bool isAlive();
+
+	enum Gear
+	{
+		GEAR_FORWARD,
+		GEAR_NEUTRAL,
+		GEAR_REVERSE,
+		GEAR_NULL
+	};
+
+	/*
+	Obtain a link with the microcontroller over the serial link.
+	Returns: true on success, false on failure
+	*/
+	virtual bool initialise() = 0;
+
+	/*
+	is declared public only so that it can be called on a
+	separate thread. there is no reason to call this method externally.
+	This method gets/sets all data to the microcontroller
+	each pass returns 'true' for success, or 'false' for error.
+	*/
+	virtual bool updateLoop() = 0;
+
+	bool start();
+	void stop();
+
+	/*
+	Returns: the current position as determined by the GPS unit
+	*/
+	Point getPosition();
+	void setPosition(Point p);
+
+	double getAbsoluteHeading();
+	void setAbsoluteHeading(double);
+
+	double getVelocity();
+	void setVelocity(double);
+
+	Gear getGear();
+	void setGear(Gear);
+
+	bool getBrake();
+	void setBrake(bool);
+
+	double getVelocityHeading();
+	void setVelocityHeading(double);
+
+	double getSteeringAngle();
+	void setSteeringAngle(double);
+
+	double getThrottlePercentage();
+	void setThrottlePercentage(double);
+
 private:
+	
 	bool alive;
 	/*
 	variables holding sensor data, actuator data
 	*/
+
 	Point position;
 	double vehicleAbsoluteHeading;
 	double velocity;
@@ -23,6 +83,8 @@ private:
 
 	double steeringAngle;
 	double throttlePercentage;
+	bool brake;
+	Gear gear;
 
 protected:
 	//Thread* updater;
@@ -40,49 +102,9 @@ protected:
 	bool velocityAbsoluteHeadingLock;
 	bool steeringAngleLock;
 	bool throttlePercentageLock;
-	
-public:
-	HardwareInterface();
-	virtual ~HardwareInterface();
-	bool isAlive();
+	bool gearLock;
+	bool brakeLock;
 
-	/*
-	Obtain a link with the microcontroller over the serial link.
-	Returns: true on success, false on failure
-	*/
-	virtual bool initialise() = 0;
-
-	/* 
-	is declared public only so that it can be called on a
-	separate thread. there is no reason to call this method externally.
-	This method gets/sets all data to the microcontroller
-	each pass returns 'true' for success, or 'false' for error.
-	*/
-	virtual bool updateLoop() = 0;
-
-	bool start();
-	void stop();
-
-	/* 
-	Returns: the current position as determined by the GPS unit
-	*/
-	Point getPosition();
-	void setPosition(Point p);
-
-	double getAbsoluteHeading();
-	void setAbsoluteHeading(double);
-
-	double getVelocity();
-	void setVelocity(double);
-
-	double getVelocityHeading();
-	void setVelocityHeading(double);
-
-	double getSteeringAngle();
-	void setSteeringAngle(double);
-
-	double getThrottlePercentage();
-	void setThrottlePercentage(double);
 
 };
 

@@ -3,7 +3,7 @@
 #include "Log.h"
 #include "Window.h"
 #include "HardwareInterface.h"
-//#include "DummyHardware.h"
+#include "DummyHardware.h"
 #include "QuadInterface.h"
 #include "DriveController.h"
 #include "SimpleController.h"
@@ -36,10 +36,11 @@ private:
 	Window* window;
 	Communications* comms;
 	HardwareInterface* hwi;
+	HardwareInterface* dhwi;
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;
-	VirtualPlatform* vp;
+	VirtualPlatformOld* vp;
 
 	
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowUpdate;

@@ -3,6 +3,7 @@
 #include "SDL\SDL.h"
 #include "Window.h"
 #include "SimpleTexture.h"
+#include "SimpleController.h"
 #include "NavigationSystem.h"
 #include "QuadBike.h"
 #include "SDL\SDL_ttf.h"
@@ -10,13 +11,13 @@
 
 #include <sstream>
 
-class VirtualPlatform
+class VirtualPlatformOld
 {
 public:
-	VirtualPlatform();
-	~VirtualPlatform();
+	VirtualPlatformOld();
+	~VirtualPlatformOld();
 
-	bool initialise(NavigationSystem*, SDL_Renderer*);
+	bool initialise(NavigationSystem*, DriveController*, SDL_Renderer*);
 	void update();
 	void drawTexture();
 	SDL_Texture* retrieveImage();
@@ -29,6 +30,7 @@ public:
 	
 private:
 	NavigationSystem* ns;
+	DriveController* dc;
 	SimpleTexture* mainCanvas;
 	SimpleTexture* quadTexture;
 	SimpleTexture* wheelTexture;

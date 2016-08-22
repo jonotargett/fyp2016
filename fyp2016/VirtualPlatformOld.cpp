@@ -1,17 +1,18 @@
 #include "VirtualPlatform.h"
 
 
-VirtualPlatform::VirtualPlatform()
+VirtualPlatformOld::VirtualPlatformOld()
 {
 	
 }
-VirtualPlatform::~VirtualPlatform()
+VirtualPlatformOld::~VirtualPlatformOld()
 {
 
 }
 
-bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
+bool VirtualPlatformOld::initialise(NavigationSystem* nav, DriveController* driveControl, SDL_Renderer* r) {
 	ns = nav;
+	dc = driveControl;
 	mainCanvas = new SimpleTexture(r);
 
 
@@ -38,7 +39,7 @@ bool VirtualPlatform::initialise(NavigationSystem* nav, SDL_Renderer* r) {
 	return true;
 }
 
-void VirtualPlatform::update() {
+void VirtualPlatformOld::update() {
 	velocityGraph.post(quad.getVelocity());
 	steerGraph.post(quad.getSteerAng() * 180 / 3.1416);
 	gearGraph.post(quad.getGear());
@@ -56,7 +57,7 @@ void VirtualPlatform::update() {
 
 }
 
-void VirtualPlatform::updateDynamics() {
+/*void VirtualPlatformOld::updateDynamics() {
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist
@@ -69,10 +70,10 @@ void VirtualPlatform::updateDynamics() {
 	if (angleToPathPoint < -3.141593) angleToPathPoint += 2 * 3.141593;
 	double alpha = angleToPathPoint - quad.getHeading();
 	double distance = quad.getLocation().getDistanceTo(*ns->getPath().at(currentPathPoint));
-	double steerAngleReq = -atan(2 * quad.wheelBase * sin(alpha) / distance);
+	double steerAngleReq = -atan(2 * wheelBase * sin(alpha) / distance);
 
-	if (steerAngleReq > quad.maxSteerAngle) steerAngleReq = quad.maxSteerAngle;
-	if (steerAngleReq < -quad.maxSteerAngle) steerAngleReq = -quad.maxSteerAngle;
+	if (steerAngleReq > maxSteerAngle) steerAngleReq = maxSteerAngle;
+	if (steerAngleReq < -maxSteerAngle) steerAngleReq = -maxSteerAngle;
 	quad.setSteerAng(steerAngleReq);
 	
 
@@ -140,10 +141,10 @@ void VirtualPlatform::updateDynamics() {
 		desiredVelocity = 0;
 	}
 	
-}
+}*/
 
 // handles gear changes as well
-void VirtualPlatform::setDesiredVelocity() {
+void VirtualPlatformOld::setDesiredVelocity() {
 	if (desiredVelocity == 0) {
 		quad.setThrottlePercentage(0);
 		quad.setGear(0);
@@ -230,7 +231,7 @@ void VirtualPlatform::setDesiredVelocity() {
 /*
 	Draws path to texture for the given drawScale and focus point defined within the function.
 */
-void VirtualPlatform::drawTexture() {
+void VirtualPlatformOld::drawTexture() {
 
 	mainCanvas->setAsRenderTarget();
 
@@ -363,7 +364,7 @@ void VirtualPlatform::drawTexture() {
 	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
 }
 
-Point VirtualPlatform::transform(Point p) {
+Point VirtualPlatformOld::transform(Point p) {
 	//transformed(x, y) locations for scale, computers inverted y coordinate, and focus point
 	Point t;
 	t.x = p.x * drawScale - focusX*drawScale + textureWidth / 2;
@@ -371,11 +372,11 @@ Point VirtualPlatform::transform(Point p) {
 	return t;
 }
 
-SDL_Texture* VirtualPlatform::retrieveImage() {
+SDL_Texture* VirtualPlatformOld::retrieveImage() {
 	return mainCanvas->getTexture();
 }
 
-void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
+void VirtualPlatformOld::drawText(std::string textToRender, int x, int y) {
 	SDL_Color textColor = { 0, 0, 0, 255 };
 	SDL_Surface* textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
 	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(mainCanvas->getRenderer(), textSurface);
@@ -389,7 +390,7 @@ void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
 	SDL_DestroyTexture(mTexture);
 }
 
-void VirtualPlatform::setupFont() {
+void VirtualPlatformOld::setupFont() {
 	if (TTF_Init() == -1) {
 		Log::e << " Failed to initialise TTF : " << SDL_GetError() << endl;
 	}

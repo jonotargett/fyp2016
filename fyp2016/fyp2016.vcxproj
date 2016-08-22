@@ -142,7 +142,7 @@
     <ClCompile Include="SimpleNavigator.cpp" />
     <ClCompile Include="SimpleTexture.cpp" />
     <ClCompile Include="QuadBike.cpp" />
-    <ClCompile Include="VirtualPlatform.cpp" />
+    <ClCompile Include="VirtualPlatformOld.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

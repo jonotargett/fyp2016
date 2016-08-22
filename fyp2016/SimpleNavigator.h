@@ -1,6 +1,8 @@
 #pragma once
 #include "NavigationSystem.h"
 
+#include "Log.h"
+
 #include <thread>
 #include <chrono>
 
@@ -10,8 +12,6 @@ class SimpleNavigator :
 	public NavigationSystem
 {
 private:
-	DriveController* dc;
-	HardwareInterface* hwi;
 	std::vector<Point*> path;
 
 	double simpleTurnMaxAngleRad;
@@ -26,7 +26,7 @@ public:
 	SimpleNavigator();
 	~SimpleNavigator();
 
-	bool initialise(DriveController*, HardwareInterface*);
+	bool initialise();
 	void clear();
 
 	void setPath(std::vector<Point*>);

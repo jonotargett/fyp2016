@@ -33,6 +33,8 @@ public:
 	Point getRealPosition();
 	double getRealHeading();
 	double getRealVelocity();
+
+	void setDesiredVelocity(double);
 };
 
 
