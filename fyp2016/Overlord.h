@@ -11,7 +11,6 @@
 #include "NavigationSystem.h"
 #include "SimpleNavigator.h"
 #include "Communications.h"
-#include "VirtualPlatformOld.h"
 #include "VirtualPlatform.h"
 #include "CommsListener.h"
 
@@ -41,7 +40,6 @@ private:
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;
-	VirtualPlatformOld* vpo;
 	VirtualPlatform* vp;
 
 	

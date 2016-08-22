@@ -52,11 +52,6 @@ bool Overlord::initialise() {
 	// just comment this line if the GPR isnt plugged in
 	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
-
-	/*Log::i << "-> Starting virtual platform old display..." << endl;
-	vpo = new VirtualPlatformOld();
-	vpo->initialise(ns, dc, window->getRenderer());
-	Log::i << "-> OLD VIRTUAL PLATFORM DONE" << endl << endl;*/
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
