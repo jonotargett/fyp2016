@@ -18,6 +18,11 @@ Point::~Point()
 {
 }
 
+double Point::getDistanceTo(Point p) {
+	double distance = sqrt(pow(x - p.x, 2) + pow(y - p.y, 2));
+	return distance;
+}
+
 void Point::normalise()
 {
 	double length = sqrt(x*x + y*y);
@@ -27,14 +32,12 @@ void Point::normalise()
 
 Point operator+(const Point& p1, const Point& p2)
 {
-	//TODO
 	return Point(p1.x + p2.x, p1.y + p2.y);
 }
 
-Point Point::operator-(const Point &)
+Point operator-(const Point& p1, const Point& p2)
 {
-	//TODO
-	return Point();
+	return Point(p1.x - p2.x, p1.y - p2.y);
 }
 
 Point Point::operator*(double)

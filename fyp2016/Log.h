@@ -9,6 +9,8 @@
 
 using std::endl;
 using std::cout;
+using std::cerr;
+using std::clog;
 
 enum Verbosity {
 	LOG_ALL,
@@ -22,6 +24,7 @@ enum Verbosity {
 class Log {
 private:
 	static Verbosity v;
+	static std::streambuf* orig_buf;
 public:
 	static bool repostTime;
 	static Logger e;	// error;
@@ -33,5 +36,6 @@ public:
 	Log();
 	static Verbosity getVerbosity();
 	static void setVerbosity(Verbosity verbosity);
+	static void suppressCout(bool suppressed);
 };
 

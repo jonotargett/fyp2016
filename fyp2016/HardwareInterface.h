@@ -4,43 +4,26 @@
 
 #include "Point.h"
 //#include "Thread.h"
+//#include "HRTimer.h"
 
 #include <thread>
 #include <chrono>
 
 class HardwareInterface
 {
-private:
-	bool alive;
-	/*
-	variables holding sensor data, actuator data
-	*/
-	Point position;
-	double vehicleAbsoluteHeading;
-	double velocity;
-	double velocityAbsoluteHeading;
 
-	double steeringAngle;
-	double throttlePercentage;
-
-protected:
-	//Thread* updater;
-	std::thread* updater;
-
-	/*
-	Locks for each of the sensor variables
-	*/
-	bool positionLock;
-	bool vehicleAbsoluteHeadingLock;
-	bool velocityLock;
-	bool velocityAbsoluteHeadingLock;
-	bool steeringAngleLock;
-	bool throttlePercentageLock;
-	
 public:
 	HardwareInterface();
 	virtual ~HardwareInterface();
 	bool isAlive();
+
+	enum Gear
+	{
+		GEAR_FORWARD,
+		GEAR_NEUTRAL,
+		GEAR_REVERSE,
+		GEAR_NULL
+	};
 
 	/*
 	Obtain a link with the microcontroller over the serial link.
@@ -48,7 +31,7 @@ public:
 	*/
 	virtual bool initialise() = 0;
 
-	/* 
+	/*
 	is declared public only so that it can be called on a
 	separate thread. there is no reason to call this method externally.
 	This method gets/sets all data to the microcontroller
@@ -59,7 +42,7 @@ public:
 	bool start();
 	void stop();
 
-	/* 
+	/*
 	Returns: the current position as determined by the GPS unit
 	*/
 	Point getPosition();
@@ -71,6 +54,12 @@ public:
 	double getVelocity();
 	void setVelocity(double);
 
+	Gear getGear();
+	void setGear(Gear);
+
+	bool getBrake();
+	void setBrake(bool);
+
 	double getVelocityHeading();
 	void setVelocityHeading(double);
 
@@ -79,6 +68,43 @@ public:
 
 	double getThrottlePercentage();
 	void setThrottlePercentage(double);
+
+private:
+	
+	bool alive;
+	/*
+	variables holding sensor data, actuator data
+	*/
+
+	Point position;
+	double vehicleAbsoluteHeading;
+	double velocity;
+	double velocityAbsoluteHeading;
+
+	double steeringAngle;
+	double throttlePercentage;
+	bool brake;
+	Gear gear;
+
+protected:
+	//Thread* updater;
+	std::thread* updater;
+	//HRTimer hrt;
+	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
+
+	/*
+	Locks for each of the sensor variables
+	*/
+	bool positionLock;
+	bool vehicleAbsoluteHeadingLock;
+	bool velocityLock;
+	bool velocityAbsoluteHeadingLock;
+	bool steeringAngleLock;
+	bool throttlePercentageLock;
+	bool gearLock;
+	bool brakeLock;
+
 
 };
 

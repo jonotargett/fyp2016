@@ -40,7 +40,7 @@ bool HardwareInterface::start() {
 
 	updater = new std::thread(&HardwareInterface::updateLoop, this);
 
-	Log::i << "Hardware communication sub-thread started." << std::endl;
+	Log::d << "Hardware communication sub-thread started." << std::endl;
 
 	// return true if everything worked
 	return true;
@@ -74,8 +74,8 @@ void* UpdaterRunnable::run() {
 
 
 /*********************************************************************************/
-
 // GETTERS AND SETTERS FOR HW VARIABLES FOR THREAD SAFETY
+/*********************************************************************************/
 
 Point HardwareInterface::getPosition() {
 	while (positionLock) {
@@ -173,6 +173,21 @@ void HardwareInterface::setSteeringAngle(double x) {
 	steeringAngleLock = false;
 }
 
+bool HardwareInterface::getBrake() {
+	while (brakeLock) {
+		//wait
+	}
+	return brake;
+}
+void HardwareInterface::setBrake(bool x) {
+	while (brakeLock) {
+		//wait
+	}
+	brakeLock = true;
+	brake = x;
+	brakeLock = false;
+}
+
 
 double HardwareInterface::getThrottlePercentage() {
 	while (throttlePercentageLock) {
@@ -187,4 +202,19 @@ void HardwareInterface::setThrottlePercentage(double x) {
 	throttlePercentageLock = true;
 	throttlePercentage = x;
 	throttlePercentageLock = false;
+}
+
+HardwareInterface::Gear HardwareInterface::getGear() {
+	while (gearLock) {
+		//wait
+	}
+	return gear;
+}
+void HardwareInterface::setGear(Gear x) {
+	while (gearLock) {
+		//wait
+	}
+	gearLock = true;
+	gear = x;
+	gearLock = false;
 }

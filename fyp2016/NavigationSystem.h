@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "Point.h"
-#include "DriveController.h"
 
 class NavigationSystem
 {
@@ -11,7 +10,7 @@ public:
 	/* Initialises the navigation system.
 	Returns: true on success, false on failure
 	*/
-	virtual bool initialise(DriveController*, HardwareInterface*) = 0;
+	virtual bool initialise() = 0;
 
 	/* Clears all current paths, zones etc.
 	Returns:

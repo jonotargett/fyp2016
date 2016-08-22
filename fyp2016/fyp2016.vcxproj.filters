@@ -66,13 +66,19 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VirtualPlatform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SimpleTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QuadBike.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Serial.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualPlatformOld.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -87,6 +93,12 @@
       <Filter>Resource Files</Filter>
     </Library>
     <Library Include="GPRDLL.LIB">
+      <Filter>Resource Files</Filter>
+    </Library>
+    <Library Include="SDL2_ttf.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+    <Library Include="SDL2_image.lib">
       <Filter>Resource Files</Filter>
     </Library>
   </ItemGroup>
@@ -155,6 +167,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QuadBike.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommsListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Serial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

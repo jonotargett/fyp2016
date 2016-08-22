@@ -15,10 +15,11 @@ private:
 	double* vals;
 	int offset;
 public:
-	Graph(int, int, double, double);
+	Graph(int, int, double, double, bool);
 	~Graph();
 
 	void post(double);
+	bool drawCentreLine = true;
 	SDL_Surface* retrieveImage();
 };
 

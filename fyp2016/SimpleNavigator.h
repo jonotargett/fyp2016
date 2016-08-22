@@ -1,6 +1,8 @@
 #pragma once
 #include "NavigationSystem.h"
 
+#include "Log.h"
+
 #include <thread>
 #include <chrono>
 
@@ -10,10 +12,9 @@ class SimpleNavigator :
 	public NavigationSystem
 {
 private:
-	DriveController* dc;
-	HardwareInterface* hwi;
 	std::vector<Point*> path;
 
+	double simpleTurnMaxAngleRad;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
@@ -25,7 +26,7 @@ public:
 	SimpleNavigator();
 	~SimpleNavigator();
 
-	bool initialise(DriveController*, HardwareInterface*);
+	bool initialise();
 	void clear();
 
 	void setPath(std::vector<Point*>);

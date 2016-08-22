@@ -1,10 +1,10 @@
 #include "Window.h"
 #include "SimpleTexture.h"
+#include "SDL\SDL_opengl.h"
 
 
 Window::Window()
 {
-	
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -14,6 +14,20 @@ Window::Window()
 		quit = true;
 		return;
 	}
+
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
 	window = SDL_CreateWindow(
 		"FYP 2099 Control Program", 
@@ -39,7 +53,7 @@ Window::Window()
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-
+	
 
 	/*
 	surface = SDL_GetWindowSurface(window);
@@ -52,7 +66,6 @@ Window::Window()
 
 	// -----------------------------//
 	*/
-
 }
 
 

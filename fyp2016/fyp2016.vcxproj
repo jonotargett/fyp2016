@@ -136,22 +136,27 @@
     <ClCompile Include="NavigationEdge.cpp" />
     <ClCompile Include="Overlord.cpp" />
     <ClCompile Include="Point.cpp" />
+    <ClCompile Include="QuadInterface.cpp" />
+    <ClCompile Include="Serial.cpp" />
     <ClCompile Include="SimpleController.cpp" />
     <ClCompile Include="SimpleNavigator.cpp" />
     <ClCompile Include="SimpleTexture.cpp" />
     <ClCompile Include="QuadBike.cpp" />
-    <ClCompile Include="VirtualPlatform.cpp" />
+    <ClCompile Include="VirtualPlatformOld.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="GPRDLL.LIB" />
     <Library Include="SDL2.lib" />
     <Library Include="SDL2main.lib" />
+    <Library Include="SDL2_image.lib" />
     <Library Include="SDL2_net.lib" />
+    <Library Include="SDL2_ttf.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ascan.h" />
     <ClInclude Include="Bscan.h" />
+    <ClInclude Include="CommsListener.h" />
     <ClInclude Include="Communications.h" />
     <ClInclude Include="csirousb.h" />
     <ClInclude Include="DriveController.h" />
@@ -160,7 +165,10 @@
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="QuadBike.h" />
+    <ClInclude Include="QuadInterface.h" />
+    <ClInclude Include="Serial.h" />
     <ClInclude Include="SimpleTexture.h" />
     <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="Log.h" />

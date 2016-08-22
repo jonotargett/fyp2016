@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SDL\SDL.h"
+#include "SDL\SDL_image.h"
+#include <iostream>
 
 
 class SimpleTexture
@@ -16,10 +18,10 @@ public:
 	~SimpleTexture();
 	
 	void createBlank(int width, int height);
+	void loadImage(std::string path);
+	void loadFromSurface(SDL_Surface* s);
 	void freeSimpleTexture();
 
-	void setColor(Uint8 red, Uint8 green, Uint8 blue);
-	void setAlpha(Uint8 alpha);
 	void setAsRenderTarget();
 
 	SDL_Texture* getTexture();

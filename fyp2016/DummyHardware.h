@@ -6,7 +6,7 @@
 
 #include "Log.h"
 
-//#include "HRTimer.h"
+
 
 class DummyHardware :
 	public HardwareInterface
@@ -19,9 +19,7 @@ private:
 	double realSteeringAngle;
 	double realThrottlePercentage;
 
-	//HRTimer hrt;
-	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
+	
 
 	double random();
 
@@ -35,6 +33,8 @@ public:
 	Point getRealPosition();
 	double getRealHeading();
 	double getRealVelocity();
+
+	void setDesiredVelocity(double);
 };
 
 

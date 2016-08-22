@@ -20,6 +20,18 @@ SDL_Renderer* SimpleTexture::getRenderer() {
 	return renderer;
 }
 
+void SimpleTexture::loadFromSurface(SDL_Surface* s) {
+	texture = SDL_CreateTextureFromSurface(renderer, s);
+}
+
+void SimpleTexture::loadImage(std::string path) {
+	//initialise image loading
+	IMG_Init(IMG_INIT_PNG);
+	SDL_Surface* loadedImage = IMG_Load(path.c_str());
+	texture = SDL_CreateTextureFromSurface(renderer, loadedImage);
+	SDL_FreeSurface(loadedImage);
+}
+
 void SimpleTexture::createBlank(int w, int h)
 {
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
@@ -39,16 +51,6 @@ void SimpleTexture::freeSimpleTexture()
 	}
 }
 
-void SimpleTexture::setColor(Uint8 red, Uint8 green, Uint8 blue)
-{
-	SDL_SetTextureColorMod(texture, red, green, blue);
-}
-
-void SimpleTexture::setAlpha(Uint8 alpha)
-{
-	SDL_SetTextureAlphaMod(texture, alpha);
-}
-
 void SimpleTexture::setAsRenderTarget()
 {
 	SDL_SetRenderTarget(renderer, texture);
@@ -56,10 +58,12 @@ void SimpleTexture::setAsRenderTarget()
 
 int SimpleTexture::getWidth()
 {
+	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 	return width;
 }
 
 int SimpleTexture::getHeight()
 {
+	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 	return height;
 }
