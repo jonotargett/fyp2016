@@ -24,7 +24,7 @@ bool DummyHardware::initialise() {
 	startTime = std::chrono::high_resolution_clock::now();
 
 	realPosition = Point(0, 0);
-	realHeading = 0.0;
+	realAbsoluteHeading = 0.0;
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
 	realThrottlePercentage = 0.0;
@@ -86,18 +86,35 @@ void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_R
 	}
 
 	// updating position
-	realPosition.x += distanceForward * sin(realHeading) + distanceRight * cos(realHeading);
-	realPosition.y += distanceForward * cos(realHeading) - distanceRight * sin(realHeading);
-	realHeading += angleTurned;
+	realPosition.x += distanceForward * sin(realAbsoluteHeading) + distanceRight * cos(realAbsoluteHeading);
+	realPosition.y += distanceForward * cos(realAbsoluteHeading) - distanceRight * sin(realAbsoluteHeading);
+	realAbsoluteHeading += angleTurned;
 	
-	while (realHeading > 3.14159265) realHeading -= 2 * 3.14159265;
-	while (realHeading < -3.14159265) realHeading += 2 * 3.14159265;
+	while (realAbsoluteHeading > 3.14159265) realAbsoluteHeading -= 2 * 3.14159265;
+	while (realAbsoluteHeading < -3.14159265) realAbsoluteHeading += 2 * 3.14159265;
 
 	
 	// return values back to the hardware interface, as if theyd been measured.
 	setPosition(Point(realPosition.x + random()*0.0, realPosition.y + random()*0.0));
-	setAbsoluteHeading(realHeading + random()*0.0);
+	setAbsoluteHeading(realAbsoluteHeading + random()*0.0);
 	setVelocity(realVelocity + random()*0.0);
+}
+
+
+Point DummyHardware::getRealPosition() {
+	return realPosition;
+}
+double DummyHardware::getRealAbsoluteHeading() {
+	return realAbsoluteHeading;
+}
+double DummyHardware::getRealSteeringAngle() {
+	return realSteeringAngle;
+}
+double DummyHardware::getRealThrottlePercentage() {
+	return realThrottlePercentage;
+}
+double DummyHardware::getRealVelocity() {
+	return realVelocity;
 }
 
 void DummyHardware::setDesiredSteeringAngle(double x) {

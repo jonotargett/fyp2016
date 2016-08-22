@@ -12,8 +12,6 @@ class SimpleController :
 	public DriveController
 {
 private:
-	HardwareInterface* hwi;
-	NavigationSystem* ns;
 	bool enabled;
 
 	unsigned int currentPathPoint = 0;
@@ -42,8 +40,12 @@ public:
 	void setEnabled(bool);
 	bool isEnabled();
 	void updateDynamics();
+	void landMineDetected();
 
 	bool updateLoop();
+	
+	HardwareInterface* hwi;
+	NavigationSystem* ns;
 };
 
 /*

@@ -142,6 +142,7 @@
     <ClCompile Include="SimpleNavigator.cpp" />
     <ClCompile Include="SimpleTexture.cpp" />
     <ClCompile Include="QuadBike.cpp" />
+    <ClCompile Include="VirtualPlatform.cpp" />
     <ClCompile Include="VirtualPlatformOld.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -170,6 +171,7 @@
     <ClInclude Include="QuadInterface.h" />
     <ClInclude Include="Serial.h" />
     <ClInclude Include="SimpleTexture.h" />
+    <ClInclude Include="VirtualPlatform.h" />
     <ClInclude Include="VirtualPlatformOld.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Logger.h" />

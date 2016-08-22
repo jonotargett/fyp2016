@@ -53,6 +53,11 @@ bool SimpleController::isAlive() {
 	return alive;
 }
 
+void SimpleController::landMineDetected() {
+	landmineDetected = true;
+	navState = "landmineDetected";
+}
+
 bool SimpleController::updateLoop() {
 	while (isAlive()) {
 		// access the discrete time interval between consective exections
@@ -60,7 +65,7 @@ bool SimpleController::updateLoop() {
 		end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> seconds = end - start;
 
-		if (enabled) {
+		/*if (enabled) {
 			// implement discretised time PID controller in here
 
 			if (dist > 25) {
@@ -73,7 +78,7 @@ bool SimpleController::updateLoop() {
 				hwi->setDesiredThrottlePercentage(0);
 			}
 
-		}
+		}*/
 
 		//hrt.reset();
 		start = end;

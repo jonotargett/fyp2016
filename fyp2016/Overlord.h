@@ -12,6 +12,7 @@
 #include "SimpleNavigator.h"
 #include "Communications.h"
 #include "VirtualPlatformOld.h"
+#include "VirtualPlatform.h"
 #include "CommsListener.h"
 
 #define REFRESH_RATE 60
@@ -40,7 +41,8 @@ private:
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;
-	VirtualPlatformOld* vp;
+	VirtualPlatformOld* vpo;
+	VirtualPlatform* vp;
 
 	
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowUpdate;

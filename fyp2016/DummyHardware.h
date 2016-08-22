@@ -14,7 +14,7 @@ class DummyHardware :
 {
 private:
 	Point realPosition;
-	double realHeading;
+	double realAbsoluteHeading;
 	double realVelocity;
 	double realSteeringAngle;
 	double realThrottlePercentage;
@@ -33,8 +33,10 @@ public:
 	void update();
 
 	Point getRealPosition();
-	double getRealHeading();
+	double getRealAbsoluteHeading();
 	double getRealVelocity();
+	double getRealSteeringAngle();
+	double getRealThrottlePercentage();
 
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);

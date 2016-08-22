@@ -21,6 +21,9 @@ public:
 	virtual bool isEnabled() = 0;
 	virtual void updateDynamics() = 0;
 
+	HardwareInterface* hwi;
+	NavigationSystem* ns;
+
 
 	/*
 	Updates to match desired relative position from a navigator (parent class).
