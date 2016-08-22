@@ -35,6 +35,10 @@ public:
 	double getRealVelocity();
 
 	void setDesiredVelocity(double);
+	void setDesiredSteeringAngle(double);
+	void setDesiredThrottlePercentage(double);
+	void setDesiredBrake(bool);
+	void setDesiredGear(Gear);
 };
 
 

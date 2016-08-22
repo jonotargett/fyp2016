@@ -43,31 +43,22 @@ public:
 	void stop();
 
 	/*
-	Returns: the current position as determined by the GPS unit
+	Returns: the current value as stored in this class
 	*/
 	Point getPosition();
-	void setPosition(Point p);
-
 	double getAbsoluteHeading();
-	void setAbsoluteHeading(double);
-
 	double getVelocity();
-	void setVelocity(double);
-
 	Gear getGear();
-	void setGear(Gear);
-
 	bool getBrake();
-	void setBrake(bool);
-
 	double getVelocityHeading();
-	void setVelocityHeading(double);
-
 	double getSteeringAngle();
-	void setSteeringAngle(double);
-
 	double getThrottlePercentage();
-	void setThrottlePercentage(double);
+	
+	virtual void setDesiredVelocity(double) = 0;
+	virtual void setDesiredSteeringAngle(double) = 0;
+	virtual void setDesiredThrottlePercentage(double) = 0;
+	virtual void setDesiredBrake(bool) = 0;
+	virtual void setDesiredGear(Gear) = 0;
 
 private:
 	
@@ -92,6 +83,22 @@ protected:
 	//HRTimer hrt;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 	std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
+
+
+	/*
+	Setters: these are used by the INHERITED CLASSES. these set the values
+	inside this class. the reason the setters exist is to prevent direct access
+	to the variables. Direct access could cause concurrent thread violations.
+	*/
+	void setPosition(Point p);
+	void setAbsoluteHeading(double);
+	void setVelocity(double);
+	void setGear(Gear);
+	void setBrake(bool);
+	void setVelocityHeading(double);
+	void setSteeringAngle(double);
+	void setThrottlePercentage(double);
+
 
 	/*
 	Locks for each of the sensor variables
