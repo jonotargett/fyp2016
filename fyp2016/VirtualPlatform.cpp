@@ -38,10 +38,10 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 }
 
 void VirtualPlatform::update() {
-	velocityGraph.post(hw->realVelocity);
-	steerGraph.post(hw->realSteeringAngle * 180 / 3.1416);
-	gearGraph.post(hw->realGear);
-	throttleGraph.post(hw->realThrottlePercentage);
+	velocityGraph.post(hw->getRealVelocity());
+	steerGraph.post(hw->getRealSteeringAngle() * 180 / PI);
+	gearGraph.post(hw->getRealGear());
+	throttleGraph.post(hw->getRealThrottlePercentage());
 
 	SDL_PumpEvents();
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -82,24 +82,29 @@ void VirtualPlatform::redrawTexture() {
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
 
-	quad.setHeading(hw->realAbsoluteHeading);
-	Point quadLoc = hw->realPosition;
+	quad.setHeading(hw->getRealAbsoluteHeading());
+	Point quadLoc = hw->getRealPosition();
+	//TODO(Harry): Magic numbers
+	double UNEXPLAINED_MAGIC_NUMBER = 5.5;
 	// drawing the quadbike wheels
 	SDL_Rect leftWheelRect = { (int)transform(quadLoc + quad.getLWheel()).x, (int)transform(quadLoc + quad.getLWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
 	SDL_Rect rightWheelRect = { (int)transform(quadLoc + quad.getRWheel()).x,(int)transform(quadLoc + quad.getRWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (hw->realAbsoluteHeading + hw->realSteeringAngle + abs(hw->realSteeringAngle / 5.5)) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (hw->realAbsoluteHeading + hw->realSteeringAngle - abs(hw->realSteeringAngle / 5.5)) * 180 / 3.1416, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (hw->getRealAbsoluteHeading() + hw->getRealSteeringAngle() + abs(hw->getRealSteeringAngle() / UNEXPLAINED_MAGIC_NUMBER)) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (hw->getRealAbsoluteHeading() + hw->getRealSteeringAngle() - abs(hw->getRealSteeringAngle() / UNEXPLAINED_MAGIC_NUMBER)) * 180 / PI, NULL, SDL_FLIP_NONE);
 
 	// drawing the sensor mount
+	// TODO(Harry): Magic numbers. defining it here isnt good enough. pull it out, create a variable
+	// define it there. then use the variable name here. I know that the sensor thing is variable
+	// width elsewhere in the code so this should reflect those changes
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
 	SDL_Rect sensorRect = { (int)transform(quadLoc + quad.getSensorTopLeft()).x, (int)transform(quadLoc + quad.getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
 	SDL_Point sensorCenter = { 0,0 };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, hw->realAbsoluteHeading * 180 / 3.1416 - 90, &sensorCenter, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, hw->getRealAbsoluteHeading() * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike png image
 	SDL_Point rotationCenter = { (int)(quad.width / 2), (int)(quad.length - quad.wheelBase) };
 	SDL_Rect quadRect = { (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y, (int)(quad.width * drawScale), (int)(quad.length * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, hw->realAbsoluteHeading * 180 / 3.1416, &rotationCenter, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, hw->getRealAbsoluteHeading() * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike outline
 	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
@@ -130,11 +135,11 @@ void VirtualPlatform::redrawTexture() {
 	std::string titleText;
 
 	titleText = "Heading: ";
-	titleText += std::to_string((int)(hw->realAbsoluteHeading * 180 / 3.1416));
+	titleText += std::to_string((int)(hw->getRealAbsoluteHeading() * 180 / PI));
 	titleText += " degrees";
 	drawText(titleText, 840, 420);
 
-	std::string vel = std::to_string(abs(hw->realVelocity));
+	std::string vel = std::to_string(abs(hw->getRealVelocity()));
 	vel.erase(3, 99);
 	titleText = "Speed: ";
 	titleText += vel;
@@ -142,23 +147,23 @@ void VirtualPlatform::redrawTexture() {
 	drawText(titleText, 840, 76);
 
 	titleText = "Throttle: ";
-	titleText += std::to_string((int)hw->realThrottlePercentage);
+	titleText += std::to_string((int)hw->getRealThrottlePercentage());
 	titleText += " %";
 	drawText(titleText, 840, 376);
 
 	titleText = "Gear: ";
-	if (hw->realGear == 1) titleText += "Drive";
-	if (hw->realGear == 0) titleText += "Neutral";
-	if (hw->realGear == -1) titleText += "Reverse";
+	if (hw->getRealGear() == 1) titleText += "Drive";
+	if (hw->getRealGear() == 0) titleText += "Neutral";
+	if (hw->getRealGear() == -1) titleText += "Reverse";
 	drawText(titleText, 840, 276);
 
 	titleText = "Brakes: ";
-	if (hw->realBrake) titleText += "Applied";
-	if (!hw->realBrake) titleText += "Released";
+	if (hw->getRealBrake()) titleText += "Applied";
+	if (!hw->getRealBrake()) titleText += "Released";
 	drawText(titleText, 840, 440);
 
 	titleText = "Steer Angle";
-	std::string stang = std::to_string((int)abs(hw->realSteeringAngle * 180 / 3.1416));
+	std::string stang = std::to_string((int)abs(hw->getRealSteeringAngle() * 180 / 3.1416));
 	titleText = "Steer Angle: ";
 	titleText += stang;
 	drawText(titleText, 840, 176);

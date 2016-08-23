@@ -43,6 +43,11 @@ to line up with the next line segment based off a list of experimental
 values (interpolation)
 */
 double SimpleNavigator::getDeltaY(double radians) {
+
+	//TODO(harry) : magic numbers (I realise youve somewhat explained above,
+	// but please explain what these numbers correspond to as the code below
+	// doesnt make this immediately obvious. also, explain how you obtained them)
+
 	std::vector<Point> deltaYList = { Point(0, 0),
 								Point(26,-0.724),
 								Point(63,-0.51),
@@ -74,7 +79,9 @@ bool SimpleNavigator::subdivide() {
 
 	double const distanceBetweenWaypoints = 0.1;
 	double const distanceBetweenTurnWaypoints = 0.2;
+	//TODO(harry) : magic numbers. is this meant to be pi or is it just close?
 	double const turnRadius = 3.14;
+	//TODO(harry) : magic numbers
 	std::vector<double> turnAngleListDegrees = {
 		0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
 
@@ -221,6 +228,7 @@ bool SimpleNavigator::subdivide() {
 			else {// conduct N-Point turn
 				
 				// add a point to adjust for the distance set off from the next line segment
+				//TODO(harry) : magic numbers
 				double deltaY = 0.5843*pow(abs(turnAngle), 4) - 3.1669*pow(abs(turnAngle), 3) + 5.968*pow(abs(turnAngle), 2) - 4.047*abs(turnAngle) + 0.1295;
 				if (deltaY > 0.2) deltaY = 0.2;
 				Point turnPoint;

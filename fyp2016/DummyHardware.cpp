@@ -23,10 +23,12 @@ bool DummyHardware::initialise() {
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
+	// this is allowed to be magic numbers. nothing else should be though
 	realPosition = Point(-2.05, -4);
+
 	realAbsoluteHeading = 0.0;
 	realVelocity = 0.0;
-	realSteeringAngle = -23.0 * 3.1415 / 180;
+	realSteeringAngle = 0.0 * PI / 180;
 	realThrottlePercentage = 0.0;
 	realGear = GEAR_NEUTRAL;
 
@@ -43,11 +45,17 @@ bool DummyHardware::initialise() {
 	return true;
 }
 
-void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_RATE
+void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
+
+	double steerChangeRate = 0.36;			// radians/second
+	double velocityChangeRate = 0.6;		// metres/second^2
+	double frictionalDecayRate = 120;		// %/second??
+	double brakingDecayRate = 480;			// %/second??
+
 	//all hardware update logic goes here (not needed for real quad bike)
 	// fake a slow merge towards actuator positions
-	if (realSteeringAngle < desiredSteeringAngle) realSteeringAngle += 0.006;
-	if (realSteeringAngle > desiredSteeringAngle) realSteeringAngle -= 0.006;
+	if (realSteeringAngle < desiredSteeringAngle) realSteeringAngle += steerChangeRate * time;
+	if (realSteeringAngle > desiredSteeringAngle) realSteeringAngle -= steerChangeRate * time;
 
 	// fake accelerating to throttle speed
 	// each throttle percent corresponds to a certian speed given by throttleSpeed
@@ -55,16 +63,16 @@ void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_R
 	// this will be handled by a proper controller with actual hardware
 	if (realGear == GEAR_FORWARD || realGear == GEAR_REVERSE) {
 		double throttleSpeed = 0.25 + 0.1475 * realThrottlePercentage;
-		if (realVelocity < throttleSpeed * realGear) realVelocity += 0.01;
-		if (realVelocity > throttleSpeed * realGear) realVelocity -= 0.01;
+		if (realVelocity < throttleSpeed * realGear) realVelocity += velocityChangeRate * time;
+		if (realVelocity > throttleSpeed * realGear) realVelocity -= velocityChangeRate * time;
 	}
 	if (realGear == GEAR_NEUTRAL) { // neutral
-		realVelocity /= 1.02;
+		realVelocity /= (1 + (frictionalDecayRate*time)/100.0);
 	}
 
 	// brake stuff
 	if (realBrake) {
-		realVelocity /= 1.08;
+		realVelocity /= (1 + (brakingDecayRate*time) / 100.0);
 	}
 
 
@@ -95,8 +103,8 @@ void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_R
 	realPosition.y += distanceForward * cos(realAbsoluteHeading) - distanceRight * sin(realAbsoluteHeading);
 	realAbsoluteHeading += angleTurned;
 	
-	while (realAbsoluteHeading > 3.14159265) realAbsoluteHeading -= 2 * 3.14159265;
-	while (realAbsoluteHeading < -3.14159265) realAbsoluteHeading += 2 * 3.14159265;
+	while (realAbsoluteHeading > PI) realAbsoluteHeading -= 2 * PI;
+	while (realAbsoluteHeading < -PI) realAbsoluteHeading += 2 * PI;
 
 	// this keeps the quad going at a constant speed given by desiredVelocity.
 	updateVelocityActuators();
@@ -110,20 +118,26 @@ void DummyHardware::update() { // gets refreshed at 50Hz as defined by REFRESH_R
 }
 
 void DummyHardware::setDesiredSteeringAngle(double x) {
-	if (x > 24 * 3.141592 / 180) x = 24 * 3.141592 / 180;
-	if (x < -24 * 3.141592 / 180) x = -24 * 3.141592 / 180;
+	double pi = PI;
+	double limit = 24 * pi / 180;
+
+	if (x > limit) x = limit;
+	if (x < -limit) x = -limit;
 	desiredSteeringAngle = x;
 }
 void DummyHardware::setDesiredThrottlePercentage(double x) {
 	setThrottlePercentage(x);
+	// what is the delay for this? IRL wont be an instantaneous change
 	realThrottlePercentage = x;
 }
 void DummyHardware::setDesiredBrake(bool x) {
 	setBrake(x);
+	// what is the delay for this? IRL wont be an instantaneous change
 	realBrake = x;
 }
 void DummyHardware::setDesiredGear(HardwareInterface::Gear x) {
 	setGear(x);
+	// what is the delay for this? IRL wont be an instantaneous change
 	realGear = x;
 }
 
@@ -230,11 +244,42 @@ bool DummyHardware::updateLoop() {
 
 		if (seconds.count() > (1.0 / REFRESH_RATE)) {
 			lastWindowUpdate = current;
-			update();
+			update(seconds.count());
 		}
 		// no point blazing through this super fast
 		std::this_thread::sleep_for(std::chrono::microseconds(500));
 	}
 
 	return true;
+}
+
+
+
+
+Point DummyHardware::getRealPosition() {
+	return realPosition;
+}
+
+double DummyHardware::getRealAbsoluteHeading() {
+	return realAbsoluteHeading;
+}
+
+double DummyHardware::getRealVelocity() {
+	return realVelocity;
+}
+
+double DummyHardware::getRealSteeringAngle() {
+	return realSteeringAngle;
+}
+
+double DummyHardware::getRealThrottlePercentage() {
+	return realThrottlePercentage;
+}
+
+int DummyHardware::getRealGear() {
+	return realGear;
+}
+
+bool DummyHardware::getRealBrake() {
+	return realBrake;
 }

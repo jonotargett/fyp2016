@@ -4,6 +4,10 @@
 SimpleController::SimpleController()
 {
 	alive = true;
+	navState = NAV_CRUISE;
+	pathTravDir = 1;
+	landmineDetected = false;
+	currentPathPoint = 0;
 }
 
 
@@ -55,7 +59,7 @@ bool SimpleController::isAlive() {
 
 void SimpleController::landMineDetected() {
 	landmineDetected = true;
-	navState = "landmineDetected";
+	navState = NAV_LANDMINE_DETECTED;
 }
 
 bool SimpleController::updateLoop() {
@@ -65,6 +69,7 @@ bool SimpleController::updateLoop() {
 		end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> seconds = end - start;
 
+		// TODO(harry) : this needs to be time independent.
 		updateDynamics();
 
 		//hrt.reset();
@@ -86,9 +91,9 @@ void SimpleController::updateDynamics() {
 	}
 
 	// find angle between heading and to the next path point
-	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - hwi->getPosition().y, ns->getPath().at(currentPathPoint)->x - hwi->getPosition().x) + 3.14159265 / 2;
-	if (angleToPathPoint > 3.141593) angleToPathPoint -= 2 * 3.141593;
-	if (angleToPathPoint < -3.141593) angleToPathPoint += 2 * 3.141593;
+	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - hwi->getPosition().y, ns->getPath().at(currentPathPoint)->x - hwi->getPosition().x) + PI / 2;
+	if (angleToPathPoint > PI) angleToPathPoint -= 2 * PI;
+	if (angleToPathPoint < -PI) angleToPathPoint += 2 * PI;
 	double alpha = angleToPathPoint - hwi->getAbsoluteHeading();
 	double distance = hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint));
 	double steerAngleReq = -atan(2 * hwi->wheelBase * sin(alpha) / distance);
@@ -99,40 +104,42 @@ void SimpleController::updateDynamics() {
 
 
 	if (distance > hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint + pathTravDir))) {
-		if (navState != "landmineDetected") {
+		if (navState != NAV_LANDMINE_DETECTED) {
 			// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
-			navState = "turnInbound";
+			navState = NAV_TURNINBOUND;
 		}
 	}
 
 	// are we going forward (1) or backward (-1)
 	int direction;
-	if (alpha < -3.1416 / 2 || alpha > 3.1416 / 2) {
+	if (alpha < -PI / 2 || alpha > PI / 2) {
 		direction = -1;
 	}
 	else {
 		direction = 1;
 	}
 
-	if (navState == "turnInbound") {
+	if (navState == NAV_TURNINBOUND) {
 		// kinda bad because if quad overshoots it will keep going.
 		desiredVel = direction * 2 * distance;
 		if (abs(desiredVel) > hwi->cruiseVelocity)
 			desiredVel = direction * hwi->cruiseVelocity;
 
+		//TODO(harry): magic number
 		if (distance < 0.2) {
-			navState = "cruise";
+			navState = NAV_CRUISE;
 			currentPathPoint += pathTravDir;
 		}
 	}
-	else if (navState == "cruise") {
+	else if (navState == NAV_CRUISE) {
 		desiredVel = hwi->cruiseVelocity * direction;
+		//TODO(harry): magic number
 		if (distance < 1.2) currentPathPoint += pathTravDir;
 	}
-	else if (navState == "landmineDetected") {
+	else if (navState == NAV_LANDMINE_DETECTED) {
 		desiredVel = 0;
 		if (hwi->getVelocity() == 0) {
-			navState = "cruise";
+			navState = NAV_CRUISE;
 			pathTravDir = -1;
 
 			// reset currentPathPoint to point near quadbike
@@ -152,7 +159,8 @@ void SimpleController::updateDynamics() {
 		}
 	}
 	
-	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 3 * 3.1416 / 180) {
+	//TODO(harry) : magic number. is this 3 degrees? why?
+	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 3 * PI / 180) {
 		desiredVel = 0;
 	}
 

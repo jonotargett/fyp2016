@@ -8,16 +8,30 @@
 #include <chrono>
 #include <string>
 
+#ifndef PI
+#define PI 3.1415926535
+#endif
+
+
+enum NavState {
+	NAV_CRUISE,
+	NAV_TURNINBOUND,
+	NAV_LANDMINE_DETECTED,
+};
+
+
 class SimpleController :
 	public DriveController
 {
 private:
 	bool enabled;
 
-	unsigned int currentPathPoint = 0;
-	bool landmineDetected = false;
-	int pathTravDir = 1;
-	std::string navState = "cruise";
+	unsigned int currentPathPoint;
+	bool landmineDetected;
+	int pathTravDir;
+	//NOTE(Harry) : NEVER NEVER EVER USE STRINGS LIKE THIS
+	//std::string navState = "cruise";
+	NavState navState;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 	std::chrono::time_point<std::chrono::high_resolution_clock> end;
