@@ -70,6 +70,7 @@ bool SimpleController::updateLoop() {
 		std::chrono::duration<double> seconds = end - start;
 
 		// TODO(harry) : this needs to be time independent.
+		// TODO(jono) : this is time independent...
 		updateDynamics();
 
 		//hrt.reset();
@@ -83,7 +84,10 @@ bool SimpleController::updateLoop() {
 
 void SimpleController::updateDynamics() {
 
-	double desiredVel = 0;
+	double desiredVel = 0;						// m/s
+	double turnTolerance = 0.2;					// meters at which turn point is considered reached
+	double lookAheadDistance = 1.2;				// meters
+	double steerAngleTolerance = 3 * PI / 180;	// radians, if steer angle is out by more that this, quad will slow down
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist
@@ -125,16 +129,14 @@ void SimpleController::updateDynamics() {
 		if (abs(desiredVel) > hwi->cruiseVelocity)
 			desiredVel = direction * hwi->cruiseVelocity;
 
-		//TODO(harry): magic number
-		if (distance < 0.2) {
+		if (distance < turnTolerance) {
 			navState = NAV_CRUISE;
 			currentPathPoint += pathTravDir;
 		}
 	}
 	else if (navState == NAV_CRUISE) {
 		desiredVel = hwi->cruiseVelocity * direction;
-		//TODO(harry): magic number
-		if (distance < 1.2) currentPathPoint += pathTravDir;
+		if (distance < lookAheadDistance) currentPathPoint += pathTravDir;
 	}
 	else if (navState == NAV_LANDMINE_DETECTED) {
 		desiredVel = 0;
@@ -159,8 +161,7 @@ void SimpleController::updateDynamics() {
 		}
 	}
 	
-	//TODO(harry) : magic number. is this 3 degrees? why?
-	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 3 * PI / 180) {
+	if (abs(hwi->getSteeringAngle() - steerAngleReq) > steerAngleTolerance) {
 		desiredVel = 0;
 	}
 

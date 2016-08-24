@@ -82,40 +82,43 @@ void VirtualPlatform::redrawTexture() {
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
 
-	quad.setHeading(hw->getRealAbsoluteHeading());
 	Point quadLoc = hw->getRealPosition();
-	//TODO(Harry): Magic numbers
-	double UNEXPLAINED_MAGIC_NUMBER = 5.5;
+	double heading = hw->getRealAbsoluteHeading();
+	
+	// Ackermann steering, inside wheel is sharper than outside wheel
+	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(hw->getRealSteeringAngle()) - hw->width / 2));
+	double rightWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(hw->getRealSteeringAngle()) + hw->width / 2));
+
 	// drawing the quadbike wheels
-	SDL_Rect leftWheelRect = { (int)transform(quadLoc + quad.getLWheel()).x, (int)transform(quadLoc + quad.getLWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
-	SDL_Rect rightWheelRect = { (int)transform(quadLoc + quad.getRWheel()).x,(int)transform(quadLoc + quad.getRWheel()).y, (int)(quad.wheelWidth * drawScale), (int)(quad.wheelRadii * 2 * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (hw->getRealAbsoluteHeading() + hw->getRealSteeringAngle() + abs(hw->getRealSteeringAngle() / UNEXPLAINED_MAGIC_NUMBER)) * 180 / PI, NULL, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (hw->getRealAbsoluteHeading() + hw->getRealSteeringAngle() - abs(hw->getRealSteeringAngle() / UNEXPLAINED_MAGIC_NUMBER)) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_Rect leftWheelRect = { (int)transform(quadLoc + getLWheel()).x, (int)transform(quadLoc + getLWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
+	SDL_Rect rightWheelRect = { (int)transform(quadLoc + getRWheel()).x,(int)transform(quadLoc + getRWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (hw->getRealAbsoluteHeading() + leftWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (hw->getRealAbsoluteHeading() + rightWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
 
 	// drawing the sensor mount
 	// TODO(Harry): Magic numbers. defining it here isnt good enough. pull it out, create a variable
 	// define it there. then use the variable name here. I know that the sensor thing is variable
 	// width elsewhere in the code so this should reflect those changes
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
-	SDL_Rect sensorRect = { (int)transform(quadLoc + quad.getSensorTopLeft()).x, (int)transform(quadLoc + quad.getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
+	SDL_Rect sensorRect = { (int)transform(quadLoc + getSensorTopLeft()).x, (int)transform(quadLoc + getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
 	SDL_Point sensorCenter = { 0,0 };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, hw->getRealAbsoluteHeading() * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike png image
-	SDL_Point rotationCenter = { (int)(quad.width / 2), (int)(quad.length - quad.wheelBase) };
-	SDL_Rect quadRect = { (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y, (int)(quad.width * drawScale), (int)(quad.length * drawScale) };
+	SDL_Point rotationCenter = { (int)(hw->width / 2), (int)(hw->length - hw->wheelBase) };
+	SDL_Rect quadRect = { (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y, (int)(hw->width * drawScale), (int)(hw->length * drawScale) };
 	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, hw->getRealAbsoluteHeading() * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike outline
 	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y,
-	(int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getRearR()).x, (int)transform(quadLoc + quad.getRearR()).y,
-	(int)transform(quadLoc + quad.getFrontR()).x, (int)transform(quadLoc + quad.getFrontR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getFrontR()).x, (int)transform(quadLoc + quad.getFrontR()).y,
-	(int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + quad.getFrontL()).x, (int)transform(quadLoc + quad.getFrontL()).y,
-	(int)transform(quadLoc + quad.getRearL()).x, (int)transform(quadLoc + quad.getRearL()).y);*/
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y,
+	(int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y,
+	(int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y,
+	(int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y,
+	(int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y);*/
 
 	// point at quads local (0,0)
 	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
@@ -125,10 +128,10 @@ void VirtualPlatform::redrawTexture() {
 	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
 
 	/*//rear wheel (line):
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + quad.getRearC().x + sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii,0)).x,
-	(int)transform(Point(0, quadLoc.y + quad.getRearC().y + cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii)).y,
-	(int)transform(Point(quadLoc.x + quad.getRearC().x - sin(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii, 0)).x,
-	(int)transform(Point(0, quadLoc.y + quad.getRearC().y - cos(quad.getHeading() + quad.getSteerAng())*quad.wheelRadii)).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + getRearC().x + sin(heading + getSteerAng())*hw->wheelRadii,0)).x,
+	(int)transform(Point(0, quadLoc.y + getRearC().y + cos(heading + getSteerAng())*hw->wheelRadii)).y,
+	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
+	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
 	*/
 
 	// rendering text
@@ -224,4 +227,64 @@ void VirtualPlatform::setupFont() {
 	}
 	std::string fontName = "OpenSans-Regular.ttf";
 	standardFont = TTF_OpenFont(fontName.c_str(), 12);
+}
+
+Point VirtualPlatform::getRearL() {
+	double heading = hw->getAbsoluteHeading();
+	Point rearLeft;
+	rearLeft.x = -(hw->overHang + hw->wheelBase)*sin(heading) - (hw->width / 2) * cos(heading);
+	rearLeft.y = -(hw->overHang + hw->wheelBase)*cos(heading) + (hw->width / 2) * sin(heading);
+	return rearLeft;
+}
+Point VirtualPlatform::getRearR() {
+	double heading = hw->getAbsoluteHeading();
+	Point rearRight;
+	rearRight.x = -(hw->overHang + hw->wheelBase)*sin(heading) + (hw->width / 2) * cos(heading);
+	rearRight.y = -(hw->overHang + hw->wheelBase)*cos(heading) - (hw->width / 2) * sin(heading);
+	return rearRight;
+}
+Point VirtualPlatform::getFrontL() {
+	double heading = hw->getAbsoluteHeading();
+	Point frontLeft;
+	frontLeft.x = hw->overHang * sin(heading) - (hw->width / 2) * cos(heading);
+	frontLeft.y = hw->overHang * cos(heading) + (hw->width / 2) * sin(heading);
+	return frontLeft;
+}
+Point VirtualPlatform::getFrontR() {
+	double heading = hw->getAbsoluteHeading();
+	Point frontRight;
+	frontRight.x = hw->overHang * sin(heading) + (hw->width / 2) * cos(heading);
+	frontRight.y = hw->overHang * cos(heading) - (hw->width / 2) * sin(heading);
+	return frontRight;
+}
+Point VirtualPlatform::getRearC() {
+	double heading = hw->getAbsoluteHeading();
+	Point rearCenter;
+	rearCenter.x = -(hw->wheelBase)*sin(heading);
+	rearCenter.y = -(hw->wheelBase)*cos(heading);
+	return rearCenter;
+}
+
+Point VirtualPlatform::getRWheel() {
+	double heading = hw->getAbsoluteHeading();
+	Point rearRight;
+	rearRight.x = -(hw->wheelBase)*sin(heading) + (hw->width / 2 - hw->wheelWidth / 2) * cos(heading) - hw->wheelWidth / 2;
+	rearRight.y = -(hw->wheelBase)*cos(heading) - (hw->width / 2 - hw->wheelWidth / 2) * sin(heading) + hw->wheelRadius;
+	return rearRight;
+}
+
+Point VirtualPlatform::getLWheel() {
+	double heading = hw->getAbsoluteHeading();
+	Point rearLeft;
+	rearLeft.x = -(hw->wheelBase)*sin(heading) - (hw->width / 2 - hw->wheelWidth / 2) * cos(heading) - hw->wheelWidth / 2;
+	rearLeft.y = -(hw->wheelBase)*cos(heading) + (hw->width / 2 - hw->wheelWidth / 2) * sin(heading) + hw->wheelRadius;
+	return rearLeft;
+}
+
+Point VirtualPlatform::getSensorTopLeft() {
+	double heading = hw->getAbsoluteHeading();
+	Point frontLeft;
+	frontLeft.x = hw->overHang * sin(heading) - (1.5) * cos(heading);
+	frontLeft.y = hw->overHang * cos(heading) + (1.5) * sin(heading);
+	return frontLeft;
 }

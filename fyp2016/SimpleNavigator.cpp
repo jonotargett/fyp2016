@@ -37,35 +37,7 @@ void SimpleNavigator::addPoint(Point p) {
 }
 
 
-/*
-returns the distance that the quad bike is out after completing a turn
-to line up with the next line segment based off a list of experimental
-values (interpolation)
-*/
-double SimpleNavigator::getDeltaY(double radians) {
 
-	//TODO(harry) : magic numbers (I realise youve somewhat explained above,
-	// but please explain what these numbers correspond to as the code below
-	// doesnt make this immediately obvious. also, explain how you obtained them)
-
-	std::vector<Point> deltaYList = { Point(0, 0),
-								Point(26,-0.724),
-								Point(63,-0.51),
-								Point(81.5,-0.3),
-								Point(102,-0.07),
-								Point(125,0.2),
-								Point(148.3,0.7),
-								Point(165.8,2.72) };
-	double degrees = abs(radians * 180 / PI);
-	int i = 0;
-	while (degrees > deltaYList.at(i).x) {
-		i++;
-	}
-	double deltaY = deltaYList.at(i).y + 
-				((degrees - deltaYList.at(i).x)/(deltaYList.at(i-1).x - deltaYList.at(i).x))
-				*(deltaYList.at(i-1).y - deltaYList.at(i).y);
-	return deltaY;
-}
 
 /*
 subdivide: takes user defined waypoints and subdivides them with waypoints
@@ -79,9 +51,9 @@ bool SimpleNavigator::subdivide() {
 
 	double const distanceBetweenWaypoints = 0.1;
 	double const distanceBetweenTurnWaypoints = 0.2;
-	//TODO(harry) : magic numbers. is this meant to be pi or is it just close?
-	double const turnRadius = 3.14;
-	//TODO(harry) : magic numbers
+	double const turnRadius = 3.14;		// max turn radius of the quad bike
+	
+	// heading of quad bike at each point of an N-point turn
 	std::vector<double> turnAngleListDegrees = {
 		0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
 
@@ -228,8 +200,11 @@ bool SimpleNavigator::subdivide() {
 			else {// conduct N-Point turn
 				
 				// add a point to adjust for the distance set off from the next line segment
-				//TODO(harry) : magic numbers
-				double deltaY = 0.5843*pow(abs(turnAngle), 4) - 3.1669*pow(abs(turnAngle), 3) + 5.968*pow(abs(turnAngle), 2) - 4.047*abs(turnAngle) + 0.1295;
+				
+				//used to get deltaY from an approximate function, now uses linear interpolation from getDeltaY function
+				//double deltaY = 0.5843*pow(abs(turnAngle), 4) - 3.1669*pow(abs(turnAngle), 3) + 5.968*pow(abs(turnAngle), 2) - 4.047*abs(turnAngle) + 0.1295;
+				
+				double deltaY = getDeltaY(abs(turnAngle));
 				if (deltaY > 0.2) deltaY = 0.2;
 				Point turnPoint;
 				turnPoint.x = nexPoint.x - directionVector.x*deltaY;
@@ -336,6 +311,61 @@ bool SimpleNavigator::subdivide() {
 	return false;
 }
 
+/*
+returns the distance that the quad bike is out after completing a turn
+to line up with the next line segment based off a list of experimental
+values (interpolation)
+*/
+double SimpleNavigator::getDeltaY(double radians) {
+	/* deltaYList: magic numbers
+	these come from experimental data (google sketchup drawings).
+	x values store the heading at which each point in the N-point turn
+	is complete without the quadbike leaving the swathe
+	y values store the y-error at each of the end points in the N-point turn
+	the y-error is the error distance the quad bike would be shifted from
+	the next portion of hte path if the quad bike were to drive at the
+	exact heading given by x.
+
+	* represents quad x, y.
+	quad heading would be equal to the heading of the second path at this point
+
+
+	/
+	/
+	-	* /
+	y-error |	 /
+	-	/
+	|
+	|
+	|
+	|
+	|
+	*/
+
+	std::vector<Point> deltaYList = { Point(0, 0),
+		Point(26,-0.724),
+		Point(62.6,-0.51),
+		Point(81.5,-0.3),
+		Point(101.9,-0.07),
+		Point(125.1,0.2),
+		Point(148.3,0.7),
+		Point(165.8,2.72),
+		Point(180, 3)};
+	double degrees = abs(radians * 180 / PI);
+	int i = 0;
+	while (degrees > deltaYList.at(i).x) {
+		i++;
+		if (i > (int)deltaYList.size() - 1) {
+			i--;
+			break;
+		}
+	}
+	double deltaY = deltaYList.at(i).y +
+		((degrees - deltaYList.at(i).x) / (deltaYList.at(i - 1).x - deltaYList.at(i).x))
+		*(deltaYList.at(i - 1).y - deltaYList.at(i).y);
+	return deltaY;
+}
+
 bool SimpleNavigator::startPath() {
 
 	updater = new std::thread(&SimpleNavigator::loop, this);
@@ -360,3 +390,4 @@ void SimpleNavigator::loop() {
 
 	
 }
+

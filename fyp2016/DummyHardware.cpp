@@ -83,7 +83,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 	
 	// calculating next position based on steer angle and velocity
-	double distanceTravelled = realVelocity * 1 / REFRESH_RATE;
+	double distanceTravelled = realVelocity * time;
 	double distanceForward = 0;
 	double distanceRight = 0;
 	double angleTurned = 0;

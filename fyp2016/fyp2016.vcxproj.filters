@@ -69,9 +69,6 @@
     <ClCompile Include="SimpleTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuadBike.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -161,9 +158,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SimpleTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuadBike.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CommsListener.h">

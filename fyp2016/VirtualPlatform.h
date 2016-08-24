@@ -10,7 +10,6 @@
 #include "NavigationSystem.h"
 #include "DriveController.h"
 #include "SimpleController.h"
-#include "QuadBike.h"
 
 #include <sstream>
 
@@ -41,9 +40,6 @@ private:
 	SimpleTexture* sensorTexture;
 	TTF_Font* standardFont;
 
-
-	QuadBike quad;
-
 	int textureWidth;
 	int textureHeight;
 
@@ -54,5 +50,15 @@ private:
 	Point transform(Point p);
 	void setupFont();
 	void drawText(std::string textToRender, int x, int y);
+
+
+	Point getRearL();
+	Point getRearR();
+	Point getFrontL();
+	Point getFrontR();
+	Point getRearC();
+	Point getLWheel();
+	Point getRWheel();
+	Point getSensorTopLeft();
 };
 
