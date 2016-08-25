@@ -42,6 +42,7 @@ private:
 
 	HardwareInterface* hwi;
 	NavigationSystem* ns;
+
 public:
 	SimpleController();
 	~SimpleController();

@@ -52,12 +52,12 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	double brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
 
 	
-	double const positionAccuracy = 0;			// meters of spread each side of real value
-	double const headingAccuracy = 0;	// radians of spread each side of real value
+	double const positionAccuracy = 0.1;			// meters of spread each side of real value
+	double const headingAccuracy = 0;			// radians of spread each side of real value
 	double const velocityAccuracy = 0;			// m/s of spread each side of real value
-	double const steeringAccuracy = 0;	// radians of spread each side of real value
-	double const brakeAccuracy = 0;					// percent of spread each side of real value
-	double const throttleAccuracy = 0;				// percent of spread each side of real value
+	double const steeringAccuracy = 0;			// radians of spread each side of real value
+	double const brakeAccuracy = 0;				// percent of spread each side of real value
+	double const throttleAccuracy = 0;			// percent of spread each side of real value
 	
 /*
 	double const positionAccuracy = 0;				// meters of spread each side of real value

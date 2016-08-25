@@ -84,16 +84,17 @@ void VirtualPlatform::redrawTexture() {
 
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
+	double steerAngle = hw->getRealSteeringAngle();
 	
 	// Ackermann steering, inside wheel is sharper than outside wheel
-	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(hw->getRealSteeringAngle()) - hw->width / 2));
-	double rightWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(hw->getRealSteeringAngle()) + hw->width / 2));
+	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) - hw->width / 2));
+	double rightWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) + hw->width / 2));
 
 	// drawing the quadbike wheels
 	SDL_Rect leftWheelRect = { (int)transform(quadLoc + getLWheel()).x, (int)transform(quadLoc + getLWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
 	SDL_Rect rightWheelRect = { (int)transform(quadLoc + getRWheel()).x,(int)transform(quadLoc + getRWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (hw->getRealAbsoluteHeading() + leftWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (hw->getRealAbsoluteHeading() + rightWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (heading + leftWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (heading + rightWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
 
 	// drawing the sensor mount
 	// TODO(Harry): Magic numbers. defining it here isnt good enough. pull it out, create a variable
@@ -102,12 +103,12 @@ void VirtualPlatform::redrawTexture() {
 	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
 	SDL_Rect sensorRect = { (int)transform(quadLoc + getSensorTopLeft()).x, (int)transform(quadLoc + getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
 	SDL_Point sensorCenter = { 0,0 };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, hw->getRealAbsoluteHeading() * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, heading * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike png image
 	SDL_Point rotationCenter = { (int)(hw->width / 2), (int)(hw->length - hw->wheelBase) };
 	SDL_Rect quadRect = { (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y, (int)(hw->width * drawScale), (int)(hw->length * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, hw->getRealAbsoluteHeading() * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, heading * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike outline
 	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
@@ -138,7 +139,7 @@ void VirtualPlatform::redrawTexture() {
 	std::string titleText;
 
 	titleText = "Heading: ";
-	titleText += std::to_string((int)(hw->getRealAbsoluteHeading() * 180 / PI));
+	titleText += std::to_string((int)(heading * 180 / PI));
 	titleText += " degrees";
 	drawText(titleText, 840, 420);
 
@@ -166,7 +167,7 @@ void VirtualPlatform::redrawTexture() {
 	drawText(titleText, 840, 440);
 
 	titleText = "Steer Angle: ";
-	std::string stang = std::to_string((int)round(abs(hw->getRealSteeringAngle() * 180 / 3.1416)));
+	std::string stang = std::to_string((int)round(abs(steerAngle * 180 / 3.1416)));
 	titleText += stang;
 	drawText(titleText, 840, 176);
 

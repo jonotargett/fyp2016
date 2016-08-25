@@ -162,7 +162,7 @@ void SimpleController::updateDynamics() {
 	}
 	
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > steerAngleTolerance) {
-		desiredVel = 0;
+		//desiredVel = 0;
 	}
 
 	hwi->setDesiredVelocity(desiredVel);
