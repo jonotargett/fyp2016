@@ -59,14 +59,14 @@ public:
 	double getAbsoluteHeading();
 	double getVelocity();
 	Gear getGear();
-	bool getBrake();
+	double getBrakePercentage();
 	double getSteeringAngle();
 	double getThrottlePercentage();
 	
 	virtual void setDesiredVelocity(double);
 	virtual void setDesiredSteeringAngle(double);
 	virtual void setDesiredThrottlePercentage(double);
-	virtual void setDesiredBrake(bool);
+	virtual void setDesiredBrakePercentage(double);
 	virtual void setDesiredGear(Gear);
 	virtual void updateVelocityActuators();
 
@@ -83,7 +83,7 @@ private:
 
 	double steeringAngle;
 	double throttlePercentage;
-	bool brake;
+	double brakePercentage;
 	Gear gear;
 
 protected:
@@ -103,7 +103,7 @@ protected:
 	void setAbsoluteHeading(double);
 	void setVelocity(double);
 	void setGear(Gear);
-	void setBrake(bool);
+	void setBrakePercentage(double);
 	void setSteeringAngle(double);
 	void setThrottlePercentage(double);
 

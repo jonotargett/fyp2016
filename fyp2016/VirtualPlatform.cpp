@@ -41,7 +41,7 @@ void VirtualPlatform::update() {
 	velocityGraph.post(hw->getRealVelocity());
 	steerGraph.post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph.post(hw->getRealGear());
-	throttleGraph.post(hw->getRealThrottlePercentage());
+	throttleGraph.post(round(hw->getRealThrottlePercentage()));
 
 	SDL_PumpEvents();
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -150,7 +150,7 @@ void VirtualPlatform::redrawTexture() {
 	drawText(titleText, 840, 76);
 
 	titleText = "Throttle: ";
-	titleText += std::to_string((int)hw->getRealThrottlePercentage());
+	titleText += std::to_string((int)round(hw->getRealThrottlePercentage()));
 	titleText += " %";
 	drawText(titleText, 840, 376);
 
@@ -160,14 +160,13 @@ void VirtualPlatform::redrawTexture() {
 	if (hw->getRealGear() == -1) titleText += "Reverse";
 	drawText(titleText, 840, 276);
 
-	titleText = "Brakes: ";
-	if (hw->getRealBrake()) titleText += "Applied";
-	if (!hw->getRealBrake()) titleText += "Released";
+	titleText = "Brake Percentage: ";
+	std::string brakePerc = std::to_string((int)abs(hw->getRealBrakePercentage()));
+	titleText += brakePerc;
 	drawText(titleText, 840, 440);
 
-	titleText = "Steer Angle";
-	std::string stang = std::to_string((int)abs(hw->getRealSteeringAngle() * 180 / 3.1416));
 	titleText = "Steer Angle: ";
+	std::string stang = std::to_string((int)round(abs(hw->getRealSteeringAngle() * 180 / 3.1416)));
 	titleText += stang;
 	drawText(titleText, 840, 176);
 

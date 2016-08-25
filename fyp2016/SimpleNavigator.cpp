@@ -50,7 +50,7 @@ bool SimpleNavigator::subdivide() {
 	// TODO(): adjust the units in this function when more info on GPS is available.
 
 	double const distanceBetweenWaypoints = 0.1;
-	double const distanceBetweenTurnWaypoints = 0.2;
+	double const distanceBetweenTurnWaypoints = 0.1;
 	double const turnRadius = 3.14;		// max turn radius of the quad bike
 	
 	// heading of quad bike at each point of an N-point turn

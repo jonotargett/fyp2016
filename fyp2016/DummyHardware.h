@@ -26,7 +26,7 @@ public:
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);
 	void setDesiredThrottlePercentage(double);
-	void setDesiredBrake(bool);
+	void setDesiredBrake(double);
 	void setDesiredGear(Gear);
 	
 	Point getRealPosition();
@@ -35,10 +35,11 @@ public:
 	double getRealSteeringAngle();
 	double getRealThrottlePercentage();
 	int getRealGear();
-	bool getRealBrake();
+	double getRealBrakePercentage();
 
 private:
 	void update(double);
+	void updateActuators(double);
 	void updateVelocityActuators();
 	double random();
 
@@ -47,13 +48,16 @@ private:
 	double realVelocity;
 	double realSteeringAngle;
 	double realThrottlePercentage;
-	int realGear;
-	bool realBrake;
+	Gear realGear;
+	double realBrakePercentage;
 
 	double desiredSteeringAngle;
 	double desiredVelocity;
+	double desiredThrottlePercentage;
+	Gear desiredGear;
+	double desiredBrakePercentage;
 
-	
+	double gearTimer;
 
 };
 

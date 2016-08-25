@@ -76,7 +76,7 @@ void* UpdaterRunnable::run() {
 void HardwareInterface::setDesiredVelocity(double x) {}
 void HardwareInterface::setDesiredSteeringAngle(double x) {}
 void HardwareInterface::setDesiredThrottlePercentage(double x) {}
-void HardwareInterface::setDesiredBrake(bool x) {}
+void HardwareInterface::setDesiredBrakePercentage(double x) {}
 void HardwareInterface::setDesiredGear(HardwareInterface::Gear x) {}
 void HardwareInterface::updateVelocityActuators() {}
 
@@ -164,18 +164,18 @@ void HardwareInterface::setSteeringAngle(double x) {
 	steeringAngleLock = false;
 }
 
-bool HardwareInterface::getBrake() {
+double HardwareInterface::getBrakePercentage() {
 	while (brakeLock) {
 		//wait
 	}
-	return brake;
+	return brakePercentage;
 }
-void HardwareInterface::setBrake(bool x) {
+void HardwareInterface::setBrakePercentage(double x) {
 	while (brakeLock) {
 		//wait
 	}
 	brakeLock = true;
-	brake = x;
+	brakePercentage = x;
 	brakeLock = false;
 }
 
