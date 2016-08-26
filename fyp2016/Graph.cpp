@@ -16,13 +16,14 @@ Graph::Graph(int w, int h, double min, double max, bool drawCentre)
 	image = SDL_CreateRGBSurface(0, width, height, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 	pixels = (Uint32*)image->pixels;
 
-	// initialise the surface to black
+	// initialise the surface to white
 	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
+		pixels[i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
 
 		// initialise the centreline
 		if (drawCentreLine == true) {
 			if (i > (image->w*image->h / 2) && i < (image->w*image->h / 2) + (image->w)) {
+				// centerline colour is greyish
 				pixels[i] = SDL_MapRGB(image->format, 0x88, 0x88, 0x88);
 			}
 		}
@@ -51,17 +52,20 @@ void Graph::post(double val) {
 	//refresh the texture
 	for (int j = 0; j < height; j++) {
 
-		pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
+		// white background
+		pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
 		pixels[j*image->w + offset + 1] = SDL_MapRGB(image->format, 0xFF, 0x00, 0x00);
 
 		if (j == height / 2 && drawCentreLine == true) {
+			// grey centreline
 			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x88, 0x88, 0x88);
 		}
 
 		int pos = (int)(0 + (height - 0)*((val-yMax)/(yMin-yMax)));
 
 		if (j == pos) {
-			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0x00);
+			// blue position
+			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x00, 0x00, 0xFF);
 		}
 	}
 }

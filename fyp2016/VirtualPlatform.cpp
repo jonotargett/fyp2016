@@ -14,12 +14,16 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	hw = (DummyHardware*) hwi;
 	sc = (SimpleController*) dc;
 	ns = nav;
-	mainCanvas = new SimpleTexture(r);
+	simulationCanvas = new SimpleTexture(r);
+	graphCanvas = new SimpleTexture(r);
 
-	textureWidth = 1200;
-	textureHeight = 600;
+	int w, h;
+	SDL_GetRendererOutputSize(r, &w, &h);
+	textureWidth = w;
+	textureHeight = h;
 
-	mainCanvas->createBlank(textureWidth, textureHeight);
+	simulationCanvas->createBlank(textureWidth, textureHeight);
+	graphCanvas->createBlank(textureWidth/2, textureHeight/2);
 
 	quadTexture = new SimpleTexture(r);
 	quadTexture->loadImage("quadBikeImage.png");
@@ -27,6 +31,14 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	wheelTexture->loadImage("quadWheelImage.png");
 	sensorTexture = new SimpleTexture(r);
 	sensorTexture->loadImage("sensorImage.png");
+
+	graphWidth = 600;
+	graphHeight = 75;
+	
+	velocityGraph = new Graph(graphWidth, graphHeight, -2, 2, true);
+	steerGraph = new Graph(graphWidth, graphHeight, -27, 27, true);
+	gearGraph = new Graph(graphWidth, graphHeight, -2, 2, false);
+	throttleGraph = new Graph(graphWidth, graphHeight, -25, 25, true);
 
 	setupFont();
 
@@ -38,10 +50,11 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 }
 
 void VirtualPlatform::update() {
-	velocityGraph.post(hw->getRealVelocity());
-	steerGraph.post(hw->getRealSteeringAngle() * 180 / PI);
-	gearGraph.post(hw->getRealGear());
-	throttleGraph.post(round(hw->getRealThrottlePercentage()));
+
+	velocityGraph->post(hw->getRealVelocity());
+	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
+	gearGraph->post(hw->getRealGear());
+	throttleGraph->post(round(hw->getRealThrottlePercentage()));
 
 	SDL_PumpEvents();
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -50,90 +63,13 @@ void VirtualPlatform::update() {
 }
 
 
-/*
-Draws path to texture for the given drawScale and focus point defined within the function.
-*/
-void VirtualPlatform::redrawTexture() {
-
-	mainCanvas->setAsRenderTarget();
-
-	//clear screen
-	SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(mainCanvas->getRenderer());
-
-	// drawing the path in this for loop
-	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
-
-		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
-		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
-
-		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
-		Point loc1transf = transform(loc1);
-		Point loc2transf = transform(loc2);
-
-		SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
-		SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
-		SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
-	}
-
-	// drawing crosshairs over the focus point
-	SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
+void VirtualPlatform::redrawGraphTexture() {
 
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
 	double steerAngle = hw->getRealSteeringAngle();
-	
-	// Ackermann steering, inside wheel is sharper than outside wheel
-	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) - hw->width / 2));
-	double rightWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) + hw->width / 2));
 
-	// drawing the quadbike wheels
-	SDL_Rect leftWheelRect = { (int)transform(quadLoc + getLWheel()).x, (int)transform(quadLoc + getLWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
-	SDL_Rect rightWheelRect = { (int)transform(quadLoc + getRWheel()).x,(int)transform(quadLoc + getRWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (heading + leftWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (heading + rightWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
-
-	// drawing the sensor mount
-	// TODO(Harry): Magic numbers. defining it here isnt good enough. pull it out, create a variable
-	// define it there. then use the variable name here. I know that the sensor thing is variable
-	// width elsewhere in the code so this should reflect those changes
-	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
-	SDL_Rect sensorRect = { (int)transform(quadLoc + getSensorTopLeft()).x, (int)transform(quadLoc + getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
-	SDL_Point sensorCenter = { 0,0 };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, heading * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
-
-	// drawing the quadbike png image
-	SDL_Point rotationCenter = { (int)(hw->width / 2), (int)(hw->length - hw->wheelBase) };
-	SDL_Rect quadRect = { (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y, (int)(hw->width * drawScale), (int)(hw->length * drawScale) };
-	SDL_RenderCopyEx(mainCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, heading * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
-
-	// drawing the quadbike outline
-	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y,
-	(int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y,
-	(int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y,
-	(int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y,
-	(int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y);*/
-
-	// point at quads local (0,0)
-	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
-	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y);
-	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y + 1);
-	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y - 1);
-	SDL_RenderDrawPoint(mainCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
-
-	/*//rear wheel (line):
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + getRearC().x + sin(heading + getSteerAng())*hw->wheelRadii,0)).x,
-	(int)transform(Point(0, quadLoc.y + getRearC().y + cos(heading + getSteerAng())*hw->wheelRadii)).y,
-	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
-	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
-	*/
+	graphCanvas->setAsRenderTarget();
 
 	// rendering text
 	std::string titleText;
@@ -171,28 +107,117 @@ void VirtualPlatform::redrawTexture() {
 	titleText += stang;
 	drawText(titleText, 840, 176);
 
-	SimpleTexture graph1 = SimpleTexture(mainCanvas->getRenderer());
-	graph1.loadFromSurface(velocityGraph.retrieveImage());
-	SDL_Rect destRect1 = { 840, 0, 360, 76 };
+	SimpleTexture graphVeloc = SimpleTexture(graphCanvas->getRenderer());
+	SimpleTexture graphSteer = SimpleTexture(graphCanvas->getRenderer());
+	SimpleTexture graphGear = SimpleTexture(graphCanvas->getRenderer());
+	SimpleTexture graphThrot = SimpleTexture(graphCanvas->getRenderer());
+	
+	graphVeloc.loadFromSurface(velocityGraph->retrieveImage());
+	graphSteer.loadFromSurface(steerGraph->retrieveImage());
+	graphGear.loadFromSurface(gearGraph->retrieveImage());
+	graphThrot.loadFromSurface(throttleGraph->retrieveImage());
 
-	SimpleTexture graph2 = SimpleTexture(mainCanvas->getRenderer());
-	graph2.loadFromSurface(steerGraph.retrieveImage());
-	SDL_Rect destRect2 = { 840, 100, 360, 76 };
+	SDL_Rect destRectVeloc = { 0, 0, graphWidth, graphHeight };
+	SDL_Rect destRectSteer = { 0, graphHeight, graphWidth, graphHeight };
+	SDL_Rect destRectGear = { 0, 2*graphHeight, graphWidth, graphHeight };
+	SDL_Rect destRectThrot = { 0, 3*graphHeight, graphWidth, graphHeight };
 
-	SimpleTexture graph3 = SimpleTexture(mainCanvas->getRenderer());
-	graph3.loadFromSurface(gearGraph.retrieveImage());
-	SDL_Rect destRect3 = { 840, 200, 360, 76 };
+	SDL_RenderCopy(graphCanvas->getRenderer(), graphVeloc.getTexture(), NULL, &destRectVeloc);
+	SDL_RenderCopy(graphCanvas->getRenderer(), graphSteer.getTexture(), NULL, &destRectSteer);
+	SDL_RenderCopy(graphCanvas->getRenderer(), graphGear.getTexture(), NULL, &destRectGear);
+	SDL_RenderCopy(graphCanvas->getRenderer(), graphThrot.getTexture(), NULL, &destRectThrot);
 
-	SimpleTexture graph4 = SimpleTexture(mainCanvas->getRenderer());
-	graph4.loadFromSurface(throttleGraph.retrieveImage());
-	SDL_Rect destRect4 = { 840, 300, 360, 76 };
 
-	SDL_RenderCopy(mainCanvas->getRenderer(), graph1.getTexture(), NULL, &destRect1);
-	SDL_RenderCopy(mainCanvas->getRenderer(), graph2.getTexture(), NULL, &destRect2);
-	SDL_RenderCopy(mainCanvas->getRenderer(), graph3.getTexture(), NULL, &destRect3);
-	SDL_RenderCopy(mainCanvas->getRenderer(), graph4.getTexture(), NULL, &destRect4);
+	SDL_SetRenderTarget(graphCanvas->getRenderer(), NULL);
 
-	SDL_SetRenderTarget(mainCanvas->getRenderer(), NULL);
+}
+
+/*
+Draws path to texture for the given drawScale and focus point defined within the function.
+*/
+void VirtualPlatform::redrawSimulationTexture() {
+
+	simulationCanvas->setAsRenderTarget();
+
+	Point quadLoc = hw->getRealPosition();
+	double heading = hw->getRealAbsoluteHeading();
+	double steerAngle = hw->getRealSteeringAngle();
+
+	//clear screen
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(simulationCanvas->getRenderer());
+
+	// drawing the path in this for loop
+	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
+
+		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
+		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
+
+		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
+		Point loc1transf = transform(loc1);
+		Point loc2transf = transform(loc2);
+
+		SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
+		SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
+		SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+		SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
+	}
+
+	// drawing crosshairs over the focus point
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
+
+	// Ackermann steering, inside wheel is sharper than outside wheel
+	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) - hw->width / 2));
+	double rightWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) + hw->width / 2));
+
+	// drawing the quadbike wheels
+	SDL_Rect leftWheelRect = { (int)transform(quadLoc + getLWheel()).x, (int)transform(quadLoc + getLWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
+	SDL_Rect rightWheelRect = { (int)transform(quadLoc + getRWheel()).x,(int)transform(quadLoc + getRWheel()).y, (int)(hw->wheelWidth * drawScale), (int)(hw->wheelRadius * 2 * drawScale) };
+	SDL_RenderCopyEx(simulationCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &leftWheelRect, (heading + leftWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
+	SDL_RenderCopyEx(simulationCanvas->getRenderer(), wheelTexture->getTexture(), NULL, &rightWheelRect, (heading + rightWheelAngle) * 180 / PI, NULL, SDL_FLIP_NONE);
+
+	// drawing the sensor mount
+	// TODO(Harry): Magic numbers. defining it here isnt good enough. pull it out, create a variable
+	// define it there. then use the variable name here. I know that the sensor thing is variable
+	// width elsewhere in the code so this should reflect those changes
+	double sensorFactor = sensorTexture->getHeight() / 3; // divide by 3 because 3m wide
+	SDL_Rect sensorRect = { (int)transform(quadLoc + getSensorTopLeft()).x, (int)transform(quadLoc + getSensorTopLeft()).y, (int)(sensorTexture->getWidth() * drawScale / sensorFactor / 1.25), (int)(sensorTexture->getHeight() * drawScale / sensorFactor) };
+	SDL_Point sensorCenter = { 0,0 };
+	SDL_RenderCopyEx(simulationCanvas->getRenderer(), sensorTexture->getTexture(), NULL, &sensorRect, heading * 180 / PI - 90, &sensorCenter, SDL_FLIP_NONE);
+
+	// drawing the quadbike png image
+	SDL_Point rotationCenter = { (int)(hw->width / 2), (int)(hw->length - hw->wheelBase) };
+	SDL_Rect quadRect = { (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y, (int)(hw->width * drawScale), (int)(hw->length * drawScale) };
+	SDL_RenderCopyEx(simulationCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, heading * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
+
+	// drawing the quadbike outline
+	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y,
+	(int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y,
+	(int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y,
+	(int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y);
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y,
+	(int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y);*/
+
+	// point at quads local (0,0)
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
+
+	/*//rear wheel (line):
+	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + getRearC().x + sin(heading + getSteerAng())*hw->wheelRadii,0)).x,
+	(int)transform(Point(0, quadLoc.y + getRearC().y + cos(heading + getSteerAng())*hw->wheelRadii)).y,
+	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
+	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
+	*/
+
+	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }
 
 Point VirtualPlatform::transform(Point p) {
@@ -203,21 +228,24 @@ Point VirtualPlatform::transform(Point p) {
 	return t;
 }
 
-SDL_Texture* VirtualPlatform::retrieveImage() {
-	return mainCanvas->getTexture();
+SDL_Texture* VirtualPlatform::retrieveSimulationImage() {
+	return simulationCanvas->getTexture();
+}
+SDL_Texture* VirtualPlatform::retrieveGraphImage() {
+	return graphCanvas->getTexture();
 }
 
 void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
 	
 	SDL_Color textColor = { 0, 0, 0, 255 };
 	SDL_Surface* textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
-	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(mainCanvas->getRenderer(), textSurface);
+	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(simulationCanvas->getRenderer(), textSurface);
 	SDL_FreeSurface(textSurface);
 
 	SDL_Rect renderQuad = { x, y, 0, 0 };
 	SDL_QueryTexture(mTexture, NULL, NULL, &renderQuad.w, &renderQuad.h);
 
-	SDL_RenderCopy(mainCanvas->getRenderer(), mTexture, NULL, &renderQuad);
+	SDL_RenderCopy(simulationCanvas->getRenderer(), mTexture, NULL, &renderQuad);
 
 	SDL_DestroyTexture(mTexture);
 	

@@ -80,7 +80,7 @@ void Overlord::run() {
 
 	// display the window for the first time
 	window->showWindow(true);
-	window->update(fd->retrieveImage());
+	window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 
 	showvp = true;
 
@@ -101,16 +101,20 @@ void Overlord::run() {
 		if (seconds.count() > (1.0/(double)REFRESH_RATE)) {
 			lastWindowUpdate = current;
 			
-			window->clearWindow();
-			
-			if (showvp) {
-				vp->update();							// update logic
-				vp->redrawTexture();						// render to texture
-				window->update(vp->retrieveImage());	// render texture to window
-			}
-			else {
-				window->update(fd->retrieveImage());
-			}
+			//window->clearWindow(PANE_ALL);
+
+				vp->update();										// update logic
+				
+				vp->redrawSimulationTexture();						// render to texture
+				window->update(vp->retrieveSimulationImage(), PANE_TOPLEFT);	// render texture to window
+				vp->redrawGraphTexture();
+				window->update(vp->retrieveGraphImage(), PANE_TOPRIGHT);
+
+				window->update(NULL, PANE_BOTTOMRIGHT);
+
+				// this is STATIC ATM
+				//window->update(fd->retrieveImage(), PANE_BOTTOMRIGHT);
+
 
 		}
 

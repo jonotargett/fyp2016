@@ -21,24 +21,29 @@ public:
 
 	bool initialise(HardwareInterface*, NavigationSystem*, DriveController*, SDL_Renderer*);
 	void update();
-	void redrawTexture();
-	SDL_Texture* retrieveImage();
-
-	Graph velocityGraph = Graph(360, 76, -2, 2, true);
-	Graph steerGraph = Graph(360, 76, -27, 27, true);
-	Graph gearGraph = Graph(360, 76, -2, 2, false);
-	Graph throttleGraph = Graph(360, 76, -25, 25, true);
+	void redrawSimulationTexture();
+	void redrawGraphTexture();
+	SDL_Texture* retrieveSimulationImage();
+	SDL_Texture* retrieveGraphImage();
 
 private:
 	DummyHardware* hw;
 	NavigationSystem* ns;
 	SimpleController* sc;
 
-	SimpleTexture* mainCanvas;
+	SimpleTexture* simulationCanvas;
+	SimpleTexture* graphCanvas;
 	SimpleTexture* quadTexture;
 	SimpleTexture* wheelTexture;
 	SimpleTexture* sensorTexture;
 	TTF_Font* standardFont;
+
+	Graph* velocityGraph;
+	Graph* steerGraph;
+	Graph* gearGraph;
+	Graph* throttleGraph;
+	int graphWidth;
+	int graphHeight;
 
 	int textureWidth;
 	int textureHeight;

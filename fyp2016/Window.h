@@ -6,7 +6,15 @@
 #include "Log.h"
 
 #include "Bscan.h"
+#include "SimpleTexture.h"
 
+enum RenderPane {
+	PANE_TOPLEFT,
+	PANE_TOPRIGHT,
+	PANE_BOTTOMLEFT,
+	PANE_BOTTOMRIGHT,
+	PANE_ALL
+};
 
 class Window
 {
@@ -17,16 +25,21 @@ public:
 
 	bool shouldQuit();
 	void showWindow(bool);
-	void clearWindow();
+	void clearWindow(RenderPane);
 
 	void handleEvents();
-	void update(SDL_Texture*);
+	void update(SDL_Texture*, RenderPane);
 	SDL_Renderer* getRenderer();
 
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
 	SDL_Event event;
+
+	SimpleTexture* dontPanic;
+
+	int windowWidth;
+	int windowHeight;
 
 	bool quit;
 	bool visible;

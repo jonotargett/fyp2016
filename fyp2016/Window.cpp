@@ -3,8 +3,13 @@
 #include "SDL\SDL_opengl.h"
 
 
+
 Window::Window()
-{
+{	
+	// aspect ratio 16:9
+	windowWidth = 16 * 80;
+	windowHeight = 9 * 80;
+
 	quit = false;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -32,7 +37,7 @@ Window::Window()
 	window = SDL_CreateWindow(
 		"FYP 2099 Control Program", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		1200, 600, SDL_WINDOW_HIDDEN);
+		windowWidth, windowHeight, SDL_WINDOW_HIDDEN);
 
 	if (window == NULL) {
 		Log::e << "SDL Window could not be created. "
@@ -53,7 +58,8 @@ Window::Window()
 
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-	
+	dontPanic = new SimpleTexture(renderer);
+	dontPanic->loadImage("dont-panic.jpg");
 
 	/*
 	surface = SDL_GetWindowSurface(window);
@@ -96,24 +102,52 @@ void Window::showWindow(bool b) {
 	}
 }
 
-void Window::clearWindow() {
-	SDL_RenderClear(renderer);
+void Window::clearWindow(RenderPane pane) {
+	switch (pane) {
+	case PANE_ALL:
+		SDL_RenderClear(renderer);
+		break;
+	default:
+		break;
+	}
+	
 }
 
-void Window::update(SDL_Texture* newImage) {
+void Window::update(SDL_Texture* newImage, RenderPane pane) {
 
 	int w, h;
 	SDL_QueryTexture(newImage, NULL, NULL, &w, &h);
 	SDL_Rect destination;
 	destination.x = 0;
 	destination.y = 0;
-	destination.w = w;
-	destination.h = h;
+	destination.w = windowWidth / 2;
+	destination.h = windowHeight / 2;
+	
+	switch (pane) {
+	case PANE_TOPLEFT:
+		destination.x = 0;
+		destination.y = 0;
+		break;
+	case PANE_TOPRIGHT:
+		destination.x = windowWidth / 2;
+		destination.y = 0;
+		break;
+	case PANE_BOTTOMLEFT:
+		destination.x = 0;
+		destination.y = windowHeight / 2;
+		break;
+	case PANE_BOTTOMRIGHT:
+		destination.x = windowWidth / 2;
+		destination.y = windowHeight / 2;
+		break;
+	}
 
 	// this is donw in clearWindow() now
 	//SDL_RenderClear(renderer);
 
+
 	SDL_SetRenderTarget(renderer, NULL);
+	if (newImage == NULL) newImage = dontPanic->getTexture();
 	SDL_RenderCopy(renderer, newImage, NULL, &destination);
 	SDL_RenderPresent(renderer);
 
