@@ -36,7 +36,6 @@ private:
 	Window* window;
 	Communications* comms;
 	HardwareInterface* hwi;
-	HardwareInterface* dhwi;
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;

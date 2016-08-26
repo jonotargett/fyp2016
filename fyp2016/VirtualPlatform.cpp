@@ -208,6 +208,7 @@ SDL_Texture* VirtualPlatform::retrieveImage() {
 }
 
 void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
+	
 	SDL_Color textColor = { 0, 0, 0, 255 };
 	SDL_Surface* textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
 	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(mainCanvas->getRenderer(), textSurface);
@@ -219,6 +220,7 @@ void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
 	SDL_RenderCopy(mainCanvas->getRenderer(), mTexture, NULL, &renderQuad);
 
 	SDL_DestroyTexture(mTexture);
+	
 }
 
 void VirtualPlatform::setupFont() {

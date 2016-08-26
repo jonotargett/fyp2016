@@ -32,7 +32,7 @@ public:
 	const double wheelRadius = 0.3;
 	const double wheelWidth = 0.25;
 	const double maxSteerAngle = 24 * 3.141592 / 180;
-	const double cruiseVelocity = 1.2;
+	const double cruiseVelocity = 1.5;
 	const double idleSpeed = 0.25;
 
 	/*

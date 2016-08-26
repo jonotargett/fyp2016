@@ -28,7 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	hwi = new QuadInterface();
+	//hwi = new QuadInterface();
+	hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 
@@ -36,15 +37,15 @@ bool Overlord::initialise() {
 	ns = new SimpleNavigator();
 	ns->initialise();
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
-
+	/*
 	Log::i << "-> Initialising dummy hardware interface..." << endl;
 	dhwi = new DummyHardware();
 	dhwi->initialise();
 	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
-
+	*/
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
-	dc->initialise(dhwi, ns);
+	dc->initialise(hwi, ns);
 	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
 	Log::i << "-> Starting feature detection system..." << endl;
@@ -55,7 +56,7 @@ bool Overlord::initialise() {
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
-	vp->initialise(dhwi, ns, dc, window->getRenderer());
+	vp->initialise(hwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
 
@@ -161,7 +162,7 @@ void Overlord::handleEvents() {
 			handled = true;
 			break;
 		case ID_MANUALJOYSTICK:
-			Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
+			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
 			handled = true;
 			break;
 		case ID_JOYSTICK_HELD:
@@ -188,6 +189,46 @@ void Overlord::handleEvents() {
 			Log::d << "Action: handbrake on" << endl;
 			handled = true;
 			break;
+		case ID_REQ_QUAD_SPEED:
+		{
+			float speed = hwi->getVelocity();
+			//Log::d << "Request: quad speed " << speed << endl;
+			Packet* op = new Packet();
+			op->packetID = ID_QUAD_SPEED;
+			op->length = 1;
+			op->data = new float[1];
+			op->data[0] = speed;
+			comms->send(op);
+			handled = true;
+			break;
+		}
+		case ID_REQ_QUAD_HEADING:
+		{
+			float head = hwi->getAbsoluteHeading();
+			//Log::d << "Request: quad speed " << speed << endl;
+			Packet* op = new Packet();
+			op->packetID = ID_QUAD_HEADING;
+			op->length = 1;
+			op->data = new float[1];
+			op->data[0] = head;
+			comms->send(op);
+			handled = true;
+			break;
+		}
+		case ID_REQ_QUAD_POSITION:
+		{
+			Point pos = hwi->getPosition();
+			//Log::d << "Request: quad speed " << speed << endl;
+			Packet* op = new Packet();
+			op->packetID = ID_QUAD_POSITION;
+			op->length = 2;
+			op->data = new float[2];
+			op->data[0] = pos.x;
+			op->data[1] = pos.y;
+			comms->send(op);
+			handled = true;
+			break;
+		}
 		default:
 			Log::e << "Packet Error: Unrecognised command received. [" << p->packetID << "]" << endl;
 			handled = true;
