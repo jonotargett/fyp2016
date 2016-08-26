@@ -18,7 +18,7 @@ Graph::Graph(int w, int h, double min, double max, bool drawCentre)
 
 	// initialise the surface to white
 	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
 
 		// initialise the centreline
 		if (drawCentreLine == true) {
@@ -27,6 +27,16 @@ Graph::Graph(int w, int h, double min, double max, bool drawCentre)
 				pixels[i] = SDL_MapRGB(image->format, 0x88, 0x88, 0x88);
 			}
 		}
+	}
+	//top and bottom borderline
+	for (int i = 0; i < image->w; i++) {
+		pixels[i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		pixels[image->w * image->h - i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+	}
+	// left and right borderline
+	for (int j = 0; j < image->h; j++) {
+		pixels[j*image->w] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		pixels[j*image->w + image->w - 1] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
 	}
 }
 
@@ -52,8 +62,9 @@ void Graph::post(double val) {
 	//refresh the texture
 	for (int j = 0; j < height; j++) {
 
-		// white background
-		pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		// black background
+		pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
+		// red update line
 		pixels[j*image->w + offset + 1] = SDL_MapRGB(image->format, 0xFF, 0x00, 0x00);
 
 		if (j == height / 2 && drawCentreLine == true) {
@@ -64,8 +75,18 @@ void Graph::post(double val) {
 		int pos = (int)(0 + (height - 0)*((val-yMax)/(yMin-yMax)));
 
 		if (j == pos) {
-			// blue position
-			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0x00, 0x00, 0xFF);
+			// yellow position
+			pixels[j*image->w + offset] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0x00);
 		}
+	}
+	//top and bottom borderline
+	for (int i = 0; i < image->w; i++) {
+		pixels[i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		pixels[image->w * image->h - i] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+	}
+	// left and right borderline
+	for (int j = 0; j < image->h; j++) {
+		pixels[j*image->w] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
+		pixels[j*image->w + image->w - 1] = SDL_MapRGB(image->format, 0xFF, 0xFF, 0xFF);
 	}
 }

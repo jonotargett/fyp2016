@@ -140,6 +140,9 @@ void Window::update(SDL_Texture* newImage, RenderPane pane) {
 		destination.x = windowWidth / 2;
 		destination.y = windowHeight / 2;
 		break;
+	default:
+		destination.w = w;
+		destination.h = h;
 	}
 
 	// this is donw in clearWindow() now

@@ -32,8 +32,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	sensorTexture = new SimpleTexture(r);
 	sensorTexture->loadImage("sensorImage.png");
 
-	graphWidth = 600;
-	graphHeight = 75;
+	graphWidth = 500;
+	graphHeight = 76;
 	
 	velocityGraph = new Graph(graphWidth, graphHeight, -2, 2, true);
 	steerGraph = new Graph(graphWidth, graphHeight, -27, 27, true);
@@ -70,6 +70,9 @@ void VirtualPlatform::redrawGraphTexture() {
 	double steerAngle = hw->getRealSteeringAngle();
 
 	graphCanvas->setAsRenderTarget();
+	// clear to white
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(simulationCanvas->getRenderer());
 
 	// rendering text
 	std::string titleText;
@@ -118,9 +121,9 @@ void VirtualPlatform::redrawGraphTexture() {
 	graphThrot.loadFromSurface(throttleGraph->retrieveImage());
 
 	SDL_Rect destRectVeloc = { 0, 0, graphWidth, graphHeight };
-	SDL_Rect destRectSteer = { 0, graphHeight, graphWidth, graphHeight };
-	SDL_Rect destRectGear = { 0, 2*graphHeight, graphWidth, graphHeight };
-	SDL_Rect destRectThrot = { 0, 3*graphHeight, graphWidth, graphHeight };
+	SDL_Rect destRectSteer = { 0, (graphHeight + 2), graphWidth, graphHeight };
+	SDL_Rect destRectGear = { 0, 2* (graphHeight + 2), graphWidth, graphHeight };
+	SDL_Rect destRectThrot = { 0, 3* (graphHeight + 2), graphWidth, graphHeight };
 
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphVeloc.getTexture(), NULL, &destRectVeloc);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphSteer.getTexture(), NULL, &destRectSteer);
@@ -143,7 +146,7 @@ void VirtualPlatform::redrawSimulationTexture() {
 	double heading = hw->getRealAbsoluteHeading();
 	double steerAngle = hw->getRealSteeringAngle();
 
-	//clear screen
+	//clear screen to green
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(simulationCanvas->getRenderer());
 

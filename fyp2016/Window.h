@@ -13,7 +13,8 @@ enum RenderPane {
 	PANE_TOPRIGHT,
 	PANE_BOTTOMLEFT,
 	PANE_BOTTOMRIGHT,
-	PANE_ALL
+	PANE_ALL,
+	PANE_NULL
 };
 
 class Window
