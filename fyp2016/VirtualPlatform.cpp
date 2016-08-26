@@ -71,7 +71,7 @@ void VirtualPlatform::redrawGraphTexture() {
 
 	graphCanvas->setAsRenderTarget();
 	// clear to white
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0xFF, 0xFF);
 	SDL_RenderClear(simulationCanvas->getRenderer());
 
 	// rendering text
