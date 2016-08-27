@@ -14,7 +14,9 @@
 #include "VirtualPlatform.h"
 #include "CommsListener.h"
 
-#define REFRESH_RATE 60
+
+#define DATA_REFRESH_RATE 200
+#define VIEW_REFRESH_RATE 60
 
 
 class Overlord :
@@ -41,7 +43,7 @@ private:
 	FeatureDetector* fd;
 	VirtualPlatform* vp;
 
-	
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastDataUpdate;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastWindowUpdate;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 };

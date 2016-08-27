@@ -81,8 +81,13 @@ void Overlord::run() {
 	// display the window for the first time
 	window->showWindow(true);
 	window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
+	window->update(NULL, PANE_BOTTOMRIGHT);
 
 	showvp = true;
+	vp->redrawGraphTexture();
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
+	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
 
 	while (!window->shouldQuit()) {
 
@@ -96,24 +101,46 @@ void Overlord::run() {
 		Log::setVerbosity(LOG_INFORMATIVE);
 
 		current = std::chrono::high_resolution_clock::now();
+		seconds = current - lastDataUpdate;
+
+		
+		if (seconds.count() > (1.0 / (double)DATA_REFRESH_RATE)) {
+			lastDataUpdate = current;
+
+			t1 = std::chrono::high_resolution_clock::now();
+			vp->update();										// update logic
+			t2 = std::chrono::high_resolution_clock::now();
+			seconds = t2 - t1;
+			//Log::i << "VP udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
+
+			
+		}
+
 		seconds = current - lastWindowUpdate;
 
-		if (seconds.count() > (1.0/(double)REFRESH_RATE)) {
+		if (seconds.count() > (1.0/(double)VIEW_REFRESH_RATE)) {
 			lastWindowUpdate = current;
+
+			t1 = std::chrono::high_resolution_clock::now();
+			vp->redrawGraphTexture();
+			window->update(vp->retrieveGraphImage(), PANE_TOPRIGHT);
+			t2 = std::chrono::high_resolution_clock::now();
+			seconds = t2 - t1;
+			//Log::i << "Graphs udpate: " << seconds.count() * 1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
+
 			
-			//window->clearWindow(PANE_ALL);
+			t1 = std::chrono::high_resolution_clock::now();
+			vp->redrawSimulationTexture();						// render to texture
+			window->update(vp->retrieveSimulationImage(), PANE_TOPLEFT);	// render texture to window
+			t2 = std::chrono::high_resolution_clock::now();
+			seconds = t2 - t1;
+			//Log::i << "Redraw udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
 
-				vp->update();										// update logic
-				
-				vp->redrawSimulationTexture();						// render to texture
-				window->update(vp->retrieveSimulationImage(), PANE_TOPLEFT);	// render texture to window
-				vp->redrawGraphTexture();
-				window->update(vp->retrieveGraphImage(), PANE_TOPRIGHT);
+			
+			window->present();
 
-				window->update(NULL, PANE_BOTTOMRIGHT);
-
-				// this is STATIC ATM
-				//window->update(fd->retrieveImage(), PANE_BOTTOMRIGHT);
+			// this is STATIC ATM
+			//window->update(fd->retrieveImage(), PANE_BOTTOMRIGHT);
 
 
 		}

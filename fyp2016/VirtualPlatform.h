@@ -37,6 +37,7 @@ private:
 	SimpleTexture* wheelTexture;
 	SimpleTexture* sensorTexture;
 	TTF_Font* standardFont;
+	SDL_Surface* textSurface;
 
 	Graph* velocityGraph;
 	Graph* steerGraph;
@@ -54,7 +55,7 @@ private:
 
 	Point transform(Point p);
 	void setupFont();
-	void drawText(std::string textToRender, int x, int y);
+	void drawText(std::string textToRender, int x, int y, bool fromEnd = false);
 
 
 	Point getRearL();

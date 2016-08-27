@@ -33,7 +33,7 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	sensorTexture->loadImage("sensorImage.png");
 
 	graphWidth = 500;
-	graphHeight = 76;
+	graphHeight = (textureHeight/2)/4 - 2;
 	
 	velocityGraph = new Graph(graphWidth, graphHeight, -2, 2, true);
 	steerGraph = new Graph(graphWidth, graphHeight, -27, 27, true);
@@ -71,45 +71,10 @@ void VirtualPlatform::redrawGraphTexture() {
 
 	graphCanvas->setAsRenderTarget();
 	// clear to white
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xEE, 0xEE, 0xF2, 0xFF);
 	SDL_RenderClear(simulationCanvas->getRenderer());
 
-	// rendering text
-	std::string titleText;
-
-	titleText = "Heading: ";
-	titleText += std::to_string((int)(heading * 180 / PI));
-	titleText += " degrees";
-	drawText(titleText, 840, 420);
-
-	std::string vel = std::to_string(abs(hw->getRealVelocity()));
-	vel.erase(3, 99);
-	titleText = "Speed: ";
-	titleText += vel;
-	titleText += " m/s";
-	drawText(titleText, 840, 76);
-
-	titleText = "Throttle: ";
-	titleText += std::to_string((int)round(hw->getRealThrottlePercentage()));
-	titleText += " %";
-	drawText(titleText, 840, 376);
-
-	titleText = "Gear: ";
-	if (hw->getRealGear() == 1) titleText += "Drive";
-	if (hw->getRealGear() == 0) titleText += "Neutral";
-	if (hw->getRealGear() == -1) titleText += "Reverse";
-	drawText(titleText, 840, 276);
-
-	titleText = "Brake Percentage: ";
-	std::string brakePerc = std::to_string((int)abs(hw->getRealBrakePercentage()));
-	titleText += brakePerc;
-	drawText(titleText, 840, 440);
-
-	titleText = "Steer Angle: ";
-	std::string stang = std::to_string((int)round(abs(steerAngle * 180 / 3.1416)));
-	titleText += stang;
-	drawText(titleText, 840, 176);
-
+	
 	SimpleTexture graphVeloc = SimpleTexture(graphCanvas->getRenderer());
 	SimpleTexture graphSteer = SimpleTexture(graphCanvas->getRenderer());
 	SimpleTexture graphGear = SimpleTexture(graphCanvas->getRenderer());
@@ -130,6 +95,55 @@ void VirtualPlatform::redrawGraphTexture() {
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphGear.getTexture(), NULL, &destRectGear);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphThrot.getTexture(), NULL, &destRectThrot);
 
+	
+	drawText("Velocity", graphWidth - 5, 0 * (graphHeight + 2), true);
+	drawText("Steering Angle", graphWidth - 5, 1 * (graphHeight + 2), true);
+	drawText("Gear Selection", graphWidth-5, 2 * (graphHeight + 2), true);
+	drawText("Throttle Percentage", graphWidth-5, 3 * (graphHeight + 2), true);
+
+
+	// rendering text
+	std::string titleText;
+
+	titleText = "Heading: ";
+	titleText += std::to_string((int)(heading * 180 / PI));
+	titleText += " degrees";
+	drawText(titleText, 840, 420);
+
+	std::string vel = std::to_string(abs(hw->getRealVelocity()));
+	vel.erase(3, 99);
+	titleText = "Speed: ";
+	titleText += vel;
+	titleText += " m/s";
+	//drawText(titleText, 840, 76);
+	drawText(titleText, graphWidth - 5, 1 * (graphHeight + 2) - 20, true);
+
+	titleText = "Throttle: ";
+	titleText += std::to_string((int)round(hw->getRealThrottlePercentage()));
+	titleText += " %";
+	//drawText(titleText, 840, 376);
+	drawText(titleText, graphWidth - 5, 4 * (graphHeight + 2) - 20, true);
+
+	titleText = "Gear: ";
+	if (hw->getRealGear() == 1) titleText += "Drive";
+	if (hw->getRealGear() == 0) titleText += "Neutral";
+	if (hw->getRealGear() == -1) titleText += "Reverse";
+	//drawText(titleText, 840, 276);
+	drawText(titleText, graphWidth - 5, 3 * (graphHeight + 2) - 20, true);
+
+	titleText = "Brake Percentage: ";
+	std::string brakePerc = std::to_string((int)abs(hw->getRealBrakePercentage()));
+	titleText += brakePerc;
+	drawText(titleText, 840, 440);
+
+	titleText = "Steer Angle: ";
+	std::string stang = std::to_string((int)round(abs(steerAngle * 180 / 3.1416)));
+	titleText += stang;
+	titleText += " degrees";
+	//drawText(titleText, 840, 176);
+	drawText(titleText, graphWidth - 5, 2 * (graphHeight + 2) - 20, true);
+
+	
 
 	SDL_SetRenderTarget(graphCanvas->getRenderer(), NULL);
 
@@ -142,6 +156,8 @@ void VirtualPlatform::redrawSimulationTexture() {
 
 	simulationCanvas->setAsRenderTarget();
 
+	
+
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
 	double steerAngle = hw->getRealSteeringAngle();
@@ -150,21 +166,25 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(simulationCanvas->getRenderer());
 
+	
+	/*
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 
-		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
-		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
+		//Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
+		//Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
-		Point loc1transf = transform(loc1);
-		Point loc2transf = transform(loc2);
+		//Point loc1transf = transform(loc1);
+		//Point loc2transf = transform(loc2);
 
-		SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
-		SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
-		SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
+		//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
+		//SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
+		//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+		//SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
 	}
+	*/
+	
 
 	// drawing crosshairs over the focus point
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
@@ -207,13 +227,14 @@ void VirtualPlatform::redrawSimulationTexture() {
 	(int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y);*/
 
 	// point at quads local (0,0)
+	
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y + 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y - 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
 
-	/*//rear wheel (line):
+	/* //rear wheel (line):
 	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(Point(quadLoc.x + getRearC().x + sin(heading + getSteerAng())*hw->wheelRadii,0)).x,
 	(int)transform(Point(0, quadLoc.y + getRearC().y + cos(heading + getSteerAng())*hw->wheelRadii)).y,
 	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
@@ -238,19 +259,27 @@ SDL_Texture* VirtualPlatform::retrieveGraphImage() {
 	return graphCanvas->getTexture();
 }
 
-void VirtualPlatform::drawText(std::string textToRender, int x, int y) {
-	
-	SDL_Color textColor = { 0, 0, 0, 255 };
-	SDL_Surface* textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
-	SDL_Texture* mTexture = SDL_CreateTextureFromSurface(simulationCanvas->getRenderer(), textSurface);
-	SDL_FreeSurface(textSurface);
+void VirtualPlatform::drawText(std::string textToRender, int x, int y, bool fromEnd) {
 
-	SDL_Rect renderQuad = { x, y, 0, 0 };
-	SDL_QueryTexture(mTexture, NULL, NULL, &renderQuad.w, &renderQuad.h);
+		SDL_Color textColor = { 0, 0, 0, 255 };
+		textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
+		SDL_Texture* mTexture = SDL_CreateTextureFromSurface(simulationCanvas->getRenderer(), textSurface);
 
-	SDL_RenderCopy(simulationCanvas->getRenderer(), mTexture, NULL, &renderQuad);
+		SDL_FreeSurface(textSurface);
 
-	SDL_DestroyTexture(mTexture);
+		int width = 0;
+		int height = 0;
+
+		SDL_QueryTexture(mTexture, NULL, NULL, &width, &height);
+
+		SDL_Rect renderQuad = { x, y, width, height };
+		if (fromEnd) {
+			renderQuad.x = renderQuad.x - width;
+		}
+
+		SDL_RenderCopy(simulationCanvas->getRenderer(), mTexture, NULL, &renderQuad);
+
+		SDL_DestroyTexture(mTexture);
 	
 }
 

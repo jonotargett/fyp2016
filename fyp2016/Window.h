@@ -30,6 +30,7 @@ public:
 
 	void handleEvents();
 	void update(SDL_Texture*, RenderPane);
+	void present();
 	SDL_Renderer* getRenderer();
 
 private:

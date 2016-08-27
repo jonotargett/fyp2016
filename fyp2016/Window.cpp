@@ -113,6 +113,7 @@ void Window::clearWindow(RenderPane pane) {
 	
 }
 
+
 void Window::update(SDL_Texture* newImage, RenderPane pane) {
 
 	int w, h;
@@ -152,10 +153,16 @@ void Window::update(SDL_Texture* newImage, RenderPane pane) {
 	SDL_SetRenderTarget(renderer, NULL);
 	if (newImage == NULL) newImage = dontPanic->getTexture();
 	SDL_RenderCopy(renderer, newImage, NULL, &destination);
-	SDL_RenderPresent(renderer);
+	//SDL_RenderPresent(renderer);
 
 	Log::d << "Window frame changed." << std::endl;
 }
+
+
+void Window::present() {
+	SDL_RenderPresent(renderer);
+}
+
 
 SDL_Renderer* Window::getRenderer() {
 	return renderer;
