@@ -51,7 +51,7 @@ bool Overlord::initialise() {
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(hwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
-	//fd->initialise();
+	fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
@@ -73,13 +73,16 @@ void Overlord::run() {
 
 	std::chrono::duration<double> seconds;
 	
-
-	// Feature detector stuff
-	fd->loadScan();
-	fd->createImage(DISPLAY_KERNEL);
-
 	// display the window for the first time
 	window->showWindow(true);
+
+	// Feature detector stuff
+	//fd->loadScan();
+	//fd->createImage(DISPLAY_KERNEL);
+
+	
+	fd->runScan();
+	fd->createImage(DISPLAY_RAW);
 	window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 	window->update(NULL, PANE_BOTTOMRIGHT);
 
@@ -97,6 +100,7 @@ void Overlord::run() {
 		this->handleEvents();
 		
 
+
 		// periodic refresh shit. runs at 60Hz ish. ---------------------------//
 		Log::setVerbosity(LOG_INFORMATIVE);
 
@@ -112,7 +116,6 @@ void Overlord::run() {
 			t2 = std::chrono::high_resolution_clock::now();
 			seconds = t2 - t1;
 			//Log::i << "VP udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
-
 			
 		}
 
@@ -137,10 +140,18 @@ void Overlord::run() {
 			//Log::i << "Redraw udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
 
 			
-			window->present();
+
 
 			// this is STATIC ATM
-			//window->update(fd->retrieveImage(), PANE_BOTTOMRIGHT);
+			
+			fd->createImage(DISPLAY_RAW);
+			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
+
+
+
+			window->present();
+
+			
 
 
 		}

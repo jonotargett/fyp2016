@@ -8,21 +8,23 @@ GPR::GPR() {
 	dataBuffer = new unsigned int[8192];
 	ids = new id_struct();
 	status = 0x0;
+	range = 0;
+	shouldExit = false;
 
 	// set default GPR configuration parameters
 	updateMode = GPR_PARAM_UPDATE_FLUSH_ALL;
-	serialUpdating = GPR_SPI_UPDATING_ENABLE;
-	framerate = GPR_FRAMERATE_127Hz;
-	prf = GPR_PRF_65kHz;
-	adAveraging = GPR_AD_AVERAGING_DISABLE;
+	serialUpdating = GPR_SPI_UPDATING_DISABLE;
+	framerate = GPR_FRAMERATE_254Hz;
+	prf = GPR_PRF_1MHz;
+	adAveraging = GPR_AD_AVERAGING_ENABLE;
 	adCalibration = GPR_AD_CALIBRATION_DISABLE;
 
-	daDelay = 127;						// range [0, 255]
+	daDelay = 170;						// range [0, 255]
 	timeBase = 2048;					// range [0, 4095]
-	cableDelay = 3;						// range [0, 7]
-	analogGain = 64;					// range [0, 127]
-	singleAntennaGain = 2;				// range [0, 3]
-	differentialAntennaGain = 2;		// range [0, 3]
+	cableDelay = 2;						// range [0, 7]
+	analogGain = 126;					// range [0, 127]
+	singleAntennaGain = 3;				// range [0, 3]
+	differentialAntennaGain = 3;		// range [0, 3]
 	
 	green_button = false;
 	red_button = false;
@@ -213,7 +215,7 @@ Read the status code (member variable) and returns whether an error has occured.
 True means success, false means failure.
 Does not recheck the status of the hardware to ensure validity of the status code.
 */
-bool GPR::processStatusCode() {
+bool GPR::processStatusCode(bool verbose) {
 
 	unsigned int mask = ((1 << 8) - 1) << 16;
 	samples = (status & mask) >> 16;
@@ -221,40 +223,48 @@ bool GPR::processStatusCode() {
 	bool hasErrored = false;
 
 	if (is_bit_set(status, 31)) {
+		if(verbose)
 		Log::d << "\tnot enough data in DLL buffer" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 30)) {
+		if (verbose)
 		Log::d << "\tSync operation succeeded (error?)" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 11)) {
+		if (verbose)
 		Log::d << "\tMicro buffer overflow" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 0)) {
+		if (verbose)
 		Log::d << "\tDevice offline" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 1)) {
+		if (verbose)
 		Log::d << "\tRadar is off" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 9)) {
+		if (verbose)
 		Log::d << "\tdll buffer got full" << endl;
 		//hasErrored = true;
 	}
 	if (is_bit_set(status, 8)) {
+		if (verbose)
 		Log::d << "\tInvalid buffer size" << endl;
 		hasErrored = true;
 	}
 	if (is_bit_set(status, 10)) {
+		if (verbose)
 		Log::d << "\tBad sequence number" << endl;
 		hasErrored = true;
 	}
 
-	if (hasErrored) {
-		Log::d << "Error code: " << std::hex << status << std::dec << endl;
+	if (hasErrored && verbose) {
+		Log::d << "Status check error code: " << std::hex << status << std::dec << endl;
 	}
 
 	return !hasErrored;
@@ -269,43 +279,40 @@ bool GPR::checkStatus(bool verbose) {
 	bool success = false;
 	unsigned int attempts = 0;
 
-	while (!success && attempts < MAX_ATTEMPTS) {
+	Log::suppressCout(true);
+	status = read_data(dataBuffer, 0, ids);
+	Log::suppressCout(false);
+	success = processStatusCode();
 
-		Log::suppressCout(true);
-		status = read_data(dataBuffer, 0, ids);
-		Log::suppressCout(false);
-		success = processStatusCode();
+	if (success) {
 
-		if (success) {
-
-			if (ids->antenna_id == 0) {
-				success = false;
-			}
-
-			if (verbose) {
-				Log::i << "GPR status all okay. Code: " << std::hex << status << std::dec << endl;
-
-				int antenna_id = ids->antenna_id;
-				int low_batt = ids->low_battery;
-				char* fpga_id = new char[31];
-				char* firmware_ver = new char[31];
-
-				strncpy(fpga_id, ids->pga_id, 30);
-				fpga_id[30] = '\0';
-				strncpy(firmware_ver, ids->pgm_id, 30);
-				firmware_ver[30] = '\0';
-
-				Log::i << "\tAntenna ID:       " << antenna_id << endl;
-				Log::i << "\tLow battery?      " << low_batt << endl;
-				Log::i << "\tFPGA ID:          " << fpga_id << endl;
-				Log::i << "\tfirmware version: " << firmware_ver << endl;
-			}
+		if (ids->antenna_id != 26) {
+			success = false;
 		}
-		else {
-			Log::e << "GPR status error. Code: " << std::hex << status << std::dec << endl;
-			attempts++;
+
+		if (verbose) {
+			Log::i << "GPR status all okay. Code: " << std::hex << status << std::dec << endl;
+
+			int antenna_id = ids->antenna_id;
+			int low_batt = ids->low_battery;
+			char* fpga_id = new char[31];
+			char* firmware_ver = new char[31];
+
+			strncpy(fpga_id, ids->pga_id, 30);
+			fpga_id[30] = '\0';
+			strncpy(firmware_ver, ids->pgm_id, 30);
+			firmware_ver[30] = '\0';
+
+			Log::i << "\tAntenna ID:       " << antenna_id << endl;
+			Log::i << "\tLow battery?      " << low_batt << endl;
+			Log::i << "\tFPGA ID:          " << fpga_id << endl;
+			Log::i << "\tfirmware version: " << firmware_ver << endl;
 		}
 	}
+	else {
+		Log::e << "GPR status error. Code: " << std::hex << status << std::dec << endl;
+	}
+	
 
 	return success;
 }
@@ -345,27 +352,59 @@ bool GPR::initialise() {
 	//generate the configuration parameters that will
 	// be sent to initialise the hardware
 	Log::i << "Initialising hardware parameters..." << endl;
-	setFlushMode(GPR_PARAM_UPDATE_FLUSH_ALL);
+	setFlushMode(GPR_PARAM_UPDATE_CHANGES_ONLY);
 
 	success = flushParams();
 	if (!success)
 		return false;
 
-	setFlushMode(GPR_PARAM_UPDATE_CHANGES_ONLY);
-
-	if (!success)
-		return false;
-
 	properly_initialised = true;
+
+
+	
+	Log::e << "ending init routine, starting thread" << endl;
+
+	updater = new std::thread(&GPR::constThread, this);
 
 	return true;
 }
 
 
+
+bool GPR::constThread() {
+	shouldExit = false;
+	
+	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
+	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
+	std::chrono::duration<double> seconds;
+
+	t1 = std::chrono::high_resolution_clock::now();
+	t2 = t1;
+
+	while (!shouldExit) {
+		t2 = std::chrono::high_resolution_clock::now();
+		seconds = t2 - t1;
+		if (seconds.count() > 0.01) {
+			getData(true);
+			t1 = t2;
+		}
+		else {
+			getData();
+		}
+
+		std::this_thread::sleep_for(std::chrono::microseconds(1));
+	}
+
+	return false;
+}
+
+
+
+
 /*
 TODO(Jono) : this is incomplete
 */
-bool GPR::getData() {
+bool GPR::getData(bool andKeep) {
 
 	if (!properly_initialised)
 		return false;
@@ -374,6 +413,7 @@ bool GPR::getData() {
 	bool success = false;
 	unsigned int attempts = 0;
 
+	/*
 	while (!success) {
 		status = read_data(dataBuffer, -1, ids);
 		success = processStatusCode();
@@ -382,16 +422,15 @@ bool GPR::getData() {
 		if (attempts > MAX_ATTEMPTS)
 			return false;
 	}
-
-
-	
-
+	*/
 
 	// this checks whether the GPR is ready, and calculates the number of 
 	// samples available to be read from the device. the number of samples
 	// is calculated everytime processStatusCode is called, which is called
 	// automatically by check-status.
-	success = checkStatus(false);
+	//success = checkStatus(false);
+	success = true;
+	samples = 24;
 
 	if (!success) {
 		samples = 0;
@@ -409,7 +448,7 @@ bool GPR::getData() {
 	//Log::d << "Samples: " << samples << endl;
 
 	if (samples < 24) {
-		Log::d << "Not enough samples available (3x512 for all channels)" << endl;
+		//Log::d << "Not enough samples available (3x512 for all channels)" << endl;
 		return false;
 	}
 
@@ -418,112 +457,141 @@ bool GPR::getData() {
 	unsigned int reading = 24;
 	status = read_data(dataBuffer, 64 * reading, ids);
 
-	unsigned int valuesMask = 0x0000FFFF;
-	unsigned int switchesMask = 0x000F0000;
-	unsigned int positionMask = 0x00300000;
-	unsigned int antennasMask = 0x00C00000;
-	unsigned int value, switches, position, antennas;
+	if (andKeep) {
 
-	// Don't need to be deleted at the end of the function
-	// as they are persistent in the Ascan
-	uint16_t* dif_vals = new uint16_t[CHANNEL_STRIDE];
-	uint16_t* ch1_vals = new uint16_t[CHANNEL_STRIDE];
-	uint16_t* ch2_vals = new uint16_t[CHANNEL_STRIDE];
-	unsigned int dif_count = 0;
-	unsigned int ch1_count = 0;
-	unsigned int ch2_count = 0;
+		unsigned int valuesMask = 0x0000FFFF;
+		unsigned int switchesMask = 0x000F0000;
+		unsigned int positionMask = 0x00300000;
+		unsigned int antennasMask = 0x00C00000;
+		int16_t value;
+		uint16_t switches, position, antennas;
+
+		// Don't need to be deleted at the end of the function
+		// as they are persistent in the Ascan
+		uint16_t* dif_vals = new uint16_t[CHANNEL_STRIDE];
+		uint16_t* ch1_vals = new uint16_t[CHANNEL_STRIDE];
+		uint16_t* ch2_vals = new uint16_t[CHANNEL_STRIDE];
+		unsigned int dif_count = 0;
+		unsigned int ch1_count = 0;
+		unsigned int ch2_count = 0;
 
 
+		int16_t vMax1 = -65535, vMax2 = -65535, vMaxD = -65535;
+		int16_t vMin1 = 65535, vMin2 = 65535, vMinD = 65535;
 
 
-	for (unsigned int i = 0; i<64 * reading; i++) {
+		for (unsigned int i = 0; i < 64 * reading; i++) {
 
-		//dataBuffer[i] = 0xFFFFFFFF;
+			//dataBuffer[i] = 0xFFFFFFFF;
 
-		value = dataBuffer[i] & valuesMask;
-		switches = (dataBuffer[i] & switchesMask) >> 16;
-		position = (dataBuffer[i] & positionMask) >> 20;
-		antennas = (dataBuffer[i] & antennasMask) >> 22;
+			value = dataBuffer[i] & valuesMask;
+			switches = (dataBuffer[i] & switchesMask) >> 16;
+			position = (dataBuffer[i] & positionMask) >> 20;
+			antennas = (dataBuffer[i] & antennasMask) >> 22;
 
+
+			//check the value of the switches -- regardless of 
+			// of the value of anything else in the data stream
+
+			/*
+			if ((switches & 0b0001) == 0b0000) {
+				Log::d << "blue button pressed" << endl;
+				blue_button = true;
+			} else {
+				blue_button = false;
+			}
+
+			if ((switches & 0b0010) == 0b0000) {
+				Log::d << "green button pressed" << endl;
+				green_button = true;
+			} else {
+				green_button = false;
+			}
+
+			if ((switches & 0b0100) == 0b0000) {
+				Log::d << "red button pressed" << endl;
+				red_button = true;
+			} else {
+				red_button = false;
+			}
+
+			if ((switches & 0b1000) == 0b0000) {
+				Log::d << "yellow button pressed" << endl;
+				yellow_button = true;
+			} else {
+				yellow_button = false;
+			}
+			*/
+
+			//sort the data into structures by channel
+			switch (antennas) {
+			case 0b00:
+				if (value > vMaxD)
+					vMaxD = value;
+				if (value < vMinD)
+					vMinD = value;
+				if (dif_count < 512)
+					dif_vals[dif_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
+				break;
+			case 0b10:
+				if (value > vMax1)
+					vMax1 = value;
+				if (value < vMin1)
+					vMin1 = value;
+				if (ch1_count < 512)
+					ch1_vals[ch1_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
+				break;
+			case 0b01:
+				if (value > vMax2)
+					vMax2 = value;
+				if (value < vMin2)
+					vMin2 = value;
+				if (ch2_count < 512)
+					ch2_vals[ch2_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
+				break;
+			default:
+				Log::e << "Unknown channel ID received. Data error." << endl;
+				return false;
+			}
+
+		}
+
+		range = vMax1 - vMin1;
 		
-		//check the value of the switches -- regardless of 
-		// of the value of anything else in the data stream
-
-
-		if ((switches & 0b0001) == 0b0000) {
-			Log::d << "blue button pressed" << endl;
-			blue_button = true;
-		} else {
-			blue_button = false;
-		}
-
-		if ((switches & 0b0010) == 0b0000) {
-			Log::d << "green button pressed" << endl;
-			green_button = true;
-		} else {
-			green_button = false;
-		}
+		Log::i << "Min/Max: " << vMin1 << "/" << vMax1 << " "
+			<< vMin2 << "/" << vMax2 << " "
+			<< vMinD << "/" << vMaxD << " "
+			<< endl;
 		
-		if ((switches & 0b0100) == 0b0000) {
-			Log::d << "red button pressed" << endl;
-			red_button = true;
-		} else {
-			red_button = false;
+		//Log::d << "Ascan counts: " << dif_count << " " << ch1_count << " " << ch2_count << endl;
+
+		if (dif_count == 512) {
+			Ascan* dif_scan = new Ascan(dif_count, dif_vals);
+			differential->add(dif_scan);
+		}
+		else {
+			delete dif_vals;
+			Log::e << "GPR comms sync mismatch detected. CHDIFF" << endl;
 		}
 
-		if ((switches & 0b1000) == 0b0000) {
-			Log::d << "yellow button pressed" << endl;
-			yellow_button = true;
-		} else {
-			yellow_button = false;
+		if (ch1_count == 512) {
+			Ascan* ch1_scan = new Ascan(ch1_count, ch1_vals);
+			channel1->add(ch1_scan);
 		}
-
-
-		//sort the data into structures by channel
-		switch (antennas) {
-		case 0b00:
-			dif_vals[dif_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
-			break;
-		case 0b10:
-			ch1_vals[ch1_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
-			break;
-		case 0b01:
-			ch2_vals[ch2_count++] = (uint16_t)(value*DIGITAL_GAIN + SIGNED_OFFSET);
-			break;
-		default:
-			Log::e << "Unknown channel ID received. Data error." << endl;
-			return false;
+		else {
+			delete ch1_vals;
+			Log::e << "GPR comms sync mismatch detected. CH1" << endl;
+		}
+		if (ch2_count == 512) {
+			Ascan* ch2_scan = new Ascan(ch2_count, ch2_vals);
+			channel2->add(ch2_scan);
+		}
+		else {
+			delete ch2_vals;
+			Log::e << "GPR comms sync mismatch detected. CH2" << endl;
 		}
 
 	}
-
-	//Log::d << "Ascan counts: " << dif_count << " " << ch1_count << " " << ch2_count << endl;
-
-	if (dif_count == 512) {
-		Ascan* dif_scan = new Ascan(dif_count, dif_vals);
-		differential->add(dif_scan);
-	}
-	else {
-		//delete dif_vals;
-		Log::e << "GPR comms sync mismatch detected" << endl;
-	}
-	if (ch1_count == 512) {
-		Ascan* ch1_scan = new Ascan(ch1_count, ch1_vals);
-		channel1->add(ch1_scan);
-	}
-	else {
-		//delete ch1_vals;
-		Log::e << "GPR comms sync mismatch detected" << endl;
-	}
-	if (ch2_count == 512) {
-		Ascan* ch2_scan = new Ascan(ch2_count, ch2_vals);
-		channel2->add(ch2_scan);
-	}
-	else {
-		//delete ch2_vals;
-		Log::e << "GPR comms sync mismatch detected" << endl;
-	}
-
 	//Log::i << endl;
 
 	return true;

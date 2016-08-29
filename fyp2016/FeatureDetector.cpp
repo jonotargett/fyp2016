@@ -26,6 +26,7 @@ bool FeatureDetector::initialise() {
 
 
 	scan = gpr->getBscan(GPR_DIFFERENTIAL);
+	//scan = gpr->getBscan(GPR_CHANNEL_1);
 
 	return true;
 }
@@ -33,9 +34,9 @@ bool FeatureDetector::initialise() {
 bool FeatureDetector::runScan() {
 	bool received = false;
 
-	while (!received) {
-		received = gpr->getData();
-	}
+	//while (!received) {
+	//	received = gpr->getData();
+	//}
 
 	return true;
 }
@@ -81,13 +82,13 @@ bool FeatureDetector::createImage(Visual displayMode) {
 
 	// initialise the surface to blue
 	for (int i = 0; i < image->w*image->h; i++) {
-		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0xFF);
+		pixels[i] = SDL_MapRGB(image->format, 0x00, 0x00, 0x00);
 	}
 
 	// if a scan is paired to this window, push it to the screen
 	if (scan != NULL) {
 
-		int cols = std::min(image->w, scan->length());
+		int cols = std::min(image->w, scan->length()-1);
 
 		for (int i = 0; i < cols; i++) {
 			Ascan* a = scan->element(i);

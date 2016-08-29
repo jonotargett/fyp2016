@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <bitset>
 #include <fstream>
+#include <thread>
 
 #include "csirousb.h"
 #include "Bscan.h"
@@ -9,7 +10,7 @@
 
 #define MAX_ATTEMPTS 10
 #define CHANNEL_STRIDE 512
-#define DIGITAL_GAIN 16
+#define DIGITAL_GAIN 512
 #define SIGNED_OFFSET 32768
 
 enum GPR_CHANNEL {
@@ -56,15 +57,23 @@ public:
 	GPR();
 	~GPR();
 
+	bool shouldExit;
+
 	bool initialise();
 	bool flushParams();
 
-	bool getData();
+	bool constThread();
+
+	
 	bool checkStatus(bool);
 	Bscan* getBscan(GPR_CHANNEL);
 
 private:
+	bool getData(bool = false);
+
+	int range;
 	bool properly_initialised;
+	std::thread* updater;
 
 	bool green_button;
 	bool red_button;
@@ -110,5 +119,5 @@ private:
 	bool setDifferentialAntennaGain(unsigned int);
 
 	bool processParams();
-	bool processStatusCode();
+	bool processStatusCode(bool verbose = false);
 };
