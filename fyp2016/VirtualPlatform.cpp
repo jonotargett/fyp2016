@@ -260,7 +260,7 @@ SDL_Texture* VirtualPlatform::retrieveGraphImage() {
 }
 
 void VirtualPlatform::drawText(std::string textToRender, int x, int y, bool fromEnd) {
-
+	
 		SDL_Color textColor = { 0, 0, 0, 255 };
 		textSurface = TTF_RenderText_Blended(standardFont, textToRender.c_str(), textColor);
 		SDL_Texture* mTexture = SDL_CreateTextureFromSurface(simulationCanvas->getRenderer(), textSurface);

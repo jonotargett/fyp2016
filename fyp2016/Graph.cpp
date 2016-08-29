@@ -53,8 +53,10 @@ SDL_Surface* Graph::retrieveImage() {
 
 void Graph::post(double val) {
 	//store the data
-	if (offset >= width)
+	if (offset >= (width-1)) {
 		offset = 0;
+		return;
+	}
 
 	vals[offset] = val;
 	offset++;

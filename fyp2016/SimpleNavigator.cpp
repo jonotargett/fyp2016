@@ -4,8 +4,8 @@
 
 SimpleNavigator::SimpleNavigator()
 {
-	//simpleTurnMaxAngleRad = 50 * PI / 180;
-	simpleTurnMaxAngleRad = 0;
+	simpleTurnMaxAngleRad = 50 * PI / 180;
+	//simpleTurnMaxAngleRad = 0;
 }
 
 
