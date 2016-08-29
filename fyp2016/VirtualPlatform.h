@@ -25,12 +25,13 @@ public:
 	void redrawGraphTexture();
 	SDL_Texture* retrieveSimulationImage();
 	SDL_Texture* retrieveGraphImage();
+	void drawPathToTexture();
 
 private:
 	DummyHardware* hw;
 	NavigationSystem* ns;
 	SimpleController* sc;
-
+	SimpleTexture* pathCanvas;
 	SimpleTexture* simulationCanvas;
 	SimpleTexture* graphCanvas;
 	SimpleTexture* quadTexture;
@@ -54,6 +55,7 @@ private:
 	double focusY = 0;
 
 	Point transform(Point p);
+
 	void setupFont();
 	void drawText(std::string textToRender, int x, int y, bool fromEnd = false);
 
