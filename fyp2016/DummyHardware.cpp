@@ -178,7 +178,7 @@ void DummyHardware::setDesiredBrake(double x) {
 	if (x < 0) x = 0;
 	desiredBrakePercentage = x;
 }
-void DummyHardware::setDesiredGear(HardwareInterface::Gear x) {
+void DummyHardware::setDesiredGear(Gear x) {
 	if (gearTimer <= 0 && realGear != x)
 		gearTimer = 0.5; // seconds per gear change
 	
@@ -331,4 +331,8 @@ int DummyHardware::getRealGear() {
 
 double DummyHardware::getRealBrakePercentage() {
 	return realBrakePercentage;
+}
+
+void DummyHardware::emergencyStop() {
+
 }

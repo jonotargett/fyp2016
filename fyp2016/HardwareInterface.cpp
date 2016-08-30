@@ -77,7 +77,7 @@ void HardwareInterface::setDesiredVelocity(double x) {}
 void HardwareInterface::setDesiredSteeringAngle(double x) {}
 void HardwareInterface::setDesiredThrottlePercentage(double x) {}
 void HardwareInterface::setDesiredBrakePercentage(double x) {}
-void HardwareInterface::setDesiredGear(HardwareInterface::Gear x) {}
+void HardwareInterface::setDesiredGear(Gear x) {}
 void HardwareInterface::updateVelocityActuators() {}
 
 
@@ -195,7 +195,7 @@ void HardwareInterface::setThrottlePercentage(double x) {
 	throttlePercentageLock = false;
 }
 
-HardwareInterface::Gear HardwareInterface::getGear() {
+Gear HardwareInterface::getGear() {
 	while (gearLock) {
 		//wait
 	}

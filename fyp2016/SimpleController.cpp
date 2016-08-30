@@ -150,7 +150,8 @@ void SimpleController::updateDynamics() {
 			bool loop = true;
 			while (loop) {
 				currentPathPoint--;
-				distance = hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint));
+				Point curPos = hwi->getPosition();
+				distance = curPos.getDistanceTo(*ns->getPath().at(currentPathPoint));
 				if (initialDist - distance < diff) {
 					loop = false;
 				}

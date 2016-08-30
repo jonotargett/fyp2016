@@ -180,10 +180,11 @@ bool Communications::communicationsLoop() {
 
 				// handle those
 				while (sendBuffer.size() > 0) {
+					/*
 					Log::d << "sending outgoing packet "
 						<< (packets - sendBuffer.size() + 1)
 						<< " of " << (packets) << "..." << endl;
-
+					*/
 					Packet* p = sendBuffer.front();
 
 					uint8_t* bytes = p->toBytes();
