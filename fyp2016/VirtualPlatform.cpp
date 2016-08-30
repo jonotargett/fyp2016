@@ -14,16 +14,20 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	hw = (DummyHardware*) hwi;
 	sc = (SimpleController*) dc;
 	ns = nav;
+	pathCanvas = new SimpleTexture(r);
 	simulationCanvas = new SimpleTexture(r);
 	graphCanvas = new SimpleTexture(r);
 
+	// stores the size of the window
 	int w, h;
 	SDL_GetRendererOutputSize(r, &w, &h);
-	textureWidth = w;
-	textureHeight = h;
+	// texture width and heights should be half of sceen width and height
+	textureWidth = w/2;
+	textureHeight = h/2;
 
+	pathCanvas->createBlank(textureWidth, textureHeight);
 	simulationCanvas->createBlank(textureWidth, textureHeight);
-	graphCanvas->createBlank(textureWidth/2, textureHeight/2);
+	graphCanvas->createBlank(textureWidth, textureHeight);
 
 	quadTexture = new SimpleTexture(r);
 	quadTexture->loadImage("quadBikeImage.png");
@@ -32,8 +36,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	sensorTexture = new SimpleTexture(r);
 	sensorTexture->loadImage("sensorImage.png");
 
-	graphWidth = 500;
-	graphHeight = (textureHeight/2)/4 - 2;
+	graphWidth = textureWidth;
+	graphHeight = (textureHeight/4);
 	
 	velocityGraph = new Graph(graphWidth, graphHeight, -2, 2, true);
 	steerGraph = new Graph(graphWidth, graphHeight, -27, 27, true);
@@ -42,7 +46,7 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 80;
+	drawScale = 40;
 	focusX = 4;
 	focusY = -2;
 
@@ -86,9 +90,9 @@ void VirtualPlatform::redrawGraphTexture() {
 	graphThrot.loadFromSurface(throttleGraph->retrieveImage());
 
 	SDL_Rect destRectVeloc = { 0, 0, graphWidth, graphHeight };
-	SDL_Rect destRectSteer = { 0, (graphHeight + 2), graphWidth, graphHeight };
-	SDL_Rect destRectGear = { 0, 2* (graphHeight + 2), graphWidth, graphHeight };
-	SDL_Rect destRectThrot = { 0, 3* (graphHeight + 2), graphWidth, graphHeight };
+	SDL_Rect destRectSteer = { 0, (graphHeight), graphWidth, graphHeight };
+	SDL_Rect destRectGear = { 0, 2* (graphHeight), graphWidth, graphHeight };
+	SDL_Rect destRectThrot = { 0, 3* (graphHeight), graphWidth, graphHeight };
 
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphVeloc.getTexture(), NULL, &destRectVeloc);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphSteer.getTexture(), NULL, &destRectSteer);
@@ -96,10 +100,10 @@ void VirtualPlatform::redrawGraphTexture() {
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphThrot.getTexture(), NULL, &destRectThrot);
 
 	
-	drawText("Velocity", graphWidth - 5, 0 * (graphHeight + 2), true);
-	drawText("Steering Angle", graphWidth - 5, 1 * (graphHeight + 2), true);
-	drawText("Gear Selection", graphWidth-5, 2 * (graphHeight + 2), true);
-	drawText("Throttle Percentage", graphWidth-5, 3 * (graphHeight + 2), true);
+	drawText("Velocity", graphWidth - 5, 0 * (graphHeight), true);
+	drawText("Steering Angle", graphWidth - 5, 1 * (graphHeight), true);
+	drawText("Gear Selection", graphWidth-5, 2 * (graphHeight), true);
+	drawText("Throttle Percentage", graphWidth-5, 3 * (graphHeight), true);
 
 
 	// rendering text
@@ -116,20 +120,20 @@ void VirtualPlatform::redrawGraphTexture() {
 	titleText += vel;
 	titleText += " m/s";
 	//drawText(titleText, 840, 76);
-	drawText(titleText, graphWidth - 5, 1 * (graphHeight + 2) - 20, true);
+	drawText(titleText, graphWidth - 5, 1 * (graphHeight) - 18, true);
 
 	titleText = "Throttle: ";
 	titleText += std::to_string((int)round(hw->getRealThrottlePercentage()));
 	titleText += " %";
 	//drawText(titleText, 840, 376);
-	drawText(titleText, graphWidth - 5, 4 * (graphHeight + 2) - 20, true);
+	drawText(titleText, graphWidth - 5, 4 * (graphHeight) - 18, true);
 
 	titleText = "Gear: ";
 	if (hw->getRealGear() == 1) titleText += "Drive";
 	if (hw->getRealGear() == 0) titleText += "Neutral";
 	if (hw->getRealGear() == -1) titleText += "Reverse";
 	//drawText(titleText, 840, 276);
-	drawText(titleText, graphWidth - 5, 3 * (graphHeight + 2) - 20, true);
+	drawText(titleText, graphWidth - 5, 3 * (graphHeight) - 18, true);
 
 	titleText = "Brake Percentage: ";
 	std::string brakePerc = std::to_string((int)abs(hw->getRealBrakePercentage()));
@@ -141,7 +145,7 @@ void VirtualPlatform::redrawGraphTexture() {
 	titleText += stang;
 	titleText += " degrees";
 	//drawText(titleText, 840, 176);
-	drawText(titleText, graphWidth - 5, 2 * (graphHeight + 2) - 20, true);
+	drawText(titleText, graphWidth - 5, 2 * (graphHeight) - 18, true);
 
 	
 
@@ -152,39 +156,43 @@ void VirtualPlatform::redrawGraphTexture() {
 /*
 Draws path to texture for the given drawScale and focus point defined within the function.
 */
+void VirtualPlatform::drawPathToTexture() {
+
+	pathCanvas->setAsRenderTarget();
+	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(pathCanvas->getRenderer());
+	// drawing the path in this for loop
+	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
+
+		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
+		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
+
+		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
+		Point loc1transf = transform(loc1);
+		Point loc2transf = transform(loc2);
+
+		SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
+		SDL_RenderDrawLine(pathCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
+		SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+		SDL_RenderDrawPoint(pathCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
+	}
+	SDL_SetRenderTarget(pathCanvas->getRenderer(), NULL);
+}
+
 void VirtualPlatform::redrawSimulationTexture() {
 
 	simulationCanvas->setAsRenderTarget();
 
-	
-
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
 	double steerAngle = hw->getRealSteeringAngle();
-
-	//clear screen to green
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(simulationCanvas->getRenderer());
-
 	
-	/*
-	// drawing the path in this for loop
-	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
+	//SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
+	//drawPathToTexture();
+	//simulationCanvas->setAsRenderTarget();
 
-		//Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
-		//Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
-
-		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
-		//Point loc1transf = transform(loc1);
-		//Point loc2transf = transform(loc2);
-
-		//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
-		//SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
-		//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-		//SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
-	}
-	*/
-	
+	// copy path texture over to this one
+	SDL_RenderCopy(simulationCanvas->getRenderer(), pathCanvas->getTexture(), NULL, NULL);
 
 	// drawing crosshairs over the focus point
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);

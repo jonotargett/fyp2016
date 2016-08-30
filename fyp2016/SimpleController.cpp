@@ -87,7 +87,7 @@ void SimpleController::updateDynamics() {
 	double desiredVel = 0;						// m/s
 	double turnTolerance = 0.2;					// meters at which turn point is considered reached
 	double lookAheadDistance = 1.2;				// meters
-	double steerAngleTolerance = 3 * PI / 180;	// radians, if steer angle is out by more that this, quad will slow down
+	double steerAngleTolerance = 8 * PI / 180;	// radians, if steer angle is out by more that this, quad will slow down (lowers desiredVelocity)
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist

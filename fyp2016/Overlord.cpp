@@ -79,8 +79,7 @@ void Overlord::run() {
 	// Feature detector stuff
 	//fd->loadScan();
 	//fd->createImage(DISPLAY_KERNEL);
-
-	
+		
 	fd->runScan();
 	fd->createImage(DISPLAY_RAW);
 	window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
@@ -88,6 +87,7 @@ void Overlord::run() {
 
 	showvp = true;
 	vp->redrawGraphTexture();
+	vp->drawPathToTexture();
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
@@ -133,6 +133,7 @@ void Overlord::run() {
 
 			
 			t1 = std::chrono::high_resolution_clock::now();
+			
 			vp->redrawSimulationTexture();						// render to texture
 			window->update(vp->retrieveSimulationImage(), PANE_TOPLEFT);	// render texture to window
 			t2 = std::chrono::high_resolution_clock::now();
