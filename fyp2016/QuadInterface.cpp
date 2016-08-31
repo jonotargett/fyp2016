@@ -286,19 +286,30 @@ void QuadInterface::setDesiredBrake(double b) {
 
 void QuadInterface::setDesiredGear(Gear g) {
 	if (!connected)
-		return;
+		return;	
 
-	Packet* p = new Packet();
+	current = std::chrono::high_resolution_clock::now();
+	seconds = current - lastGear;
 
-	p->packetID = ID_DEBUG;
-	p->length = 0;
+	if (seconds.count() > 0.100) {
+		Packet* p = new Packet();
 
-	uint8_t* bytes = p->toBytes();
+		p->packetID = ID_SET_QUAD_GEAR;
+		p->length = 1;
+		p->data = new float[1];
+		p->data[0] = (float)g;
 
-	serial.SendData((char*)bytes, p->getByteLength());
+		uint8_t* bytes = p->toBytes();
 
-	delete bytes;
-	delete p;
+		serial.SendData((char*)bytes, p->getByteLength());
+
+		delete bytes;
+		delete p;
+
+
+		lastGear = current;
+		
+	}
 }
 
 void QuadInterface::emergencyStop() {

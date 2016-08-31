@@ -56,5 +56,6 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastThrottle;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastSteering;
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastGear;
 };
 

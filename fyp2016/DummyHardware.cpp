@@ -52,7 +52,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	double brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
 
 	
-	double const positionAccuracy = 0.1;			// meters of spread each side of real value
+	double const positionAccuracy = 0.0;			// meters of spread each side of real value
 	double const headingAccuracy = 0;			// radians of spread each side of real value
 	double const velocityAccuracy = 0;			// m/s of spread each side of real value
 	double const steeringAccuracy = 0;			// radians of spread each side of real value
@@ -79,7 +79,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	// this will be handled by a proper controller with actual hardware
 	
 	if (realGear == GEAR_FORWARD || realGear == GEAR_REVERSE) {
-		double throttleSpeed = 0.25 + 0.1475 * realThrottlePercentage;
+		double throttleSpeed = 0.25 + 0.05 * realThrottlePercentage;
 		if (abs(realVelocity - throttleSpeed * realGear) < velocityChangeRate * time) realVelocity = throttleSpeed * realGear;
 		if (realVelocity < throttleSpeed * realGear) realVelocity += velocityChangeRate * time;
 		if (realVelocity > throttleSpeed * realGear) realVelocity -= velocityChangeRate * time;
@@ -192,7 +192,7 @@ void DummyHardware::setDesiredVelocity(double x) {
 // handles gear changes as well
 void DummyHardware::updateVelocityActuators() {
 
-	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.1475;
+	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);

@@ -27,12 +27,6 @@ bool Overlord::initialise() {
 	comms->setListener(this);
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
-	Log::i << "-> Initialising hardware interface..." << endl;
-	hwi = new QuadInterface();
-	//hwi = new DummyHardware();
-	hwi->initialise();
-	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
-
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
@@ -42,6 +36,12 @@ bool Overlord::initialise() {
 	dhwi = new DummyHardware();
 	dhwi->initialise();
 	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
+
+	Log::i << "-> Initialising hardware interface..." << endl;
+	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
+	hwi->initialise();
+	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
@@ -51,7 +51,7 @@ bool Overlord::initialise() {
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(hwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
-	fd->initialise();
+	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
@@ -98,6 +98,15 @@ void Overlord::run() {
 		
 		window->handleEvents();
 		this->handleEvents();
+
+		// setting real hardware to same as virtual hardware
+		// TODO() changed throttle percentage for better visual effect
+		/*hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
+		float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
+		if (steerAngle > 22) steerAngle = 22;
+		if (steerAngle < -22) steerAngle = -22;
+		hwi->setDesiredSteeringAngle(steerAngle);*/
+		hwi->setDesiredGear(dhwi->getGear());
 		
 
 
