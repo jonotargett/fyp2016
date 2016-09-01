@@ -15,8 +15,8 @@
 #include "CommsListener.h"
 
 
-#define DATA_REFRESH_RATE 200
-#define VIEW_REFRESH_RATE 60
+#define DATA_REFRESH_RATE 100
+#define VIEW_REFRESH_RATE 25
 
 
 class Overlord :
@@ -38,6 +38,7 @@ private:
 	Window* window;
 	Communications* comms;
 	HardwareInterface* hwi;
+	HardwareInterface* dhwi;
 	DriveController* dc;
 	NavigationSystem* ns;
 	FeatureDetector* fd;

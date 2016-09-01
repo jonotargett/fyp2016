@@ -15,6 +15,9 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 QuadInterface::QuadInterface()
 {
 	comPort = 1;
+	connected = false;
+	current = std::chrono::high_resolution_clock::now();
+	lastThrottle = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -65,7 +68,9 @@ bool QuadInterface::initialise() {
 
 	start();
 
-	serial.Close();
+	// leave the port open, normally. this was just here for debug purposes
+	//serial.Close();
+	connected = true;
 
 	return true;
 }
@@ -113,6 +118,7 @@ bool QuadInterface::establishCOM(int portnum) {
 		serial.Close();
 		return false;
 	}
+	//Log::d << "Sent " << count << endl;
 
 	// waiting for the return packet
 	
@@ -136,8 +142,10 @@ bool QuadInterface::establishCOM(int portnum) {
 				serial.Close();
 				return false;
 			}
-
 			else {
+
+				//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+
 				if (ret[0] == ID_SOH) {
 					collectingPacket = true;
 				}
@@ -220,4 +228,97 @@ bool QuadInterface::updateLoop() {
 
 
 	return true;
+}
+
+void QuadInterface::setDesiredVelocity(double v) {
+
+}
+
+void QuadInterface::setDesiredSteeringAngle(double a) {
+	if (!connected)
+		return;
+
+	current = std::chrono::high_resolution_clock::now();
+	seconds = current - lastSteering;
+
+	if (seconds.count() > 0.100) {
+		Packet* p = new Packet();
+
+		p->packetID = ID_SET_QUAD_STEERING;
+		p->length = 1;
+		p->data = new float[1];
+		p->data[0] = (float)a;
+
+		uint8_t* bytes = p->toBytes();
+
+		serial.SendData((char*)bytes, p->getByteLength());
+
+		lastSteering = current;
+	}
+}
+
+void QuadInterface::setDesiredThrottlePercentage(double t) {
+	if (!connected)
+		return;
+
+	current = std::chrono::high_resolution_clock::now();
+	seconds = current - lastThrottle;
+
+	if (seconds.count() > 0.100) {
+		Packet* p = new Packet();
+
+		p->packetID = ID_SET_QUAD_THROTTLE;
+		p->length = 1;
+		p->data = new float[1];
+		p->data[0] = (float)t;
+
+		uint8_t* bytes = p->toBytes();
+
+		serial.SendData((char*)bytes, p->getByteLength());
+
+		lastThrottle = current;
+	}
+}
+
+void QuadInterface::setDesiredBrake(double b) {
+
+}
+
+void QuadInterface::setDesiredGear(Gear g) {
+	if (!connected)
+		return;	
+
+	current = std::chrono::high_resolution_clock::now();
+	seconds = current - lastGear;
+
+	if (seconds.count() > 0.100) {
+		Packet* p = new Packet();
+
+		p->packetID = ID_SET_QUAD_GEAR;
+		p->length = 1;
+		p->data = new float[1];
+		p->data[0] = (float)g;
+
+		uint8_t* bytes = p->toBytes();
+
+		serial.SendData((char*)bytes, p->getByteLength());
+
+		delete bytes;
+		delete p;
+
+
+		lastGear = current;
+		
+	}
+}
+
+void QuadInterface::emergencyStop() {
+	Packet* p = new Packet();
+	p->packetID = ID_EMERGENCY_STOP;
+
+	uint8_t* bytes = p->toBytes();
+	serial.SendData((char*)bytes, p->getByteLength());
+
+	delete bytes;
+	delete p;
 }

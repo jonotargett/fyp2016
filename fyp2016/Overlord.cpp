@@ -27,36 +27,36 @@ bool Overlord::initialise() {
 	comms->setListener(this);
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
-	Log::i << "-> Initialising hardware interface..." << endl;
-	//hwi = new QuadInterface();
-	hwi = new DummyHardware();
-	hwi->initialise();
-	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
-
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
-	/*
+	
 	Log::i << "-> Initialising dummy hardware interface..." << endl;
 	dhwi = new DummyHardware();
 	dhwi->initialise();
 	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
-	*/
+
+	Log::i << "-> Initialising hardware interface..." << endl;
+	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
+	hwi->initialise();
+	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
+	
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
-	dc->initialise(hwi, ns);
+	dc->initialise(dhwi, ns);
 	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(hwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
-	fd->initialise();
+	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
-	vp->initialise(hwi, ns, dc, window->getRenderer());
+	vp->initialise(dhwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
 
@@ -98,6 +98,15 @@ void Overlord::run() {
 		
 		window->handleEvents();
 		this->handleEvents();
+
+		// setting real hardware to same as virtual hardware
+		// TODO() changed throttle percentage for better visual effect
+		/*hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
+		float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
+		if (steerAngle > 22) steerAngle = 22;
+		if (steerAngle < -22) steerAngle = -22;
+		hwi->setDesiredSteeringAngle(steerAngle);*/
+		hwi->setDesiredGear(dhwi->getGear());
 		
 
 
@@ -180,10 +189,12 @@ void Overlord::handleEvents() {
 		switch (p->packetID) {
 		case ID_EMERGENCY_STOP:
 			Log::e << "Action: EMERGENCY STOP" << endl;
+			hwi->emergencyStop();
 			handled = true;
 			break;
 		case ID_DEBUG:
 			Log::d << "Debug packet received" << endl;
+			hwi->setDesiredGear(GEAR_FORWARD);
 			handled = true;
 			break;
 		case ID_CLEAR_NAV_POINTS:
@@ -204,10 +215,18 @@ void Overlord::handleEvents() {
 			Log::d << "Action: stop engine" << endl;
 			handled = true;
 			break;
-		case ID_MANUALJOYSTICK:
+		case ID_MANUALJOYSTICK: {
 			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
+			float ang = p->data[0];	// in degrees
+			float mag = p->data[1];
+			float throttle = sin(ang * PI/180.0) * mag;
+			float steering = cos(ang * PI / 180.0) * mag;
+			hwi->setDesiredThrottlePercentage(throttle * 20);
+			hwi->setDesiredSteeringAngle(steering * 80);
+
 			handled = true;
 			break;
+		}
 		case ID_JOYSTICK_HELD:
 			Log::d << "Action: joystick enabled" << endl;
 			handled = true;

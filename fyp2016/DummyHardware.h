@@ -28,6 +28,7 @@ public:
 	void setDesiredThrottlePercentage(double);
 	void setDesiredBrake(double);
 	void setDesiredGear(Gear);
+	void emergencyStop();
 	
 	Point getRealPosition();
 	double getRealAbsoluteHeading();
