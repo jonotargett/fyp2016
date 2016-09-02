@@ -29,7 +29,7 @@ public:
 	~SimpleNavigator();
 
 	bool initialise();
-	void clear();
+	void clearPath();
 
 	void setPath(std::vector<Point*>);
 	std::vector<Point*> getPath();

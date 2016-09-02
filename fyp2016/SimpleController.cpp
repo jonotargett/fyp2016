@@ -91,6 +91,7 @@ void SimpleController::updateDynamics() {
 
 	if (currentPathPoint + pathTravDir >= ns->getPath().size() || currentPathPoint + pathTravDir < 0) {
 		// next point doesnt exist
+		desiredVel = 0;
 		return;
 	}
 

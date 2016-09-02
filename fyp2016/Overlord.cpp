@@ -79,6 +79,13 @@ void Overlord::run() {
 	// Feature detector stuff
 	//fd->loadScan();
 	//fd->createImage(DISPLAY_KERNEL);
+
+	//populating the path
+	/*ns->addPoint(Point(-2.5, -3));
+	ns->addPoint(Point(-4, 1.5));
+	ns->addPoint(Point(0, 1.5));
+	ns->addPoint(Point(10, -3));
+	ns->subdivide();*/
 		
 	fd->runScan();
 	fd->createImage(DISPLAY_RAW);

@@ -23,14 +23,20 @@ bool SimpleNavigator::initialise() {
 	return true;
 }
 
-void SimpleNavigator::clear() {
-
+void SimpleNavigator::clearPath() {
+	//TODO(Harry)
 }
 
 void SimpleNavigator::setPath(std::vector<Point*>) {
 
 }
 
+
+/*
+addPoint: entire path should be cleared before adding more points (call clearPath()),
+else when we go to subdivide it is going to try and subdivide points which have 
+already been subdivided.
+*/
 void SimpleNavigator::addPoint(Point p) {
 	Point* np = new Point(p.x, p.y);
 
@@ -61,15 +67,17 @@ bool SimpleNavigator::subdivide() {
 	std::vector<Point> subdividedPath;
 
 	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(-2, -4);
+	Point dummyPoints = Point(-2.5, -3);
 	addPoint(dummyPoints);
-	dummyPoints = Point(-2, -2);
+	dummyPoints = Point(-4, 1.5);
 	addPoint(dummyPoints);
-	dummyPoints = Point(1, -2);
+	dummyPoints = Point(0, 1.5);
 	addPoint(dummyPoints);
-	dummyPoints = Point(4, 0);
+	dummyPoints = Point(0, -3);
 	addPoint(dummyPoints);
-	dummyPoints = Point(8, -1);
+	dummyPoints = Point(0, -2);
+	addPoint(dummyPoints);
+	dummyPoints = Point(5, 4);
 	addPoint(dummyPoints);
 
 	// for each line segment (each line between two 'ultimate' waypoints)

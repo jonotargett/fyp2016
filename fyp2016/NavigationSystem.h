@@ -15,7 +15,7 @@ public:
 	/* Clears all current paths, zones etc.
 	Returns:
 	*/
-	virtual void clear() = 0;
+	virtual void clearPath() = 0;
 
 	/*
 	sets the navigation path to be this list of points, in the order given
