@@ -244,6 +244,21 @@ bool Communications::communicationsLoop() {
 						byteNum = 0;
 						length = 0;
 					}
+					else if (receivedBuffer->size() == (length * 4 + 2)) {
+						if (msg == ID_ETB) {
+							collectingPacket = false;
+							processPacket();
+						}
+						else {
+							Log::e << "packet is corrupt. Length "
+								<< receivedBuffer->size() << "/" << (length * 4 + 2) << endl;
+							collectingPacket = false;
+							while (!receivedBuffer->empty()) {
+								receivedBuffer->pop();
+							}
+						}
+					}
+					/*
 					else if (msg == ID_ETB) {
 						//Log::i << receivedBuffer->size() << "/" << (length * 4 + 2) << endl;
 
@@ -253,11 +268,15 @@ bool Communications::communicationsLoop() {
 						}
 						else if (receivedBuffer->size() > (length * 4 + 2)) {
 							collectingPacket = false;
+							Log::e << "packet is fucked. Length " 
+								<< receivedBuffer->size() << "/" << (length*4+2) << endl;
+							processPacket();
 							while (!receivedBuffer->empty()) {
 								receivedBuffer->pop();
 							}
 						}
 					}
+					*/
 					else if (collectingPacket) {
 						if (byteNum == 1) {
 							length = msg;
@@ -293,6 +312,33 @@ bool Communications::processPacket() {
 
 	Packet* p = new Packet();
 
+	uint8_t id = receivedBuffer->front();
+	receivedBuffer->pop();
+	uint8_t len = receivedBuffer->front();
+	receivedBuffer->pop();
+
+	if (receivedBuffer->size() < len * 4) {
+		delete p;
+		while (receivedBuffer->size() > 0) {
+			receivedBuffer->pop();
+		}
+		Log::e << "Invalid size" << endl;
+		return false;
+	}
+
+	int offset = 0;
+	uint8_t* bytes = new uint8_t[len * 4 + 2];
+	bytes[offset++] = id;
+	bytes[offset++] = len;
+
+	while (!receivedBuffer->empty()) {
+		bytes[offset++] = receivedBuffer->front();
+		receivedBuffer->pop();
+	}
+
+	p->fromBytes(bytes, len * 4 + 2);
+
+	/*
 	p->packetID = (ID)receivedBuffer->front();
 	receivedBuffer->pop();
 	p->length = receivedBuffer->front();
@@ -338,7 +384,7 @@ bool Communications::processPacket() {
 
 	//Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
 	//Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
-
+	*/
 	listener->onEvent(p);
 
 	return true;

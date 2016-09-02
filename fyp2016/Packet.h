@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include "Log.h"
+
 // PACKET IDS
 
 enum ID : uint8_t {
@@ -26,6 +28,8 @@ enum ID : uint8_t {
 
 	ID_CLEAR_NAV_POINTS = 0x60,
 	ID_NAV_POINTS = 0x61,
+	ID_NAV_PATH = 0x62,
+	ID_NAV_ZONE = 0x63,
 
 	ID_SET_QUAD_THROTTLE = 0x70,
 	ID_SET_QUAD_STEERING = 0x71,
@@ -76,14 +80,16 @@ struct Packet {
 	ID packetID;
 	uint16_t length;
 	float* data;
+	uint8_t* bytes;
 
 	Packet() {
 		packetID = ID_NULL;
 		length = 0;
 		data = NULL;
+		bytes = NULL;
 	}
 	~Packet() {
-		delete data;
+		if(data != NULL) delete data;
 		data = NULL;
 	}
 
@@ -97,7 +103,7 @@ struct Packet {
 			byte_length = 254;
 		}
 
-		uint8_t* bytes = new uint8_t[byte_length];
+		bytes = new uint8_t[byte_length];
 
 		bytes[0] = ID_SOH;
 		bytes[1] = (uint8_t)packetID;
@@ -119,5 +125,45 @@ struct Packet {
 		bytes[++offset] = ID_ETB;
 
 		return bytes;
+	}
+
+	void fromBytes(uint8_t* b, uint16_t bl) {
+
+		if (bl < 2)
+			return;
+		
+		if(bytes != NULL)
+			delete bytes;
+		
+		bytes = b;
+
+		int offset = 0;
+		packetID = (ID)bytes[offset];
+		offset++;
+		length = bytes[offset];
+		offset++;
+
+		if (bl != length * 4 + 2) return;
+
+		if (data != NULL) {
+			delete data;
+		}
+		data = new float[length];
+
+		union u_tag {
+			uint8_t b[4];
+			float fval;
+		} u;
+
+		for (int i = 0; i < length; i++) {
+			u.b[0] = bytes[offset++];
+			u.b[1] = bytes[offset++];
+			u.b[2] = bytes[offset++];
+			u.b[3] = bytes[offset++];
+
+			data[i] = u.fval;
+		}
+
+		return;
 	}
 };

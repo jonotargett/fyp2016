@@ -298,6 +298,54 @@ void Overlord::handleEvents() {
 			handled = true;
 			break;
 		}
+		case ID_NAV_PATH:
+		{
+			Log::i << "Received navigation path" << endl;
+			union u_tag {
+				float f[2];
+				double dval;
+			} u;
+			for (int i = 0; i < p->length; i += 4) {
+				u.f[0] = p->data[i + 0];
+				u.f[1] = p->data[i + 1];
+
+				double lat = u.dval;
+
+				u.f[0] = p->data[i + 2];
+				u.f[1] = p->data[i + 3];
+
+				double lon = u.dval;
+				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
+				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
+			}
+			handled = true;
+			break;
+		}
+		case ID_NAV_ZONE:
+		{
+			Log::i << "Received navigation zone" << endl;
+			
+			union u_tag {
+				float f[2];
+				double dval;
+			} u;
+			for (int i = 0; i < p->length; i += 4) {
+				u.f[0] = p->data[i+0];
+				u.f[1] = p->data[i+1];
+
+				double lat = u.dval;
+
+				u.f[0] = p->data[i + 2];
+				u.f[1] = p->data[i + 3];
+
+				double lon = u.dval;
+				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
+				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
+			}
+			
+			handled = true;
+			break;
+		}
 		default:
 			Log::e << "Packet Error: Unrecognised command received. [" << p->packetID << "]" << endl;
 			handled = true;

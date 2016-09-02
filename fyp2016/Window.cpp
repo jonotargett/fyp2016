@@ -10,8 +10,8 @@ Window::Window()
 	// * 80 for  1280 x 720
 	// * 100 for 1600 x 900
 	// * 120 for 1920 x 1080
-	windowWidth = 16 * 100;
-	windowHeight = 9 * 100;
+	windowWidth = 16 * 80;
+	windowHeight = 9 * 80;
 
 	quit = false;
 
