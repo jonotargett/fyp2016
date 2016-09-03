@@ -57,6 +57,7 @@ private:
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastReceived;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastSent;
+	std::chrono::time_point<std::chrono::high_resolution_clock> startRecv;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 
 	char* formatIP(Uint32);

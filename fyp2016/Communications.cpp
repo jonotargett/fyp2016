@@ -56,7 +56,6 @@ bool Communications::initialise() {
 	}
 	Log::i << "Server socket opened... " << socket << " (" << ip.port << ")" << endl;
 
-
 	// starts our subthread.
 	start();
 
@@ -117,6 +116,7 @@ bool Communications::acceptClient() {
 		hasClient = true;
 		IPaddress* clientAddr = SDLNet_TCP_GetPeerAddress(client);
 		Log::i << "Client " << formatIP(clientAddr->host) << " connected to server socket." << std::endl;
+		while (!receivedBuffer->empty()) receivedBuffer->pop();
 	
 		lastReceived = std::chrono::high_resolution_clock::now();
 	}
@@ -240,49 +240,46 @@ bool Communications::communicationsLoop() {
 				}
 				else {
 					if (msg == ID_SOH) {
+						startRecv = std::chrono::high_resolution_clock::now();
 						collectingPacket = true;
 						byteNum = 0;
 						length = 0;
 					}
-					else if (receivedBuffer->size() == (length * 4 + 2)) {
-						if (msg == ID_ETB) {
+					else if (collectingPacket) {
+						seconds = current - startRecv;
+
+						if (seconds.count() * 1000 > TIMEOUT) {
+							Log::e << std::endl << "Communications Error: too long to receive packet." << std::endl;
 							collectingPacket = false;
-							processPacket();
+							while (!receivedBuffer->empty()) {
+								receivedBuffer->pop();
+							}
+						}
+						else if (receivedBuffer->size() >= (length * 4 + 2)) {
+							if (msg == ID_ETB) {
+								collectingPacket = false;
+								processPacket();
+							}
+							else {
+								Log::e << "packet is corrupt. Length "
+									<< receivedBuffer->size() << "/" << (length * 4 + 2) 
+									<< ", terminus 0x" << std::hex << (int)msg << endl;
+								collectingPacket = false;
+								while (!receivedBuffer->empty()) {
+									receivedBuffer->pop();
+								}
+							}
 						}
 						else {
-							Log::e << "packet is corrupt. Length "
-								<< receivedBuffer->size() << "/" << (length * 4 + 2) << endl;
-							collectingPacket = false;
-							while (!receivedBuffer->empty()) {
-								receivedBuffer->pop();
+							if (byteNum == 1) {
+								length = msg;
 							}
+							receivedBuffer->push(msg);
+							++byteNum;
 						}
-					}
-					/*
-					else if (msg == ID_ETB) {
-						//Log::i << receivedBuffer->size() << "/" << (length * 4 + 2) << endl;
+						
 
-						if (receivedBuffer->size() == (length * 4 + 2)) {
-							collectingPacket = false;
-							processPacket();
-						}
-						else if (receivedBuffer->size() > (length * 4 + 2)) {
-							collectingPacket = false;
-							Log::e << "packet is fucked. Length " 
-								<< receivedBuffer->size() << "/" << (length*4+2) << endl;
-							processPacket();
-							while (!receivedBuffer->empty()) {
-								receivedBuffer->pop();
-							}
-						}
-					}
-					*/
-					else if (collectingPacket) {
-						if (byteNum == 1) {
-							length = msg;
-						}
-						receivedBuffer->push(msg);
-						++byteNum;
+						
 					}
 				}
 			}

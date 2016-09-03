@@ -47,9 +47,11 @@ public:
 	bool initialise();
 	void clearPath();
 
-	void setPath(std::vector<Point*>);
-	std::vector<Point*> getPath();
+	void setBaseLocation(LatLng);
+	void setPath(std::vector<Point>);
+	std::vector<Point> getPath();
 	void addPoint(Point);
+	void addPoint(LatLng);
 
 	// returns true if there is a next point in the path
 	bool updatePoint(Point position, float heading);

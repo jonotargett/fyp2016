@@ -30,6 +30,7 @@ bool Overlord::initialise() {
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
+	ns->subdivide();
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising dummy hardware interface..." << endl;
@@ -83,8 +84,8 @@ void Overlord::run() {
 	window->showWindow(true);
 
 	// Feature detector stuff
-	//fd->loadScan();
-	//fd->createImage(DISPLAY_KERNEL);
+	fd->loadScan();
+	fd->createImage(DISPLAY_KERNEL);
 
 	//populating the path
 	/*ns->addPoint(Point(-2.5, -3));
@@ -93,9 +94,9 @@ void Overlord::run() {
 	ns->addPoint(Point(10, -3));
 	ns->subdivide();*/
 		
-	fd->runScan();
-	fd->createImage(DISPLAY_RAW);
-	window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
+	//fd->runScan();
+	//fd->createImage(DISPLAY_RAW);
+	//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 	window->update(NULL, PANE_BOTTOMRIGHT);
 
 	showvp = true;
@@ -254,6 +255,8 @@ void Overlord::handleEvents() {
 			break;
 		case ID_BRAKE:
 			Log::d << "Action: brake" << endl;
+			//TODO(Jono) this needs to not be here
+			dc->setEnabled(!dc->isEnabled());
 			handled = true;
 			break;
 		case ID_HANDBRAKE_OFF:
@@ -266,7 +269,7 @@ void Overlord::handleEvents() {
 			break;
 		case ID_REQ_QUAD_SPEED:
 		{
-			float speed = hwi->getVelocity();
+			float speed = dhwi->getVelocity();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_SPEED;
@@ -279,7 +282,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_HEADING:
 		{
-			float head = hwi->getAbsoluteHeading();
+			float head = dhwi->getAbsoluteHeading();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_HEADING;
@@ -292,7 +295,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_POSITION:
 		{
-			Point pos = hwi->getPosition();
+			Point pos = dhwi->getPosition();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_POSITION;
@@ -307,6 +310,23 @@ void Overlord::handleEvents() {
 		case ID_NAV_PATH:
 		{
 			Log::i << "Received navigation path" << endl;
+			dc->setEnabled(false);
+			ns->clearPath();
+			Point dummyPoints = Point(-2.5, -3);
+			ns->addPoint(dummyPoints);
+			/*
+			dummyPoints = Point(-5, 2);
+			ns->addPoint(dummyPoints);
+			dummyPoints = Point(0, 2.5);
+			ns->addPoint(dummyPoints);
+			dummyPoints = Point(0, -3);
+			ns->addPoint(dummyPoints);
+			dummyPoints = Point(0, -2);
+			ns->addPoint(dummyPoints);
+			dummyPoints = Point(5, 4);
+			ns->addPoint(dummyPoints);
+			*/
+
 			union u_tag {
 				float f[2];
 				double dval;
@@ -321,9 +341,15 @@ void Overlord::handleEvents() {
 				u.f[1] = p->data[i + 3];
 
 				double lon = u.dval;
+
+				ns->addPoint(LatLng(lat, lon));
+				
+
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
+			ns->subdivide();
+			vp->drawPathToTexture();
 			handled = true;
 			break;
 		}

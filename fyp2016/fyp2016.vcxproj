@@ -130,6 +130,7 @@
     <ClCompile Include="GPR.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HardwareInterface.cpp" />
+    <ClCompile Include="LatLng.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="GPR.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
+    <ClInclude Include="LatLng.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="QuadInterface.h" />
     <ClInclude Include="Serial.h" />

@@ -23,15 +23,17 @@ private:
 	short color;
 	//HRTimer* timer;
 	std::chrono::time_point<std::chrono::system_clock> start;
+	std::stringstream* stream;
 
 public:
 
 	Logger() { start = std::chrono::system_clock::now(); suppressed = false; color = 0x0a; }
 	Logger(std::chrono::time_point<std::chrono::system_clock> s) : start(s) { suppressed = false; color = 0x0a; }
 	Logger(std::chrono::time_point<std::chrono::system_clock> s, short col) : start(s), color(col) { suppressed = false; }
+	
 	void suppress(bool b) { suppressed = b; }
 	bool isSuppressed() { return suppressed; }
-
+	void setStringStream(std::stringstream* ss) { stream = ss; }
 
 	template<typename T>
 	const Logger& operator<<(const T& v) const;
@@ -55,11 +57,22 @@ inline const Logger& Logger::operator<<(const T& v) const {
 
 		char buf[20];
 		sprintf(buf, "%12.6f", seconds.count());
+		
 
 		if (Log::repostTime)
 			std::cout << "[" << buf << "]\t" << v;
 		else
 			std::cout << v;
+
+
+		if (stream != NULL) {
+			if (Log::repostTime) {
+				(*stream) << "[" << buf << "]\t" << v;
+			}
+			else
+				(*stream) << v;
+		}
+		//Log::process();
 
 		Log::repostTime = false;
 	}
