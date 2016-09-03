@@ -50,7 +50,7 @@ private:
 	int textureWidth;
 	int textureHeight;
 
-	int drawScale = 1;
+	double drawScale = 0.2;
 	double focusX = 0;
 	double focusY = 0;
 

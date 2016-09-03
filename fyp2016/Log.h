@@ -2,7 +2,10 @@
 
 #include <iostream>
 #include <ostream>
+#include <sstream>
+#include <string>
 #include <chrono>
+#include <vector>
 
 //#include "HRTimer.h"
 #include "Logger.h"
@@ -25,6 +28,9 @@ class Log {
 private:
 	static Verbosity v;
 	static std::streambuf* orig_buf;
+	static std::stringstream stream;
+	static std::vector<std::string> lines;
+
 public:
 	static bool repostTime;
 	static Logger e;	// error;
@@ -37,5 +43,8 @@ public:
 	static Verbosity getVerbosity();
 	static void setVerbosity(Verbosity verbosity);
 	static void suppressCout(bool suppressed);
+
+	static void process();
+	static std::string getLineFromBack(unsigned int);
 };
 

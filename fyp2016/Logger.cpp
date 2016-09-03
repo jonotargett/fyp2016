@@ -8,6 +8,7 @@
 
 Logger const& Logger::operator<<(std::ostream& (*F)(std::ostream&)) const {
 
+	Log::process();
 	Log::repostTime = true;
 
 	if (!suppressed) {

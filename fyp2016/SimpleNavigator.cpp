@@ -6,6 +6,7 @@ SimpleNavigator::SimpleNavigator()
 {
 	simpleTurnMaxAngleRad = 50 * PI / 180;
 	//simpleTurnMaxAngleRad = 0;
+	baseLoc = LatLng(-34.919, 138.603);
 }
 
 
@@ -16,19 +17,37 @@ SimpleNavigator::~SimpleNavigator()
 
 bool SimpleNavigator::initialise() {
 	
-	// TODO(): subdivide() here for testing purposes at the moment
-	subdivide();
+	//filling path with dummy points for testing purposes:
+	Point dummyPoints = Point(-2.5, -3);
+	addPoint(dummyPoints);
+	dummyPoints = Point(-4, 1.5);
+	addPoint(dummyPoints);
+	dummyPoints = Point(0, 1.5);
+	addPoint(dummyPoints);
+	dummyPoints = Point(0, -3);
+	addPoint(dummyPoints);
+	dummyPoints = Point(0, -2);
+	addPoint(dummyPoints);
+	dummyPoints = Point(5, 4);
+	addPoint(dummyPoints);
+	
 
 	Log::d << "Navigator initialised." << std::endl;
 	return true;
 }
 
 void SimpleNavigator::clearPath() {
-	//TODO(Harry)
+
+	path.clear();
 }
 
-void SimpleNavigator::setPath(std::vector<Point*>) {
+void SimpleNavigator::setPath(std::vector<Point>) {
 
+}
+
+
+void SimpleNavigator::setBaseLocation(LatLng ll) {
+	baseLoc = ll;
 }
 
 
@@ -38,11 +57,13 @@ else when we go to subdivide it is going to try and subdivide points which have
 already been subdivided.
 */
 void SimpleNavigator::addPoint(Point p) {
-	Point* np = new Point(p.x, p.y);
-
-	path.push_back(np);
+	path.push_back(p);
 }
+void SimpleNavigator::addPoint(LatLng ll) {
+	Point rel = ll.relativeFrom(baseLoc);
 
+	path.push_back(rel);
+}
 
 
 
@@ -64,25 +85,13 @@ bool SimpleNavigator::subdivide() {
 	std::vector<double> turnAngleListDegrees = {
 		0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
 
-	std::vector<Point> subdividedPath;
-
-	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(-2.5, -3);
-	addPoint(dummyPoints);
-	dummyPoints = Point(-4, 1.5);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, 1.5);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, -3);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, -2);
-	addPoint(dummyPoints);
-	dummyPoints = Point(5, 4);
-	addPoint(dummyPoints);
+	//std::vector<Point> subdividedPath;
+	subdividedPath.clear();
+	
 
 	// for each line segment (each line between two 'ultimate' waypoints)
-	Point curPoint = *path.at(0);
-	Point nexPoint = *path.at(1);
+	Point curPoint = path.at(0);
+	Point nexPoint = path.at(1);
 	for (unsigned int i = 0; i < path.size() - 1; i++) {
 		
 		/*
@@ -94,7 +103,7 @@ bool SimpleNavigator::subdivide() {
 		//Point curPoint = *path.at(i);
 		//Point nexPoint = *path.at(i + 1);
 		
-		nexPoint = *path.at(i + 1);
+		nexPoint = path.at(i + 1);
 
 		Point directionVector = Point(nexPoint.x - curPoint.x,
 									nexPoint.y - curPoint.y);
@@ -137,7 +146,7 @@ bool SimpleNavigator::subdivide() {
 			
 			// figure out the turn angle
 			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
-			double angle2 = atan2(nexPoint.y - path.at(i + 2)->y, nexPoint.x - path.at(i + 2)->x);
+			double angle2 = atan2(nexPoint.y - path.at(i + 2).y, nexPoint.x - path.at(i + 2).x);
 			
 			// positive is clockwise. turn angle from -pi to pi
 			double turnAngle = (angle1 - angle2);
@@ -307,6 +316,7 @@ bool SimpleNavigator::subdivide() {
 		curPoint = subdividedPath.at(subdividedPath.size() - 1);
 	}
 
+	/*
 	for (unsigned int i = 0; i < path.size(); i++) {
 		delete path.at(i);
 	}
@@ -316,6 +326,7 @@ bool SimpleNavigator::subdivide() {
 		//Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
 	}
 	subdividedPath.clear();
+	*/
 	Log::d << "Path subdivision completed" << endl;
 	return false;
 }
@@ -381,8 +392,8 @@ bool SimpleNavigator::startPath() {
 	return true;
 }
 
-std::vector<Point*> SimpleNavigator::getPath() {
-	return path;
+std::vector<Point> SimpleNavigator::getPath() {
+	return subdividedPath;
 }
 
 

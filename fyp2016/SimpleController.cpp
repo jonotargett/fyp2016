@@ -4,6 +4,7 @@
 SimpleController::SimpleController()
 {
 	alive = true;
+	enabled = false;
 	navState = NAV_CRUISE;
 	pathTravDir = 1;
 	landmineDetected = false;
@@ -71,7 +72,9 @@ bool SimpleController::updateLoop() {
 
 		// TODO(harry) : this needs to be time independent.
 		// TODO(jono) : this is time independent...
-		updateDynamics();
+		if (enabled) {
+			updateDynamics();
+		}
 
 		//hrt.reset();
 		start = end;
@@ -96,11 +99,11 @@ void SimpleController::updateDynamics() {
 	}
 
 	// find angle between heading and to the next path point
-	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint)->y - hwi->getPosition().y, ns->getPath().at(currentPathPoint)->x - hwi->getPosition().x) + PI / 2;
+	double angleToPathPoint = -1 * atan2(ns->getPath().at(currentPathPoint).y - hwi->getPosition().y, ns->getPath().at(currentPathPoint).x - hwi->getPosition().x) + PI / 2;
 	if (angleToPathPoint > PI) angleToPathPoint -= 2 * PI;
 	if (angleToPathPoint < -PI) angleToPathPoint += 2 * PI;
 	double alpha = angleToPathPoint - hwi->getAbsoluteHeading();
-	double distance = hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint));
+	double distance = hwi->getPosition().getDistanceTo(ns->getPath().at(currentPathPoint));
 	double steerAngleReq = -atan(2 * hwi->wheelBase * sin(alpha) / distance);
 
 	if (steerAngleReq > hwi->maxSteerAngle) steerAngleReq = hwi->maxSteerAngle;
@@ -108,7 +111,7 @@ void SimpleController::updateDynamics() {
 	hwi->setDesiredSteeringAngle(steerAngleReq);
 
 
-	if (distance > hwi->getPosition().getDistanceTo(*ns->getPath().at(currentPathPoint + pathTravDir))) {
+	if (distance > hwi->getPosition().getDistanceTo(ns->getPath().at(currentPathPoint + pathTravDir))) {
 		if (navState != NAV_LANDMINE_DETECTED) {
 			// this means that we need to change direction when the quadbike reaches currentPathPoint (turn inbound?).
 			navState = NAV_TURNINBOUND;
@@ -152,7 +155,7 @@ void SimpleController::updateDynamics() {
 			while (loop) {
 				currentPathPoint--;
 				Point curPos = hwi->getPosition();
-				distance = curPos.getDistanceTo(*ns->getPath().at(currentPathPoint));
+				distance = curPos.getDistanceTo(ns->getPath().at(currentPathPoint));
 				if (initialDist - distance < diff) {
 					loop = false;
 				}

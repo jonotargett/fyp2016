@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Point.h"
+#include "LatLng.h"
 
 class NavigationSystem
 {
@@ -18,19 +19,26 @@ public:
 	virtual void clearPath() = 0;
 
 	/*
+	sets the position (in LatLng) of the relative calculations
+	so that everything else can be transformed to metres
+	*/
+	virtual void setBaseLocation(LatLng) = 0;
+
+	/*
 	sets the navigation path to be this list of points, in the order given
 	*/
-	virtual void setPath(std::vector<Point*>) = 0;
+	virtual void setPath(std::vector<Point>) = 0;
 
 	/*
 	adds the current point to the navigation path, appending to the end of the list
 	*/
 	virtual void addPoint(Point) = 0;
+	virtual void addPoint(LatLng) = 0;
 
 	/*
 	returns the navigation path
 	*/
-	virtual std::vector<Point*> getPath() = 0;
+	virtual std::vector<Point> getPath() = 0;
 	
 	/*
 	Prepares the list of points into a path that can be followed by the actual vehicle.

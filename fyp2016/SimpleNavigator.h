@@ -13,8 +13,29 @@
 class SimpleNavigator :
 	public NavigationSystem
 {
+public:
+	SimpleNavigator();
+	~SimpleNavigator();
+
+	bool initialise();
+	void clearPath();
+
+	void setBaseLocation(LatLng);
+	void setPath(std::vector<Point>);
+	std::vector<Point> getPath();
+	void addPoint(Point);
+	void addPoint(LatLng);
+
+	bool subdivide();
+	bool startPath();
+
+	void loop();
+
+
 private:
-	std::vector<Point*> path;
+	std::vector<Point> path;
+	std::vector<Point> subdividedPath;
+	LatLng baseLoc;
 
 	double simpleTurnMaxAngleRad;
 
@@ -24,21 +45,6 @@ private:
 	std::thread* updater;
 	double getDeltaY(double radians);
 
-public:
-	SimpleNavigator();
-	~SimpleNavigator();
-
-	bool initialise();
-	void clearPath();
-
-	void setPath(std::vector<Point*>);
-	std::vector<Point*> getPath();
-	void addPoint(Point);
-
-	bool subdivide();
-	bool startPath();
-
-	void loop();
 
 };
 

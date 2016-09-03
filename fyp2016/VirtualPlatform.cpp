@@ -46,9 +46,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 60;
-	focusX = -4;
-	focusY = 1.4;
+	drawScale = 15;
+	focusX = 0;
+	focusY = 0;
 
 	return true;
 }
@@ -78,12 +78,12 @@ void VirtualPlatform::redrawGraphTexture() {
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xEE, 0xEE, 0xF2, 0xFF);
 	SDL_RenderClear(simulationCanvas->getRenderer());
 
-	
+
 	SimpleTexture graphVeloc = SimpleTexture(graphCanvas->getRenderer());
 	SimpleTexture graphSteer = SimpleTexture(graphCanvas->getRenderer());
 	SimpleTexture graphGear = SimpleTexture(graphCanvas->getRenderer());
 	SimpleTexture graphThrot = SimpleTexture(graphCanvas->getRenderer());
-	
+
 	graphVeloc.loadFromSurface(velocityGraph->retrieveImage());
 	graphSteer.loadFromSurface(steerGraph->retrieveImage());
 	graphGear.loadFromSurface(gearGraph->retrieveImage());
@@ -91,19 +91,19 @@ void VirtualPlatform::redrawGraphTexture() {
 
 	SDL_Rect destRectVeloc = { 0, 0, graphWidth, graphHeight };
 	SDL_Rect destRectSteer = { 0, (graphHeight), graphWidth, graphHeight };
-	SDL_Rect destRectGear = { 0, 2* (graphHeight), graphWidth, graphHeight };
-	SDL_Rect destRectThrot = { 0, 3* (graphHeight), graphWidth, graphHeight };
+	SDL_Rect destRectGear = { 0, 2 * (graphHeight), graphWidth, graphHeight };
+	SDL_Rect destRectThrot = { 0, 3 * (graphHeight), graphWidth, graphHeight };
 
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphVeloc.getTexture(), NULL, &destRectVeloc);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphSteer.getTexture(), NULL, &destRectSteer);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphGear.getTexture(), NULL, &destRectGear);
 	SDL_RenderCopy(graphCanvas->getRenderer(), graphThrot.getTexture(), NULL, &destRectThrot);
 
-	
+
 	drawText("Velocity", graphWidth - 5, 0 * (graphHeight), true);
 	drawText("Steering Angle", graphWidth - 5, 1 * (graphHeight), true);
-	drawText("Gear Selection", graphWidth-5, 2 * (graphHeight), true);
-	drawText("Throttle Percentage", graphWidth-5, 3 * (graphHeight), true);
+	drawText("Gear Selection", graphWidth - 5, 2 * (graphHeight), true);
+	drawText("Throttle Percentage", graphWidth - 5, 3 * (graphHeight), true);
 
 
 	// rendering text
@@ -120,20 +120,20 @@ void VirtualPlatform::redrawGraphTexture() {
 	titleText += vel;
 	titleText += " m/s";
 	//drawText(titleText, 840, 76);
-	drawText(titleText, graphWidth - 5, 1 * (graphHeight) - 18, true);
+	drawText(titleText, graphWidth - 5, 1 * (graphHeight)-18, true);
 
 	titleText = "Throttle: ";
 	titleText += std::to_string((int)round(hw->getRealThrottlePercentage()));
 	titleText += " %";
 	//drawText(titleText, 840, 376);
-	drawText(titleText, graphWidth - 5, 4 * (graphHeight) - 18, true);
+	drawText(titleText, graphWidth - 5, 4 * (graphHeight)-18, true);
 
 	titleText = "Gear: ";
 	if (hw->getRealGear() == 1) titleText += "Drive";
 	if (hw->getRealGear() == 0) titleText += "Neutral";
 	if (hw->getRealGear() == -1) titleText += "Reverse";
 	//drawText(titleText, 840, 276);
-	drawText(titleText, graphWidth - 5, 3 * (graphHeight) - 18, true);
+	drawText(titleText, graphWidth - 5, 3 * (graphHeight)-18, true);
 
 	titleText = "Brake Percentage: ";
 	std::string brakePerc = std::to_string((int)abs(hw->getRealBrakePercentage()));
@@ -145,10 +145,12 @@ void VirtualPlatform::redrawGraphTexture() {
 	titleText += stang;
 	titleText += " degrees";
 	//drawText(titleText, 840, 176);
-	drawText(titleText, graphWidth - 5, 2 * (graphHeight) - 18, true);
+	drawText(titleText, graphWidth - 5, 2 * (graphHeight)-18, true);
 
-	
-
+	for (int i = 0; i < 10; i++) {
+		titleText = std::string(Log::getLineFromBack(i));
+		drawText(titleText, 10, 200 - 20*i);
+	}
 	SDL_SetRenderTarget(graphCanvas->getRenderer(), NULL);
 
 }
@@ -164,8 +166,8 @@ void VirtualPlatform::drawPathToTexture() {
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 
-		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
-		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
+		Point loc1 = Point(ns->getPath().at(i).x, ns->getPath().at(i).y);
+		Point loc2 = Point(ns->getPath().at(i + 1).x, ns->getPath().at(i + 1).y);
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
 		Point loc1transf = transform(loc1);
