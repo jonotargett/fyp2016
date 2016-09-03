@@ -14,6 +14,7 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	hw = (DummyHardware*) hwi;
 	sc = (SimpleController*) dc;
 	ns = nav;
+
 	pathCanvas = new SimpleTexture(r);
 	simulationCanvas = new SimpleTexture(r);
 	graphCanvas = new SimpleTexture(r);
@@ -47,8 +48,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	setupFont();
 
 	drawScale = 60;
-	focusX = -4;
-	focusY = 1.4;
+	focusX = 4;
+	focusY = 2;
 
 	return true;
 }
@@ -59,11 +60,6 @@ void VirtualPlatform::update() {
 	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph->post(hw->getRealGear());
 	throttleGraph->post(round(hw->getRealThrottlePercentage()));
-
-	SDL_PumpEvents();
-	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-		sc->landMineDetected();
-	}
 }
 
 

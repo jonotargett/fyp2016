@@ -39,7 +39,6 @@ bool Overlord::initialise() {
 
 	Log::i << "-> Initialising hardware interface..." << endl;
 	hwi = new QuadInterface();
-	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
@@ -59,6 +58,13 @@ bool Overlord::initialise() {
 	vp->initialise(dhwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
+
+	//filling path with dummy points for testing purposes:
+	ns->clearPath();
+	ns->addPoint(Point(2, 3));
+	ns->addPoint(Point(6, 4));
+	ns->addPoint(Point(10, 0));
+	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
 
 
 	initialised = true;

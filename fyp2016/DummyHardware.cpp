@@ -24,11 +24,11 @@ bool DummyHardware::initialise() {
 	startTime = std::chrono::high_resolution_clock::now();
 
 	// this is allowed to be magic numbers. nothing else should be though
-	realPosition = Point(-2.05, -4);
+	realPosition = Point(0, 0);
 
-	realAbsoluteHeading = 0.0;
+	realAbsoluteHeading = 0.0 * PI / 180;
 	realVelocity = 0.0;
-	realSteeringAngle = 0.0 * PI / 180;
+	realSteeringAngle = 0.0;
 	realThrottlePercentage = 0.0;
 	realGear = GEAR_NEUTRAL;
 

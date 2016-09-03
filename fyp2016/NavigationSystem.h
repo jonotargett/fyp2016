@@ -38,7 +38,7 @@ public:
 	before motion begins.
 	HARRISON: your stuff goes into this method
 	*/
-	virtual bool subdivide() = 0;
+	virtual bool subdivide(Point, float) = 0;
 
 
 	/*
