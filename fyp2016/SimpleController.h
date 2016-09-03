@@ -1,6 +1,7 @@
 #pragma once
 #include "DriveController.h"
 #include "Log.h"
+#include "SimpleNavigator.h"
 
 //#include "HRTimer.h"
 //#include "Thread.h"
@@ -13,11 +14,11 @@
 #endif
 
 
-enum NavState {
+/*enum NavState {
 	NAV_CRUISE,
 	NAV_TURNINBOUND,
 	NAV_LANDMINE_DETECTED,
-};
+};*/
 
 
 class SimpleController :
@@ -29,19 +30,16 @@ private:
 	unsigned int currentPathPoint;
 	bool landmineDetected;
 	int pathTravDir;
-	//NOTE(Harry) : NEVER NEVER EVER USE STRINGS LIKE THIS
-	//std::string navState = "cruise";
 	NavState navState;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 	std::chrono::time_point<std::chrono::high_resolution_clock> end;
 
-	//Thread* updater;
 	std::thread* updater;
 	bool alive;
 
 	HardwareInterface* hwi;
-	NavigationSystem* ns;
+	SimpleNavigator* ns;
 
 public:
 	SimpleController();
@@ -57,13 +55,3 @@ public:
 	bool updateLoop();
 
 };
-
-/*
-class ControlUpdaterRunnable : public Runnable {
-private:
-	SimpleController* controller;
-public:
-	ControlUpdaterRunnable(SimpleController* c) : controller(c) {	}
-	virtual void* run();
-};
-*/

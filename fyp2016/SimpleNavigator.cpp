@@ -5,8 +5,11 @@
 SimpleNavigator::SimpleNavigator()
 {
 	simpleTurnMaxAngleRad = 50 * PI / 180;
-	//simpleTurnMaxAngleRad = 0;
-	baseLoc = LatLng(-34.91702, 138.60391);
+	isForwards = true;
+	travelPathForwards = true;
+	currentPathPoint = 0;
+	navState = NAV_CRUISE;
+	nextTurnPoint = 0;
 }
 
 
@@ -16,28 +19,18 @@ SimpleNavigator::~SimpleNavigator()
 
 
 bool SimpleNavigator::initialise() {
-	
-	//filling path with dummy points for testing purposes:
-	Point dummyPoints = Point(-2.5, -3);
-	addPoint(dummyPoints);
-	dummyPoints = Point(-4, 1.5);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, 1.5);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, -3);
-	addPoint(dummyPoints);
-	dummyPoints = Point(0, -2);
-	addPoint(dummyPoints);
-	dummyPoints = Point(5, 4);
-	addPoint(dummyPoints);
-	
+	// doing this because i have no idea how to poperly initialise the vector
+	addPointBasic(Point(0, 0));
 
 	Log::d << "Navigator initialised." << std::endl;
 	return true;
+	
 }
 
 void SimpleNavigator::clearPath() {
-
+	for (unsigned int i = 0; i < path.size(); i++) {
+		delete path.at(i);
+	}
 	path.clear();
 }
 
@@ -45,27 +38,133 @@ void SimpleNavigator::setPath(std::vector<Point>) {
 
 }
 
+bool SimpleNavigator::updatePoint(Point position, float heading) {
 
-void SimpleNavigator::setBaseLocation(LatLng ll) {
-	baseLoc = ll;
+	if (!isNextPoint()) 
+		return false;
+
+	float lookAheadDistance = 1.8;
+	float turnTolerance = 0.2;
+	int increment = 0;
+	increment = (travelPathForwards) ? 1 : -1;
+	
+	// when incrementing the point, the distnace has to get bigger or smaller,
+	// if the distance gets bigger, keep incremening until distance is bigger
+	// than look ahead distance
+	// if the distance gets smaller, we have a turn inbound. stop incrememting!
+	
+	float distanceNow = position.getDistanceTo(*path.at(currentPathPoint));
+	float distanceNext = position.getDistanceTo(*path.at(currentPathPoint + increment));
+
+	// while we are cruising, and less than the look ahead distnace
+	while (navState == NAV_CRUISE && distanceNow < lookAheadDistance) {
+		if (!isNextPoint()) {
+			// have already incremented pathPoint by now
+			return true;
+		}
+		currentPathPoint += increment;
+		distanceNow = position.getDistanceTo(*path.at(currentPathPoint));
+		distanceNext = position.getDistanceTo(*path.at(currentPathPoint + increment));
+
+		if (distanceNow > distanceNext) {
+			// we have a turn coming up
+			navState = NAV_TURNINBOUND;
+			turnPoint = currentPathPoint;
+			break;
+		}
+	}
+	// turn stuff
+	// we know where the first turn point is at this stage, turnPoint
+	// is there another turn point after this?:
+	// if true, we have reached the turn point.
+	if (distanceNow < turnTolerance && navState == NAV_TURNINBOUND) {
+		isForwards = !isForwards;
+		navState = NAV_CRUISE;
+		
+		// but do we have another turn???
+		float nowTurnDistance = 0;
+		float nextTurnDistance = 0;
+		nextTurnPoint = turnPoint;
+		
+		do {
+			nowTurnDistance = path.at(turnPoint)->getDistanceTo(*path.at(currentPathPoint));
+			nextTurnDistance = path.at(turnPoint)->getDistanceTo(*path.at(currentPathPoint + increment));
+			if (nowTurnDistance > nextTurnDistance) {
+				
+				// we have another turn coming up
+				navState = NAV_TURNINBOUND;
+				turnPoint = currentPathPoint;
+				break;
+			}
+			if (!isNextPoint()) {
+				// there is no next turn point because theres no next point
+				break;
+			}
+			currentPathPoint += increment;
+		} while (nowTurnDistance < lookAheadDistance);
+
+		
+		
+	}
+	return true;
 }
 
+Point SimpleNavigator::getPoint() {
+	if (currentPathPoint < path.size()) {
+		return *path.at(currentPathPoint);
+	}
+	else {
+		return Point(NULL, NULL);
+	}
+	
+}
+
+bool SimpleNavigator::getIsForwards() {
+	return isForwards;
+}
+
+bool SimpleNavigator::isNextPoint() {
+	if (travelPathForwards) {
+		if (currentPathPoint + 1 >= path.size() - 1) {
+			return false;
+		}
+	}
+	if (!travelPathForwards) {
+		if (currentPathPoint - 1 < 0) {
+			return false;
+		}
+	}
+	return true;
+}
 
 /*
 addPoint: entire path should be cleared before adding more points (call clearPath()),
 else when we go to subdivide it is going to try and subdivide points which have 
 already been subdivided.
 */
-void SimpleNavigator::addPoint(Point p) {
-	path.push_back(p);
-}
-void SimpleNavigator::addPoint(LatLng ll) {
-	Point rel = ll.relativeFrom(baseLoc);
-
-	path.push_back(rel);
+void SimpleNavigator::addPointBasic(Point p) {
+	Point* np = new Point(p.x, p.y);
+	path.push_back(np);
 }
 
+void SimpleNavigator::addPoint(LatLng) {
 
+}
+
+
+bool SimpleNavigator::startPath() {
+
+	updater = new std::thread(&SimpleNavigator::loop, this);
+	return true;
+}
+
+std::vector<Point*> SimpleNavigator::getPath() {
+	return path;
+}
+
+void SimpleNavigator::setBaseLocation(LatLng) {
+
+}
 
 /*
 subdivide: takes user defined waypoints and subdivides them with waypoints
@@ -74,24 +173,39 @@ spaced apart as defined in variables at start of function.  1 unit represents
 segment is subdivided and waypoints for a turn into the next line segment is
 calculated and added.
 */
-bool SimpleNavigator::subdivide() {
-	// TODO(): adjust the units in this function when more info on GPS is available.
+bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
+	// need to connect the quadbike to the path, if it isnt already.
+	// add a line which extends from the front of hte quad bike a small distance,
+	// then connect that line to the first point in the path.
+	double distanceToStart = quadPosition.getDistanceTo(*path.at(0));
+	if (distanceToStart > 1) {
+		path.insert(path.begin(), new Point(quadPosition.x + 0.1*sin(heading), quadPosition.y + 0.1*cos(heading)));
+		path.insert(path.begin(), new Point(quadPosition.x, quadPosition.y));
+	}
+	else {
+		Log::e << "Cannot start demining process as quadbike begins too close to an unscanned region";
+		return false;
+	}
+
+
+
+	currentPathPoint = 0;
 	double const distanceBetweenWaypoints = 0.1;
 	double const distanceBetweenTurnWaypoints = 0.1;
-	double const turnRadius = 3.14;		// max turn radius of the quad bike
+	double const turnRadius = 3.25;		// max turn radius of the quad bike
 	
 	// heading of quad bike at each point of an N-point turn
+	// currently based on a max turn angle of 21.5 degrees, 
+	// -> turnRadius = 3.25m
 	std::vector<double> turnAngleListDegrees = {
-		0, 26, 62.6, 81.5, 101.9, 125.1, 148.3, 180 };
+		0, 26.7, 60.5, 77.3, 95.6, 113.9, 130.8, 180 };
 
-	//std::vector<Point> subdividedPath;
-	subdividedPath.clear();
-	
+	std::vector<Point> subdividedPath;
 
 	// for each line segment (each line between two 'ultimate' waypoints)
-	Point curPoint = path.at(0);
-	Point nexPoint = path.at(1);
+	Point curPoint = *path.at(0);
+	Point nexPoint = *path.at(1);
 	for (unsigned int i = 0; i < path.size() - 1; i++) {
 		
 		/*
@@ -99,11 +213,8 @@ bool SimpleNavigator::subdivide() {
 			get a unit vector in the direction from the start point to the finish point.
 			place a waypoint at each specified distance using the unit vector.
 		*/
-
-		//Point curPoint = *path.at(i);
-		//Point nexPoint = *path.at(i + 1);
 		
-		nexPoint = path.at(i + 1);
+		nexPoint = *path.at(i + 1);
 
 		Point directionVector = Point(nexPoint.x - curPoint.x,
 									nexPoint.y - curPoint.y);
@@ -146,7 +257,7 @@ bool SimpleNavigator::subdivide() {
 			
 			// figure out the turn angle
 			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
-			double angle2 = atan2(nexPoint.y - path.at(i + 2).y, nexPoint.x - path.at(i + 2).x);
+			double angle2 = atan2(nexPoint.y - path.at(i + 2)->y, nexPoint.x - path.at(i + 2)->x);
 			
 			// positive is clockwise. turn angle from -pi to pi
 			double turnAngle = (angle1 - angle2);
@@ -157,7 +268,7 @@ bool SimpleNavigator::subdivide() {
 				turnAngle -= 2 * PI;
 			}
 
-			if (abs(turnAngle) <= simpleTurnMaxAngleRad) {// conduct a simple turn
+			if (abs(turnAngle) <= simpleTurnMaxAngleRad && i > 0) {// conduct a simple turn (i > 0 because we dont want to do it on the first turn to alight the quad bike)
 
 				// distance from waypoint to begin conducting hte turn
 				double d = abs(turnRadius * tan(turnAngle / 2));
@@ -286,6 +397,7 @@ bool SimpleNavigator::subdivide() {
 					}
 					//adding the last point that the for loop would have missed.
 					double finalTurnAngle = (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j));
+					Log::i << finalTurnAngle * 180 / PI;
 					double newVecX = cos(finalTurnAngle * turnFactor) * dirVector.x + sin(finalTurnAngle * turnFactor) * dirVector.y;
 					double newVecY = -sin(finalTurnAngle * turnFactor) * dirVector.x + cos(finalTurnAngle * turnFactor) * dirVector.y;
 
@@ -316,17 +428,14 @@ bool SimpleNavigator::subdivide() {
 		curPoint = subdividedPath.at(subdividedPath.size() - 1);
 	}
 
-	/*
-	for (unsigned int i = 0; i < path.size(); i++) {
-		delete path.at(i);
-	}
-	path.clear();
+	clearPath();
+
 	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
-		addPoint(subdividedPath.at(i));
+		addPointBasic(subdividedPath.at(i));
 		//Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
 	}
 	subdividedPath.clear();
-	*/
+
 	Log::d << "Path subdivision completed" << endl;
 	return false;
 }
@@ -361,16 +470,15 @@ double SimpleNavigator::getDeltaY(double radians) {
 	|
 	|
 	*/
-
 	std::vector<Point> deltaYList = { Point(0, 0),
-		Point(26,-0.724),
-		Point(62.6,-0.51),
-		Point(81.5,-0.3),
-		Point(101.9,-0.07),
-		Point(125.1,0.2),
-		Point(148.3,0.7),
-		Point(165.8,2.72),
-		Point(180, 3)};
+		Point(26.7, -1.46),
+		Point(60.5, -0.09),
+		Point(77.3, -0.44),
+		Point(95.6, -0.37),
+		Point(113.9, -0.11),
+		Point(130.8, -0.62),
+		Point(180, 1.18)};
+
 	double degrees = abs(radians * 180 / PI);
 	int i = 0;
 	while (degrees > deltaYList.at(i).x) {
@@ -385,17 +493,6 @@ double SimpleNavigator::getDeltaY(double radians) {
 		*(deltaYList.at(i - 1).y - deltaYList.at(i).y);
 	return deltaY;
 }
-
-bool SimpleNavigator::startPath() {
-
-	updater = new std::thread(&SimpleNavigator::loop, this);
-	return true;
-}
-
-std::vector<Point> SimpleNavigator::getPath() {
-	return subdividedPath;
-}
-
 
 void SimpleNavigator::loop() {
 	endTime = std::chrono::high_resolution_clock::now();
