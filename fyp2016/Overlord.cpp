@@ -30,7 +30,6 @@ bool Overlord::initialise() {
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
-	ns->subdivide();
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising dummy hardware interface..." << endl;
@@ -62,9 +61,9 @@ bool Overlord::initialise() {
 
 	//filling path with dummy points for testing purposes:
 	ns->clearPath();
-	ns->addPoint(Point(2, 3));
-	ns->addPoint(Point(6, 4));
-	ns->addPoint(Point(10, 0));
+	ns->addPointBasic(Point(2, 3));
+	ns->addPointBasic(Point(6, 4));
+	ns->addPointBasic(Point(10, 0));
 	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
 
 
@@ -313,7 +312,7 @@ void Overlord::handleEvents() {
 			dc->setEnabled(false);
 			ns->clearPath();
 			Point dummyPoints = Point(-2.5, -3);
-			ns->addPoint(dummyPoints);
+			ns->addPointBasic(dummyPoints);
 			/*
 			dummyPoints = Point(-5, 2);
 			ns->addPoint(dummyPoints);
@@ -348,7 +347,7 @@ void Overlord::handleEvents() {
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
-			ns->subdivide();
+			ns->subdivide(hwi->getPosition(), hwi->getAbsoluteHeading());
 			vp->drawPathToTexture();
 			handled = true;
 			break;

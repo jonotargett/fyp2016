@@ -20,7 +20,7 @@ SimpleNavigator::~SimpleNavigator()
 
 bool SimpleNavigator::initialise() {
 	// doing this because i have no idea how to poperly initialise the vector
-	addPoint(Point(0, 0));
+	addPointBasic(Point(0, 0));
 
 	Log::d << "Navigator initialised." << std::endl;
 	return true;
@@ -34,7 +34,7 @@ void SimpleNavigator::clearPath() {
 	path.clear();
 }
 
-void SimpleNavigator::setPath(std::vector<Point*>) {
+void SimpleNavigator::setPath(std::vector<Point>) {
 
 }
 
@@ -142,9 +142,13 @@ addPoint: entire path should be cleared before adding more points (call clearPat
 else when we go to subdivide it is going to try and subdivide points which have 
 already been subdivided.
 */
-void SimpleNavigator::addPoint(Point p) {
+void SimpleNavigator::addPointBasic(Point p) {
 	Point* np = new Point(p.x, p.y);
 	path.push_back(np);
+}
+
+void SimpleNavigator::addPoint(LatLng) {
+
 }
 
 
@@ -158,6 +162,9 @@ std::vector<Point*> SimpleNavigator::getPath() {
 	return path;
 }
 
+void SimpleNavigator::setBaseLocation(LatLng) {
+
+}
 
 /*
 subdivide: takes user defined waypoints and subdivides them with waypoints
@@ -424,7 +431,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	clearPath();
 
 	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
-		addPoint(subdividedPath.at(i));
+		addPointBasic(subdividedPath.at(i));
 		//Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
 	}
 	subdividedPath.clear();
