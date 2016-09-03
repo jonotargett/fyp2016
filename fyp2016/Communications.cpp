@@ -239,11 +239,14 @@ bool Communications::communicationsLoop() {
 					hasClient = false;
 				}
 				else {
-					if (msg == ID_SOH) {
+					if (msg == ID_SOH && !collectingPacket) {
 						startRecv = std::chrono::high_resolution_clock::now();
 						collectingPacket = true;
 						byteNum = 0;
 						length = 0;
+						while (!receivedBuffer->empty()) {
+							receivedBuffer->pop();
+						}
 					}
 					else if (collectingPacket) {
 						seconds = current - startRecv;
@@ -263,11 +266,13 @@ bool Communications::communicationsLoop() {
 							else {
 								Log::e << "packet is corrupt. Length "
 									<< receivedBuffer->size() << "/" << (length * 4 + 2) 
-									<< ", terminus 0x" << std::hex << (int)msg << endl;
+									<< ", terminus 0x" << std::hex << (int)msg << std::dec << endl;
 								collectingPacket = false;
+								processPacket();
 								while (!receivedBuffer->empty()) {
 									receivedBuffer->pop();
 								}
+								
 							}
 						}
 						else {
@@ -316,10 +321,10 @@ bool Communications::processPacket() {
 
 	if (receivedBuffer->size() < len * 4) {
 		delete p;
+		Log::e << "Invalid size, " << receivedBuffer->size() << "/" << (len * 4) << endl;
 		while (receivedBuffer->size() > 0) {
 			receivedBuffer->pop();
 		}
-		Log::e << "Invalid size" << endl;
 		return false;
 	}
 

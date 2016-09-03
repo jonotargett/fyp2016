@@ -145,7 +145,10 @@ struct Packet {
 		offset++;
 
 		if (bl != length * 4 + 2) return;
-
+		if (bl > 255) {
+			Log::e << "Packet is too long!" << endl;
+			return;
+		}
 		if (data != NULL) {
 			delete data;
 		}

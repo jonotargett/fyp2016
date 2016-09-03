@@ -162,7 +162,7 @@ void Overlord::run() {
 
 			// this is STATIC ATM
 			
-			fd->createImage(DISPLAY_RAW);
+			//fd->createImage(DISPLAY_RAW);
 			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 
 

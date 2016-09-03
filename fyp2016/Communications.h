@@ -45,8 +45,8 @@ private:
 
 	bool hasClient;
 	bool collectingPacket;
-	uint8_t byteNum;
-	uint8_t length;
+	int byteNum;
+	int length;
 
 	//Thread* updater;
 	std::thread* updater;

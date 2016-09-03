@@ -6,7 +6,7 @@ SimpleNavigator::SimpleNavigator()
 {
 	simpleTurnMaxAngleRad = 50 * PI / 180;
 	//simpleTurnMaxAngleRad = 0;
-	baseLoc = LatLng(-34.919, 138.603);
+	baseLoc = LatLng(-34.91702, 138.60391);
 }
 
 
