@@ -58,13 +58,21 @@ bool FeatureDetector::loadScan() {
 	01021000.DAT	- PVC10x15-para-at0.5cm SS10x05-at0.5cm
 	*/
 
-	empty->load("./scans/01011329.DAT");
-	Log::i << "empty scan loaded." << std::endl;
-	scan->load("./scans/01031453.DAT");
+	//empty->load("./scans/01011329.DAT");
+	//Log::i << "empty scan loaded." << std::endl;
+	//scan->load("./scans/01031453.DAT");
+	//scan->loadPlainText("./scans/All-1.4GHz-APC-Test3.dat");
+	scan->loadRDR("./scans/All-1.4GHz-ATT-Test1.rdr", ANT_CHANNEL1);
+	empty->loadRDR("./scans/All-1.4GHz-ATT-Test1.rdr", ANT_CHANNEL_DIFF);
+	//scan->loadRDR("./scans/All-1.4GHz-APC-Test2.rdr", ANT_CHANNEL1);
+	//empty->loadRDR("./scans/All-1.4GHz-APC-Test2.rdr", ANT_CHANNEL_DIFF);
+	//scan->loadRDR("./scans/All-1.4GHz-APM-Test2.rdr", ANT_CHANNEL1);
+	//empty->loadRDR("./scans/All-1.4GHz-APM-Test2.rdr", ANT_CHANNEL_DIFF);
+	
 	Log::i << "feature scan loaded." << std::endl;
 
 	Ascan* normal = scan->produceNormal(scan->length());
-	Log::i << "background noise identified." << std::endl;
+	Log::i << "background noise identified from antenna differential." << std::endl;
 	scan->normalise(normal);
 	Log::i << "feature scan normalised for background noise." << std::endl;
 
@@ -112,7 +120,16 @@ bool FeatureDetector::createImage(Visual displayMode) {
 				//uint8_t h = ((int)(v) / 256);
 				//uint8_t l = ((int8_t)v);
 
+
+				float gain = (pow(((float)j*3.0 / (float)rows), 3.0) + 1.0f);
+				v *= gain;
+
 				uint32_t offset = ((uint16_t)v) * 3;
+
+				while (offset >= 65536 * 3) {
+					offset -= 65536 * 3;
+				}
+
 				uint8_t r = colormap[offset + 0];
 				uint8_t g = colormap[offset + 1];
 				uint8_t b = colormap[offset + 2];

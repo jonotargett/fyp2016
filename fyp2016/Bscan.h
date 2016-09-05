@@ -11,7 +11,14 @@
 
 #define KERNEL_GAIN 32
 #define VERTICAL_GAIN 1
-#define HORIZONTAL_GAIN 1
+#define HORIZONTAL_GAIN 0.4
+
+enum AntType {
+	ANT_CHANNEL1,
+	ANT_CHANNEL2,
+	ANT_CHANNEL_DIFF
+};
+
 
 class Bscan
 {
@@ -22,6 +29,8 @@ public:
 	~Bscan();
 
 	void load(std::string filename);
+	void loadPlainText(std::string filename);
+	void loadRDR(std::string filename, AntType);
 	Ascan* element(int);
 	int length();
 

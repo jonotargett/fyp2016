@@ -9,6 +9,159 @@ Bscan::~Bscan()
 {
 }
 
+void Bscan::loadRDR(std::string filename, AntType channel) {
+	std::ifstream file;
+	char* memblock;
+	int offset = 0;
+	int size = 0;
+
+
+
+	file.open(filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+
+	if (!file.is_open()) {
+		char* buf = new char[256];
+		strerror_s(buf, 256, errno);
+		Log::e << "File Error: " << buf;
+		return;
+	}
+
+
+	size = (int)file.tellg();		//reports size in bytes?
+	memblock = new char[size];		// allocate enough space to store the file in RAM
+
+	file.seekg(0, std::ios::beg);
+	file.read(memblock, size);
+
+	file.close();
+
+	Log::d << "Filesize: " << size << std::endl;
+
+	// skip all of the header stuff
+	bool endFound = false;
+	char a, b, c;
+	while (!endFound) {
+		a = memblock[offset + 0];
+		b = memblock[offset + 1];
+		c = memblock[offset + 2];
+
+		if (a == 'e' & b == 'n' & c == 'd') {
+			endFound = true;
+			offset += 4;	// offset currently at 'e', skip until passed n,d, and \n
+		}
+		else {
+			offset += 1;
+		}
+	}
+
+	int ASCAN_STRIDE = 512;
+
+	switch (channel) {
+	case ANT_CHANNEL_DIFF:
+		offset += 4 * ASCAN_STRIDE;
+		break;
+	case ANT_CHANNEL2:
+		offset += 2 * ASCAN_STRIDE;
+		break;
+	case ANT_CHANNEL1:
+	default:
+		break;
+	}
+
+	while (offset < size) {
+
+		uint16_t* v = new uint16_t[ASCAN_STRIDE];
+		int count = 0;
+
+		while ((count < ASCAN_STRIDE) && offset < size) {
+
+			//TODO(Jono) check whether this is meant to be unsigned or 2s complement
+			uint16_t e = (uint8_t)memblock[offset + 1] * 256 + (uint8_t)memblock[offset];
+
+			v[count] = e;
+
+			count += 1;
+			offset += 2;
+		}
+
+		Ascan* scan = new Ascan(ASCAN_STRIDE, v);
+		scans.push_back(scan);
+
+		offset += 2 * 2 * ASCAN_STRIDE;
+	}
+
+	Log::d << scans.size() << " scans @ " << scans.at(0)->getSize() << std::endl;
+
+	delete memblock;
+	memblock = NULL;
+}
+
+void Bscan::loadPlainText(std::string filename) {
+	std::ifstream file;
+	//char* memblock;
+	int offset = 0;
+	int size = 0;
+
+
+
+	file.open(filename.c_str(), std::ios::in);
+
+
+	if (!file.is_open()) {
+		char* buf = new char[256];
+		strerror_s(buf, 256, errno);
+		Log::e << "File Error: " << buf;
+		return;
+	}
+
+
+	size = (int)file.tellg();		//reports size in bytes?
+	//memblock = new char[size];		// allocate enough space to store the file in RAM
+
+	//file.seekg(0, std::ios::beg);
+	//file.read(memblock, size);
+
+	//file.close();
+
+
+	Log::d << "Filesize: " << size << std::endl;
+
+
+	int ASCAN_STRIDE = 512;
+	uint16_t e;
+	int count = 0;
+	uint16_t* v = NULL;
+	char separator;
+
+	while (file >> e) {
+
+		if (count == 0) {
+			v = NULL;
+			v = new uint16_t[ASCAN_STRIDE];
+		}
+
+		v[count] = e;
+		
+
+		count++;
+
+		if (count < ASCAN_STRIDE) {
+			file >> separator;
+		}
+		else if (count == ASCAN_STRIDE) {
+			Ascan* scan = new Ascan(ASCAN_STRIDE, v);
+			scans.push_back(scan);
+			count = 0;
+		}
+	}
+	Log::d << count << endl;
+
+	Log::d << scans.size() << " scans @ " << scans.at(0)->getSize() << std::endl;
+
+	file.close();
+
+}
 
 void Bscan::load(std::string filename) {
 
@@ -241,9 +394,9 @@ int Bscan::Kernel(int dimension, unsigned int h, unsigned int d) {
 	}
 	xDif /= items;
 
-	*/
+	/**/
 
-	yDif = (int)std::sqrt((yDif * yDif)*VERTICAL_GAIN + (xDif * xDif)*HORIZONTAL_GAIN) * KERNEL_GAIN;
+	yDif = (int)std::sqrt((yDif * yDif)*VERTICAL_GAIN - (xDif * xDif)*HORIZONTAL_GAIN) * KERNEL_GAIN;
 
 
 	delete v;
