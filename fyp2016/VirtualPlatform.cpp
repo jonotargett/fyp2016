@@ -160,8 +160,8 @@ void VirtualPlatform::drawPathToTexture() {
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
 
-		Point loc1 = Point(ns->getPath().at(i)->x, ns->getPath().at(i)->y);
-		Point loc2 = Point(ns->getPath().at(i + 1)->x, ns->getPath().at(i + 1)->y);
+		Point loc1 = Point(ns->getPath().at(i).x, ns->getPath().at(i).y);
+		Point loc2 = Point(ns->getPath().at(i + 1).x, ns->getPath().at(i + 1).y);
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
 		Point loc1transf = transform(loc1);

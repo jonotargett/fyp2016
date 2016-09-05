@@ -21,8 +21,38 @@ enum NavState {
 class SimpleNavigator :
 	public NavigationSystem
 {
+
+public:
+	SimpleNavigator();
+	~SimpleNavigator();
+
+	bool initialise();
+	void clearPath();
+
+	void setBaseLocation(LatLng);
+	void setPath(std::vector<Point>);
+	std::vector<Point> getPath();
+	void addPoint(Point);
+	void addPoint(LatLng);
+
+	// returns true if there is a next point in the path
+	bool updatePoint(Point position, float heading);
+	// get the current point to steer to
+	Point getPoint();
+	// is the quad travelling in the forwards direction (mainly for defining turns)
+	bool getIsForwards();
+	// does the point exist when the argument is added to the currentPathPoint
+	bool isNextPoint();
+
+	bool subdivide(Point quadPosition, float heading);
+	bool startPath();
+
+	void loop();
+
 private:
-	std::vector<Point*> path;
+	std::vector<Point> path;
+	std::vector<Point> subdividedPath;
+	LatLng baseLoc;
 
 	double simpleTurnMaxAngleRad;
 
@@ -40,32 +70,6 @@ private:
 	NavState navState;
 
 
-public:
-	SimpleNavigator();
-	~SimpleNavigator();
-
-	bool initialise();
-	void clearPath();
-
-	void setBaseLocation(LatLng);
-	void setPath(std::vector<Point>);
-	std::vector<Point*> getPath();
-	void addPointBasic(Point);
-	void addPoint(LatLng);
-
-	// returns true if there is a next point in the path
-	bool updatePoint(Point position, float heading);
-	// get the current point to steer to
-	Point getPoint();
-	// is the quad travelling in the forwards direction (mainly for defining turns)
-	bool getIsForwards();
-	// does the point exist when the argument is added to the currentPathPoint
-	bool isNextPoint();
-
-	bool subdivide(Point quadPosition, float heading);
-	bool startPath();
-
-	void loop();
 
 };
 

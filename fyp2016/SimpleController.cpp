@@ -4,6 +4,7 @@
 SimpleController::SimpleController()
 {
 	alive = true;
+	enabled = false;
 	navState = NAV_CRUISE;
 	pathTravDir = 1;
 	landmineDetected = false;
@@ -69,7 +70,9 @@ bool SimpleController::updateLoop() {
 		end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> seconds = end - start;
 
-		updateDynamics();
+		if (enabled) {
+			updateDynamics();
+		}
 
 		start = end;
 

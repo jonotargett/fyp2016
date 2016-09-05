@@ -27,11 +27,6 @@ bool Overlord::initialise() {
 	comms->setListener(this);
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
-	Log::i << "-> Initialising navigation system..." << endl;
-	ns = new SimpleNavigator();
-	ns->initialise();
-	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
-	
 	Log::i << "-> Initialising dummy hardware interface..." << endl;
 	dhwi = new DummyHardware();
 	dhwi->initialise();
@@ -41,6 +36,16 @@ bool Overlord::initialise() {
 	hwi = new QuadInterface();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
+
+	Log::i << "-> Initialising navigation system..." << endl;
+	ns = new SimpleNavigator();
+	ns->initialise();
+	ns->clearPath();
+	ns->addPoint(Point(2, 3));
+	ns->addPoint(Point(6, 4));
+	ns->addPoint(Point(10, 0));
+	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
+	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
@@ -58,13 +63,6 @@ bool Overlord::initialise() {
 	vp->initialise(dhwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
-
-	//filling path with dummy points for testing purposes:
-	ns->clearPath();
-	ns->addPointBasic(Point(2, 3));
-	ns->addPointBasic(Point(6, 4));
-	ns->addPointBasic(Point(10, 0));
-	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
 
 
 	initialised = true;
@@ -85,14 +83,6 @@ void Overlord::run() {
 	// Feature detector stuff
 	fd->loadScan();
 	fd->createImage(DISPLAY_KERNEL);
-
-	//populating the path
-	/*ns->addPoint(Point(-2.5, -3));
-	ns->addPoint(Point(-4, 1.5));
-	ns->addPoint(Point(0, 1.5));
-	ns->addPoint(Point(10, -3));
-	ns->subdivide();*/
-		
 	//fd->runScan();
 	//fd->createImage(DISPLAY_RAW);
 	//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
@@ -311,20 +301,7 @@ void Overlord::handleEvents() {
 			Log::i << "Received navigation path" << endl;
 			dc->setEnabled(false);
 			ns->clearPath();
-			Point dummyPoints = Point(-2.5, -3);
-			ns->addPointBasic(dummyPoints);
-			/*
-			dummyPoints = Point(-5, 2);
-			ns->addPoint(dummyPoints);
-			dummyPoints = Point(0, 2.5);
-			ns->addPoint(dummyPoints);
-			dummyPoints = Point(0, -3);
-			ns->addPoint(dummyPoints);
-			dummyPoints = Point(0, -2);
-			ns->addPoint(dummyPoints);
-			dummyPoints = Point(5, 4);
-			ns->addPoint(dummyPoints);
-			*/
+
 
 			union u_tag {
 				float f[2];
@@ -347,8 +324,8 @@ void Overlord::handleEvents() {
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
-			ns->subdivide(hwi->getPosition(), hwi->getAbsoluteHeading());
-			vp->drawPathToTexture();
+			ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
+			//vp->drawPathToTexture();
 			handled = true;
 			break;
 		}
