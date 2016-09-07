@@ -41,7 +41,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 		return false;
 
 	float lookAheadDistance = 1.8;
-	float turnTolerance = 0.2;
+	float turnTolerance = 0.4;
 	int increment = 0;
 	increment = (travelPathForwards) ? 1 : -1;
 	

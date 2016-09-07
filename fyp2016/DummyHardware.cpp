@@ -17,7 +17,27 @@ double DummyHardware::random() {
 
 
 bool DummyHardware::initialise() {
-	// TODO: init whatever
+
+	velocityChangeRate = 0.6;		// metres/second^2
+	frictionalDecayRate = 120;		// %/second??
+	brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
+
+	positionAccuracy = 0.5;			// meters of spread each side of real value
+	driftSpeed = 0.002;				// drift speed of real position
+	headingAccuracy = 0;			// radians of spread each side of real value
+	velocityAccuracy = 0;			// m/s of spread each side of real value
+	steeringAccuracy = 0;			// radians of spread each side of real value
+	brakeAccuracy = 0;				// percent of spread each side of real value
+	throttleAccuracy = 0;			// percent of spread each side of real value
+
+	/*
+	double const positionAccuracy = 0;				// meters of spread each side of real value
+	double const headingAccuracy = 0;				// radians of spread each side of real value
+	double const velocityAccuracy = 0;				// m/s of spread each side of real value
+	double const steeringAccuracy = 0;				// radians of spread each side of real value
+	double const brakeAccuracy = 0;					// percent of spread each side of real value
+	double const throttleAccuracy = 0;				// percent of spread each side of real value
+	*/
 
 	srand((unsigned int)time(NULL));
 	//hrt = HRTimer();
@@ -25,6 +45,7 @@ bool DummyHardware::initialise() {
 
 	// this is allowed to be magic numbers. nothing else should be though
 	realPosition = Point(0, 0);
+	setPosition(Point(realPosition.x + random() * positionAccuracy, realPosition.y + random() * positionAccuracy));
 
 	realAbsoluteHeading = 0.0 * PI / 180;
 	realVelocity = 0.0;
@@ -47,26 +68,6 @@ bool DummyHardware::initialise() {
 
 void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
 
-	double velocityChangeRate = 0.6;		// metres/second^2
-	double frictionalDecayRate = 120;		// %/second??
-	double brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
-
-	
-	double const positionAccuracy = 0.0;			// meters of spread each side of real value
-	double const headingAccuracy = 0;			// radians of spread each side of real value
-	double const velocityAccuracy = 0;			// m/s of spread each side of real value
-	double const steeringAccuracy = 0;			// radians of spread each side of real value
-	double const brakeAccuracy = 0;				// percent of spread each side of real value
-	double const throttleAccuracy = 0;			// percent of spread each side of real value
-	
-/*
-	double const positionAccuracy = 0;				// meters of spread each side of real value
-	double const headingAccuracy = 0;				// radians of spread each side of real value
-	double const velocityAccuracy = 0;				// m/s of spread each side of real value
-	double const steeringAccuracy = 0;				// radians of spread each side of real value
-	double const brakeAccuracy = 0;					// percent of spread each side of real value
-	double const throttleAccuracy = 0;				// percent of spread each side of real value
-*/
 	updateActuators(time);
 	setSteeringAngle(realSteeringAngle + random() * steeringAccuracy);
 	setBrakePercentage(realBrakePercentage + random() * brakeAccuracy);
@@ -114,6 +115,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	}
 
 	// updating position
+	Point oldPosition = realPosition;
 	realPosition.x += distanceForward * sin(realAbsoluteHeading) + distanceRight * cos(realAbsoluteHeading);
 	realPosition.y += distanceForward * cos(realAbsoluteHeading) - distanceRight * sin(realAbsoluteHeading);
 	realAbsoluteHeading += angleTurned;
@@ -125,9 +127,22 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	updateVelocityActuators();
 	
 	// return values back to the hardware interface, as if theyd been measured.
-	setPosition(Point(realPosition.x + random() * positionAccuracy, realPosition.y + random() * positionAccuracy));
 	setAbsoluteHeading(realAbsoluteHeading + random() * headingAccuracy);
 	setVelocity(realVelocity + random() * velocityAccuracy);
+
+	// kalman filter simulation for position:
+	if (random() > 0.85) {
+		kalmanIncrement *= -1;
+	}
+	kalmanHeading += kalmanIncrement * (random() + 1) * 0.075;
+	if (getRealPosition().getDistanceTo(getPosition()) > positionAccuracy) {
+		kalmanHeading -= PI + (random() * 0);
+	}
+	Point positionDif = realPosition - oldPosition;
+	setPosition(Point(getPosition().x + positionDif.x + cos(kalmanHeading) * driftSpeed, getPosition().y + positionDif.y + sin(kalmanHeading) * driftSpeed));
+
+	//setPosition(Point(realPosition.x + random() * positionAccuracy, realPosition.y + random() * positionAccuracy));
+
 }
 
 void DummyHardware::updateActuators(double time) {

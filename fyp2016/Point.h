@@ -17,7 +17,7 @@ public:
 
 	//vector addition
 	friend Point operator+(const Point& p1, const Point& p2);
-	Point operator-(const Point&);
+	friend Point operator-(const Point& p1, const Point& p2);
 
 	//piecewise multiplication/division
 	Point operator*(double);
