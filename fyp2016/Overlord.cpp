@@ -91,7 +91,7 @@ void Overlord::run() {
 	showvp = true;
 	vp->redrawGraphTexture();
 	vp->drawPathToTexture();
-	//dc->setEnabled(true);				// uncomment this line when not connected to tablet
+	dc->setEnabled(true);				// uncomment this line when not connected to tablet
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;

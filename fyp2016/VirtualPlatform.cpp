@@ -220,14 +220,14 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_RenderCopyEx(simulationCanvas->getRenderer(), quadTexture->getTexture(), NULL, &quadRect, heading * 180 / PI, &rotationCenter, SDL_FLIP_NONE);
 
 	// drawing the quadbike outline
-	/*SDL_SetRenderDrawColor(mainCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y,
+	/*SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y,
 	(int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y,
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc + getRearR()).x, (int)transform(quadLoc + getRearR()).y,
 	(int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y,
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc + getFrontR()).x, (int)transform(quadLoc + getFrontR()).y,
 	(int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y);
-	SDL_RenderDrawLine(mainCanvas->getRenderer(), (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y,
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc + getFrontL()).x, (int)transform(quadLoc + getFrontL()).y,
 	(int)transform(quadLoc + getRearL()).x, (int)transform(quadLoc + getRearL()).y);*/
 
 	// point at quads local (0,0)
@@ -244,6 +244,31 @@ void VirtualPlatform::redrawSimulationTexture() {
 	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
 	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
 	*/
+
+	// draw the position determined by the gps and imu
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
+	Point GPSdrawPos = transform(hw->getPosition());
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y - 1);
+
+	// draw the actual position
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0x00, 0xFF);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y - 1);
 
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }

@@ -22,8 +22,8 @@ bool DummyHardware::initialise() {
 	frictionalDecayRate = 120;		// %/second??
 	brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
 
-	positionAccuracy = 0.5;			// meters of spread each side of real value
-	driftSpeed = 0.002;				// drift speed of real position
+	positionPrecision = 0.5;		// meters of spread each side of real value
+	driftSpeed = 0.2;				// meters of drift per second
 	headingAccuracy = 0;			// radians of spread each side of real value
 	velocityAccuracy = 0;			// m/s of spread each side of real value
 	steeringAccuracy = 0;			// radians of spread each side of real value
@@ -45,7 +45,8 @@ bool DummyHardware::initialise() {
 
 	// this is allowed to be magic numbers. nothing else should be though
 	realPosition = Point(0, 0);
-	setPosition(Point(realPosition.x + random() * positionAccuracy, realPosition.y + random() * positionAccuracy));
+	// gps position starts off accurate as we know the initial starting position
+	setPosition(realPosition);
 
 	realAbsoluteHeading = 0.0 * PI / 180;
 	realVelocity = 0.0;
@@ -135,13 +136,11 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		kalmanIncrement *= -1;
 	}
 	kalmanHeading += kalmanIncrement * (random() + 1) * 0.075;
-	if (getRealPosition().getDistanceTo(getPosition()) > positionAccuracy) {
+	if (getRealPosition().getDistanceTo(getPosition()) > positionPrecision) {
 		kalmanHeading -= PI + (random() * 0);
 	}
 	Point positionDif = realPosition - oldPosition;
-	setPosition(Point(getPosition().x + positionDif.x + cos(kalmanHeading) * driftSpeed, getPosition().y + positionDif.y + sin(kalmanHeading) * driftSpeed));
-
-	//setPosition(Point(realPosition.x + random() * positionAccuracy, realPosition.y + random() * positionAccuracy));
+	setPosition(Point(getPosition().x + positionDif.x + cos(kalmanHeading) * driftSpeed * time, getPosition().y + positionDif.y + sin(kalmanHeading) * driftSpeed * time));
 
 }
 

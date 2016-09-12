@@ -68,7 +68,7 @@ private:
 	double frictionalDecayRate;		// %/second??
 	double brakingAcceleration;		// m/s/s at 100% brake. interpolate inbetween
 
-	double positionAccuracy;		// meters of spread each side of real value
+	double positionPrecision;		// meters of spread each side of real value
 	double driftSpeed;			// drift speed of real position
 	double headingAccuracy;			// radians of spread each side of real value
 	double velocityAccuracy;			// m/s of spread each side of real value

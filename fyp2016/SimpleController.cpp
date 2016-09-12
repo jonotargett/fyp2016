@@ -118,4 +118,5 @@ void SimpleController::updateDynamics() {
 	else {
 		hwi->setDesiredVelocity(-desiredVelocity);
 	}
+	//hwi->setDesiredVelocity(0);
 }
