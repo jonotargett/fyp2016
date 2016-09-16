@@ -24,11 +24,12 @@ bool DummyHardware::initialise() {
 
 	positionPrecision = 0.5;		// meters of spread each side of real value
 	driftSpeed = 0.2;				// meters of drift per second
-	headingAccuracy = 0;			// radians of spread each side of real value
-	velocityAccuracy = 0;			// m/s of spread each side of real value
-	steeringAccuracy = 0;			// radians of spread each side of real value
+	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
+	velocityAccuracy = 0.5;			// m/s of spread each side of real value
+	steeringAccuracy = 0.005;		// radians of spread each side of real value
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
+	gpsAccuracy = 2;				// meters spread each side of real value
 
 	/*
 	double const positionAccuracy = 0;				// meters of spread each side of real value
@@ -43,12 +44,15 @@ bool DummyHardware::initialise() {
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
-	// this is allowed to be magic numbers. nothing else should be though
 	realPosition = Point(0, 0);
+	kinematicPosition = realPosition;
+	accelerometerPosition = realPosition;
+	gpsPosition = realPosition;
 	// gps position starts off accurate as we know the initial starting position
 	setPosition(realPosition);
 
 	realAbsoluteHeading = 0.0 * PI / 180;
+	kinematicHeading = realAbsoluteHeading;
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
 	realThrottlePercentage = 0.0;
@@ -56,6 +60,7 @@ bool DummyHardware::initialise() {
 
 	desiredSteeringAngle = 0.0;
 	desiredVelocity = 0.0;
+	timeSinceLastGpsUpdate = 0.0;
 
 	// return true once everything is initialised.
 	// seeing as there is no actual hardware here,
@@ -129,10 +134,59 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	
 	// return values back to the hardware interface, as if theyd been measured.
 	setAbsoluteHeading(realAbsoluteHeading + random() * headingAccuracy);
-	setVelocity(realVelocity + random() * velocityAccuracy);
+
+	// to mimic wheel encoder (perfectly accurate at 0m/s, and will always have direction right.
+	// error gets worse as speed gets greater (hence, * realVelocity)
+	if (realVelocity > 0) setVelocity(abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
+	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
+	if (realVelocity == 0) setVelocity(0);
+	
+
+
+
+	/**************************************
+	updating 3 different ways we would know position, IMU, GPS, and mathematical model (kinematics)
+	***************************************/
+
+	// kinematics
+	double kinDistanceTravelled = getVelocity() * time;
+	double kinDistanceForward = 0;
+	double kinDistanceRight = 0;
+	double kinAngleTurned = 0;
+	if (abs(getSteeringAngle()) < 0.01) {
+		kinDistanceForward = kinDistanceTravelled;
+	}
+	else {
+		double turnRadius = wheelBase / tan(-getSteeringAngle());
+		kinAngleTurned = kinDistanceTravelled / turnRadius;
+		kinDistanceForward = turnRadius * sin(angleTurned);
+		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
+	}
+	kinematicPosition.x += kinDistanceForward * sin(kinematicHeading) + distanceRight * cos(kinematicHeading);
+	kinematicPosition.y += kinDistanceForward * cos(kinematicHeading) - distanceRight * sin(kinematicHeading);
+	kinematicHeading += kinAngleTurned;
+
+	// GPS
+	// gets updated once every second. has fairly constant error when moving, big fluctuations when still (not implemented).
+	timeSinceLastGpsUpdate += time;
+	if (timeSinceLastGpsUpdate >= 1.0) {
+			double rand = random();
+			Point newGpsPos = Point(gpsPosition.x + rand * gpsAccuracy, gpsPosition.y + rand * gpsAccuracy);
+			while (newGpsPos.getDistanceTo(gpsPosition) > 0.4) {
+				rand = random();
+				newGpsPos = Point(gpsPosition.x + rand * gpsAccuracy, gpsPosition.y + rand * gpsAccuracy);
+			}
+			gpsPosition.x = realPosition.x + rand * gpsAccuracy;
+			gpsPosition.y = realPosition.y + rand * gpsAccuracy;
+			timeSinceLastGpsUpdate -= 1;
+	}
+
+
+
+
 
 	// kalman filter simulation for position:
-	if (random() > 0.85) {
+	/*if (random() > 0.85) {
 		kalmanIncrement *= -1;
 	}
 	kalmanHeading += kalmanIncrement * (random() + 1) * 0.075;
@@ -140,7 +194,9 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		kalmanHeading -= PI + (random() * 0);
 	}
 	Point positionDif = realPosition - oldPosition;
-	setPosition(Point(getPosition().x + positionDif.x + cos(kalmanHeading) * driftSpeed * time, getPosition().y + positionDif.y + sin(kalmanHeading) * driftSpeed * time));
+	setPosition(Point(getPosition().x + positionDif.x + cos(kalmanHeading) * driftSpeed * time, getPosition().y + positionDif.y + sin(kalmanHeading) * driftSpeed * time));*/
+
+	setPosition(realPosition);
 
 }
 
@@ -316,7 +372,15 @@ bool DummyHardware::updateLoop() {
 	return true;
 }
 
-
+Point DummyHardware::getKinematicPosition() {
+	return kinematicPosition;
+}
+Point DummyHardware::getAccelerometerPosition() {
+	return accelerometerPosition;
+}
+Point DummyHardware::getGPSPosition() {
+	return gpsPosition;
+}
 
 
 Point DummyHardware::getRealPosition() {

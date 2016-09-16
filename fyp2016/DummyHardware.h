@@ -38,6 +38,10 @@ public:
 	int getRealGear();
 	double getRealBrakePercentage();
 
+	Point getKinematicPosition();
+	Point getAccelerometerPosition();
+	Point getGPSPosition();
+
 private:
 	void update(double);
 	void updateActuators(double);
@@ -52,6 +56,12 @@ private:
 	Gear realGear;
 	double realBrakePercentage;
 
+	Point kinematicPosition;
+	double kinematicHeading;
+	Point accelerometerPosition;
+	Point gpsPosition;
+	double timeSinceLastGpsUpdate;
+
 	int kalmanIncrement = 1;
 	double kalmanHeading = 0;
 
@@ -64,17 +74,18 @@ private:
 	double gearTimer;
 
 
-	double velocityChangeRate;		// metres/second^2
-	double frictionalDecayRate;		// %/second??
-	double brakingAcceleration;		// m/s/s at 100% brake. interpolate inbetween
+	double velocityChangeRate;			// metres/second^2
+	double frictionalDecayRate;			// %/second??
+	double brakingAcceleration;			// m/s/s at 100% brake. interpolate inbetween
 
-	double positionPrecision;		// meters of spread each side of real value
-	double driftSpeed;			// drift speed of real position
-	double headingAccuracy;			// radians of spread each side of real value
+	double positionPrecision;			// meters of spread each side of real value
+	double driftSpeed;					// drift speed of real position
+	double headingAccuracy;				// radians of spread each side of real value
 	double velocityAccuracy;			// m/s of spread each side of real value
 	double steeringAccuracy;			// radians of spread each side of real value
 	double brakeAccuracy;				// percent of spread each side of real value
 	double throttleAccuracy;			// percent of spread each side of real value
+	double gpsAccuracy;					// meters spread each side of real value
 
 };
 

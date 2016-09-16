@@ -245,30 +245,31 @@ void VirtualPlatform::redrawSimulationTexture() {
 	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
 	*/
 
-	// draw the position determined by the gps and imu
+	// draw the position determined by the mathematical model, kinematic position
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
-	Point GPSdrawPos = transform(hw->getPosition());
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x, (int)GPSdrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x + 1, (int)GPSdrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)GPSdrawPos.x - 1, (int)GPSdrawPos.y - 1);
+	Point kinematicDrawPos = transform(hw->getKinematicPosition());
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y - 1);
 
-	// draw the actual position
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xFF, 0x00, 0xFF);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x + 1, (int)transform(quadLoc).y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)transform(quadLoc).x - 1, (int)transform(quadLoc).y - 1);
+	// draw the position determined by the GPS, gps position
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0xFF, 0xFF);
+	Point gpsDrawPos = transform(hw->getGPSPosition());
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y - 1);
 
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }
@@ -321,35 +322,35 @@ void VirtualPlatform::setupFont() {
 }
 
 Point VirtualPlatform::getRearL() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point rearLeft;
 	rearLeft.x = -(hw->overHang + hw->wheelBase)*sin(heading) - (hw->width / 2) * cos(heading);
 	rearLeft.y = -(hw->overHang + hw->wheelBase)*cos(heading) + (hw->width / 2) * sin(heading);
 	return rearLeft;
 }
 Point VirtualPlatform::getRearR() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point rearRight;
 	rearRight.x = -(hw->overHang + hw->wheelBase)*sin(heading) + (hw->width / 2) * cos(heading);
 	rearRight.y = -(hw->overHang + hw->wheelBase)*cos(heading) - (hw->width / 2) * sin(heading);
 	return rearRight;
 }
 Point VirtualPlatform::getFrontL() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point frontLeft;
 	frontLeft.x = hw->overHang * sin(heading) - (hw->width / 2) * cos(heading);
 	frontLeft.y = hw->overHang * cos(heading) + (hw->width / 2) * sin(heading);
 	return frontLeft;
 }
 Point VirtualPlatform::getFrontR() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point frontRight;
 	frontRight.x = hw->overHang * sin(heading) + (hw->width / 2) * cos(heading);
 	frontRight.y = hw->overHang * cos(heading) - (hw->width / 2) * sin(heading);
 	return frontRight;
 }
 Point VirtualPlatform::getRearC() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point rearCenter;
 	rearCenter.x = -(hw->wheelBase)*sin(heading);
 	rearCenter.y = -(hw->wheelBase)*cos(heading);
@@ -357,7 +358,7 @@ Point VirtualPlatform::getRearC() {
 }
 
 Point VirtualPlatform::getRWheel() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point rearRight;
 	rearRight.x = -(hw->wheelBase)*sin(heading) + (hw->width / 2 - hw->wheelWidth / 2) * cos(heading) - hw->wheelWidth / 2;
 	rearRight.y = -(hw->wheelBase)*cos(heading) - (hw->width / 2 - hw->wheelWidth / 2) * sin(heading) + hw->wheelRadius;
@@ -365,7 +366,7 @@ Point VirtualPlatform::getRWheel() {
 }
 
 Point VirtualPlatform::getLWheel() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point rearLeft;
 	rearLeft.x = -(hw->wheelBase)*sin(heading) - (hw->width / 2 - hw->wheelWidth / 2) * cos(heading) - hw->wheelWidth / 2;
 	rearLeft.y = -(hw->wheelBase)*cos(heading) + (hw->width / 2 - hw->wheelWidth / 2) * sin(heading) + hw->wheelRadius;
@@ -373,7 +374,7 @@ Point VirtualPlatform::getLWheel() {
 }
 
 Point VirtualPlatform::getSensorTopLeft() {
-	double heading = hw->getAbsoluteHeading();
+	double heading = hw->getRealAbsoluteHeading();
 	Point frontLeft;
 	frontLeft.x = hw->overHang * sin(heading) - (1.5) * cos(heading);
 	frontLeft.y = hw->overHang * cos(heading) + (1.5) * sin(heading);
