@@ -166,6 +166,7 @@
     <ClInclude Include="Graph.h" />
     <ClInclude Include="HardwareInterface.h" />
     <ClInclude Include="LatLng.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="QuadInterface.h" />
     <ClInclude Include="Serial.h" />
