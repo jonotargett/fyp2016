@@ -47,15 +47,14 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 60;
-	focusX = 4;
-	focusY = 2;
+	drawScale = 45;
+	focusX = 7;
+	focusY = 1;
 
 	return true;
 }
 
 void VirtualPlatform::update() {
-
 	velocityGraph->post(hw->getRealVelocity());
 	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph->post(hw->getRealGear());
@@ -270,6 +269,19 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y + 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y - 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y - 1);
+
+	// draw the position determined by the Kalman filter, kalmanPosition
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
+	Point kalmanDrawPos = transform(hw->getKalmanPosition());
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y + 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y - 1);
+	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y - 1);
 
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }

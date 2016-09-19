@@ -5,6 +5,7 @@
 #include <ctime>
 
 #include "Log.h"
+#include "Matrix.h"
 
 // want our updateloop to run at 60hz.
 #define REFRESH_RATE 60
@@ -41,12 +42,14 @@ public:
 	Point getKinematicPosition();
 	Point getAccelerometerPosition();
 	Point getGPSPosition();
+	Point getKalmanPosition();
 
 private:
 	void update(double);
 	void updateActuators(double);
 	void updateVelocityActuators();
 	double random();
+	void setUpKalmanMatrices();
 
 	Point realPosition;
 	double realAbsoluteHeading;
@@ -60,10 +63,8 @@ private:
 	double kinematicHeading;
 	Point accelerometerPosition;
 	Point gpsPosition;
+	Point oldgpsPosition;
 	double timeSinceLastGpsUpdate;
-
-	int kalmanIncrement = 1;
-	double kalmanHeading = 0;
 
 	double desiredSteeringAngle;
 	double desiredVelocity;
@@ -72,6 +73,22 @@ private:
 	double desiredBrakePercentage;
 
 	double gearTimer;
+
+	//kalman filter matrices:
+	// prediction step:
+	Matrix<double> mu;					// state space
+	Matrix<double> sigma;				// uncertainty of motion, covariance matrix
+	Matrix<double> g;					// state update function
+
+	// correction step:
+	Matrix<double> K;					// Kalman Gain
+	Matrix<double> G;					// Jacobian of g
+	Matrix<double> R;					// motion noise from g
+	Matrix<double> h;					// observation function, h
+	Matrix<double> H;					// Jacobian of h
+	Matrix<double> z;					// observation
+	Matrix<double> I;					// identity matrix
+	Matrix<double> Q;					// uncertainty of sensor observation
 
 
 	double velocityChangeRate;			// metres/second^2
