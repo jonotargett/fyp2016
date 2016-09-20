@@ -244,10 +244,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		sigma = (I - (K*H))*sigma;
 	}
 
-	
-	
-	
-	setPosition(realPosition);
+	setPosition(Point(mu.get(0, 0), mu.get(1, 0)));
 	setAbsoluteHeading(realAbsoluteHeading);
 }
 
