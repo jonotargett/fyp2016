@@ -265,7 +265,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 				turnAngle -= 2 * PI;
 			}
 
-			if (abs(turnAngle) <= simpleTurnMaxAngleRad && i > 0) {// conduct a simple turn (i > 0 because we dont want to do it on the first turn to alight the quad bike)
+			if (abs(turnAngle) <= simpleTurnMaxAngleRad && i > 0) {// conduct a simple turn 
+				
+				//(i > 0 because we dont want to do it on the first turn to alight the quad bike)
 
 				// distance from waypoint to begin conducting hte turn
 				double d = abs(turnRadius * tan(turnAngle / 2));

@@ -26,7 +26,7 @@ bool DummyHardware::initialise() {
 	driftSpeed = 0.2;				// meters of drift per second
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
 	velocityAccuracy = 0.5;			// m/s of spread each side of real value
-	steeringAccuracy = 0.005;		// radians of spread each side of real value
+	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2;				// meters spread each side of real value
@@ -206,16 +206,6 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	mu.put(1, 0, mu.get(1, 0) + kalmanDistanceForward * cos(mu.get(2, 0)) - kalmanDistanceRight * sin(mu.get(2, 0)));
 	mu.put(2, 0, mu.get(2, 0) + kalmanAngleTurned);
 
-	// the observation matrix
-	Point gpsHeadingVector = gpsPosition - oldgpsPosition;
-	double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x);
-	while (gpsAngle > PI) gpsAngle -= 2 * PI;
-	while (gpsAngle < -PI) gpsAngle += 2 * PI;
-
-	z.put(0, 0, gpsPosition.x);
-	z.put(1, 0, gpsPosition.y);
-	z.put(2, 0, gpsAngle);
-
 	// update jacobian of g for our current position
 	G.put(0, 2, kalmanDistanceForward * cos(mu.get(2, 0) - kalmanDistanceRight * sin(mu.get(2, 0))));
 	G.put(1, 2, -kalmanDistanceForward * sin(mu.get(2, 0) - kalmanDistanceRight * cos(mu.get(2, 0))));
@@ -225,20 +215,30 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
 	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
 	R.put(2, 2, pow(kalmanDistanceTravelled * 2 * PI/180, 2));
-	
-	// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
-	double speedAccuracy = 3 - getVelocity() * 2.3;
-	if (speedAccuracy < 0.25) speedAccuracy = 0.25;
-	Q.put(0, 0, speedAccuracy);
-	Q.put(1, 1, speedAccuracy);
-	// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed > 0.5m/s gps has s.d approx 10 degrees (0.17 rads)
-	double steerAccuracy = PI - getVelocity() * 5.94;
-	if (steerAccuracy < 0.17) steerAccuracy = 0.17;
-	Q.put(2, 2, steerAccuracy);
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
+	// if we have a new GPS coordinate put it through the kalman filter
 	if (oldgpsPosition.x != gpsPosition.x && oldgpsPosition.y != gpsPosition.y) {
+		// the observation matrix
+		Point gpsHeadingVector = gpsPosition - oldgpsPosition;
+		double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x);
+		while (gpsAngle > PI) gpsAngle -= 2 * PI;
+		while (gpsAngle < -PI) gpsAngle += 2 * PI;
+		z.put(0, 0, gpsPosition.x);
+		z.put(1, 0, gpsPosition.y);
+		z.put(2, 0, gpsAngle);
+
+		// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
+		double speedAccuracy = 3 - getVelocity() * 2.3;
+		if (speedAccuracy < 0.25) speedAccuracy = 0.25;
+		Q.put(0, 0, speedAccuracy);
+		Q.put(1, 1, speedAccuracy);
+		// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed > 0.5m/s gps has s.d approx 10 degrees (0.17 rads)
+		double steerAccuracy = PI - getVelocity() * 5.94;
+		if (steerAccuracy < 0.17) steerAccuracy = 0.17;
+		Q.put(2, 2, steerAccuracy);
+
 		K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
 		mu = mu + K * (z - mu);
 		sigma = (I - (K*H))*sigma;
