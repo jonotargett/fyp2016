@@ -214,37 +214,46 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 	z.put(0, 0, gpsPosition.x);
 	z.put(1, 0, gpsPosition.y);
-	z.put(0, 0, realAbsoluteHeading);
+	z.put(2, 0, gpsAngle);
 
 	// update jacobian of g for our current position
 	G.put(0, 2, kalmanDistanceForward * cos(mu.get(2, 0) - kalmanDistanceRight * sin(mu.get(2, 0))));
 	G.put(1, 2, -kalmanDistanceForward * sin(mu.get(2, 0) - kalmanDistanceRight * cos(mu.get(2, 0))));
 
 	// update R based on the time step, we are out by 0.5m every 20m
-	// heading is out by 0.5 degrees for every meter travelled
+	// heading is out by 2 (s.d) degrees for every meter travelled
 	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
 	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
-	R.put(2, 2, pow(kalmanDistanceTravelled * 0.5 * PI/180, 2));
+	R.put(2, 2, pow(kalmanDistanceTravelled * 2 * PI/180, 2));
 	
-	// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.4m/s (full speed)
-	Q.put(0, 0, 3 - getVelocity() * 2.3);
-	Q.put(1, 1, 3 - getVelocity() * 2.3);
-	// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed = 1.4m/s (full speed) gps has s.d approx 3 degrees (0.17 rads)
-	Q.put(2, 2, 0.1);
-	
+	// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
+	double speedAccuracy = 3 - getVelocity() * 2.3;
+	if (speedAccuracy < 0.25) speedAccuracy = 0.25;
+	Q.put(0, 0, speedAccuracy);
+	Q.put(1, 1, speedAccuracy);
+	// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed > 0.5m/s gps has s.d approx 10 degrees (0.17 rads)
+	double steerAccuracy = PI - getVelocity() * 5.94;
+	if (steerAccuracy < 0.17) steerAccuracy = 0.17;
+	Q.put(2, 2, steerAccuracy);
+
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
-	K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
-	mu = mu + K * (z - mu);
-	sigma = (I - (K*H))*sigma;
+	if (oldgpsPosition.x != gpsPosition.x && oldgpsPosition.y != gpsPosition.y) {
+		K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
+		mu = mu + K * (z - mu);
+		sigma = (I - (K*H))*sigma;
+	}
 
+	
+	
+	
 	setPosition(realPosition);
 	setAbsoluteHeading(realAbsoluteHeading);
 }
 
 
 void DummyHardware::setUpKalmanMatrices() {
-	mu = Matrix<double>(3, 1);					// state space (x, y, theta)
+	mu = Matrix<double>(3, 1);				// state space (x, y, theta)
 	sigma = Matrix<double>(3, 3);				// uncertainty of motion
 	g = Matrix<double>(3, 1);					// state update function
 	K = Matrix<double>(3, 3);					// Kalman Gain
@@ -261,6 +270,7 @@ void DummyHardware::setUpKalmanMatrices() {
 	mu.put(2, 0, realAbsoluteHeading);
 
 	G = I;
+
 }
 
 Point DummyHardware::getKalmanPosition() {

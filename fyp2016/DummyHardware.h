@@ -90,6 +90,8 @@ private:
 	Matrix<double> I;					// identity matrix
 	Matrix<double> Q;					// uncertainty of sensor observation
 
+	Matrix<double> A;
+
 
 	double velocityChangeRate;			// metres/second^2
 	double frictionalDecayRate;			// %/second??

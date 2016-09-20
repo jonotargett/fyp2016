@@ -23,6 +23,10 @@ double Point::getDistanceTo(Point p) {
 	return distance;
 }
 
+double Point::getLength() {
+	return getDistanceTo(Point(0, 0));
+}
+
 void Point::normalise()
 {
 	double length = sqrt(x*x + y*y);

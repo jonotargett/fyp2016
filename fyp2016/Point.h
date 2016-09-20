@@ -14,6 +14,7 @@ public:
 	void normalise();
 
 	double getDistanceTo(Point p);
+	double getLength();
 
 	//vector addition
 	friend Point operator+(const Point& p1, const Point& p2);
