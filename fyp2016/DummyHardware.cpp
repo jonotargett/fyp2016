@@ -29,7 +29,8 @@ bool DummyHardware::initialise() {
 	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
-	gpsAccuracy = 2;				// meters spread each side of real value
+	gpsAccuracy = 2.5;				// meters spread each side of real value
+	maxGpsMove = 0.5;
 
 	/*
 	double const positionAccuracy = 0;				// meters of spread each side of real value
@@ -49,6 +50,7 @@ bool DummyHardware::initialise() {
 	accelerometerPosition = realPosition;
 	gpsPosition = realPosition;
 	oldgpsPosition = realPosition;
+	oldPositionAtGpsUpdate = realPosition;
 	setPosition(realPosition);
 
 	realAbsoluteHeading = 10.0 * PI / 180;
@@ -171,19 +173,29 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 	// GPS
 	// gets updated once every second. has fairly constant error when moving, big fluctuations when still (not implemented).
+	// max movement of gps each second is as listed in maxGpsMove;
+	// new gps point needs to be within 2.5 meters of new real position, and within maxGpsMove of old gps coordinate (after being updated)
 	timeSinceLastGpsUpdate += time;
 	if (timeSinceLastGpsUpdate >= 1.0) {
-		double rand = random();
-		Point newGpsPos = Point(gpsPosition.x + rand * gpsAccuracy, gpsPosition.y + rand * gpsAccuracy);
-		while (newGpsPos.getDistanceTo(gpsPosition) > 0.4) {
-			rand = random();
-			newGpsPos = Point(gpsPosition.x + rand * gpsAccuracy, gpsPosition.y + rand * gpsAccuracy);
+		Point realMoveVector = realPosition - oldPositionAtGpsUpdate;
+
+		double randx = pow(random(), 1);
+		double randy = pow(random(), 1);
+		Point newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
+
+		while (newGpsPos.getDistanceTo(oldPositionAtGpsUpdate + realMoveVector) > maxGpsMove) {
+			randx = pow(random(), 1);
+			randy = pow(random(), 1);
+			newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
 		}
 		oldgpsPosition = gpsPosition;
-		gpsPosition.x = realPosition.x + rand * gpsAccuracy;
-		gpsPosition.y = realPosition.y + rand * gpsAccuracy;
+		oldPositionAtGpsUpdate = realPosition;
+
+		gpsPosition.x = realPosition.x + randx * gpsAccuracy;
+		gpsPosition.y = realPosition.y + randy * gpsAccuracy;
 		timeSinceLastGpsUpdate -= 1;
 	}
+
 
 	// Kalman filter:
 	// update kalman kinematics
@@ -212,11 +224,27 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 	// update R based on the time step, we are out by 0.5m every 20m
 	// heading is out by 2 (s.d) degrees for every meter travelled
-	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
-	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025 / 2, 2));
+	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025, 2));
+	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025, 2));
 	R.put(2, 2, pow(kalmanDistanceTravelled * 2 * PI/180, 2));
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
+
+	//put the IMU through the kalman filter
+	// IMU is out by 1 degree for every 360 degrees travelled. 
+	double imuHeading = realAbsoluteHeading;
+	Matrix<double> imuZ = Matrix<double>(1, 1);
+	imuZ.put(0, 0, imuHeading);
+	Matrix<double> imuX = Matrix<double>(1, 1);
+	imuX.put(0, 0, mu.get(2, 0));
+	Matrix<double> imuQ = Matrix<double>(1, 1);
+	imuQ.put(0, 0, 0.1);
+	Matrix<double> imuH = Matrix<double>(1, 3);
+	imuH.put(0, 2, 1);
+	Matrix<double> imuK = Matrix<double>(3, 1);
+	imuK = sigma * imuH.getTranspose() * (imuH * sigma * imuH.getTranspose() + imuQ).getInverse();
+	mu = mu + imuK * (imuZ - imuX);
+	sigma = (I - imuK * imuH) * sigma;
 
 	// if we have a new GPS coordinate put it through the kalman filter
 	if (oldgpsPosition.x != gpsPosition.x && oldgpsPosition.y != gpsPosition.y) {
@@ -230,10 +258,10 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		z.put(2, 0, gpsAngle);
 
 		// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
-		double speedAccuracy = 3 - getVelocity() * 2.3;
-		if (speedAccuracy < 0.25) speedAccuracy = 0.25;
-		Q.put(0, 0, speedAccuracy);
-		Q.put(1, 1, speedAccuracy);
+		double positionAccuracy = 3 - getVelocity() * 2.3;
+		if (positionAccuracy < 0.25) positionAccuracy = 0.25;
+		Q.put(0, 0, 0.25);
+		Q.put(1, 1, 0.25);
 		// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed > 0.5m/s gps has s.d approx 10 degrees (0.17 rads)
 		double steerAccuracy = PI - getVelocity() * 5.94;
 		if (steerAccuracy < 0.17) steerAccuracy = 0.17;
@@ -272,6 +300,12 @@ void DummyHardware::setUpKalmanMatrices() {
 
 Point DummyHardware::getKalmanPosition() {
 	return Point(mu.get(0, 0), mu.get(1, 0));
+}
+double DummyHardware::getKalmanHeading() {
+	return mu.get(2, 0);
+}
+double DummyHardware::getKinematicHeading() {
+	return kinematicHeading;
 }
 
 void DummyHardware::updateActuators(double time) {

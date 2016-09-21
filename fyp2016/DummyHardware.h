@@ -40,9 +40,11 @@ public:
 	double getRealBrakePercentage();
 
 	Point getKinematicPosition();
+	double getKinematicHeading();
 	Point getAccelerometerPosition();
 	Point getGPSPosition();
 	Point getKalmanPosition();
+	double getKalmanHeading();
 
 private:
 	void update(double);
@@ -105,6 +107,9 @@ private:
 	double brakeAccuracy;				// percent of spread each side of real value
 	double throttleAccuracy;			// percent of spread each side of real value
 	double gpsAccuracy;					// meters spread each side of real value
+	double maxGpsMove;					// how much the gps will move each second at maximum
+
+	Point oldPositionAtGpsUpdate;
 
 };
 

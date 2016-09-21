@@ -47,9 +47,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 45;
-	focusX = 7;
-	focusY = 1;
+	drawScale = 60;
+	focusX = 4;
+	focusY = 3;
 
 	return true;
 }
@@ -180,6 +180,7 @@ void VirtualPlatform::redrawSimulationTexture() {
 
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
+	double kalmanHeading = hw->getKalmanHeading();
 	double steerAngle = hw->getRealSteeringAngle();
 	
 	//SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
@@ -243,6 +244,19 @@ void VirtualPlatform::redrawSimulationTexture() {
 	(int)transform(Point(quadLoc.x + getRearC().x - sin(heading + getSteerAng())*hw->wheelRadii, 0)).x,
 	(int)transform(Point(0, quadLoc.y + getRearC().y - cos(heading + getSteerAng())*hw->wheelRadii)).y);
 	*/
+
+	// draw the real heading vector:
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(heading), quadLoc.y + 2 * cos(heading))).x, transform(Point(quadLoc.x + 2 * sin(heading), quadLoc.y + 2 * cos(heading))).y);
+
+	// draw the kalman heading vector:
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).x, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).y);
+
+	// draw the kinematic heading vector:
+	double kinHeading = hw->getKinematicHeading();
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).x, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).y);
 
 	// draw the position determined by the mathematical model, kinematic position
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
