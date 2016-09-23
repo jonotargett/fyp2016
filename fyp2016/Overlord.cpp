@@ -43,7 +43,7 @@ bool Overlord::initialise() {
 	ns->clearPath();
 	ns->addPoint(Point(2, 3));
 	ns->addPoint(Point(6, 4));
-	ns->addPoint(Point(10, 0));
+	ns->addPoint(Point(10, 8));
 	ns->addPoint(Point(14, -1));
 	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
@@ -80,7 +80,7 @@ void Overlord::run() {
 	
 	// display the window for the first time
 	window->showWindow(true);
-
+	
 	// Feature detector stuff
 	fd->loadScan();
 	fd->createImage(DISPLAY_KERNEL);
@@ -93,14 +93,13 @@ void Overlord::run() {
 	vp->redrawGraphTexture();
 	vp->drawPathToTexture();
 	dc->setEnabled(true);				// uncomment this line when not connected to tablet
-
+	
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
 
 	while (!window->shouldQuit()) {
 
 		// event handling in here. this stuff runs continuously ---------------//
-		
 		window->handleEvents();
 		this->handleEvents();
 
@@ -110,8 +109,8 @@ void Overlord::run() {
 		float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
 		if (steerAngle > 22) steerAngle = 22;
 		if (steerAngle < -22) steerAngle = -22;
-		hwi->setDesiredSteeringAngle(steerAngle);*/
-		hwi->setDesiredGear(dhwi->getGear());
+		hwi->setDesiredSteeringAngle(steerAngle);
+		hwi->setDesiredGear(dhwi->getGear());*/
 		
 
 

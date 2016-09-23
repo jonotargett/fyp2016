@@ -5,7 +5,6 @@
 #include <ctime>
 
 #include "Log.h"
-#include "Matrix.h"
 
 // want our updateloop to run at 60hz.
 #define REFRESH_RATE 60
@@ -41,18 +40,17 @@ public:
 
 	Point getKinematicPosition();
 	double getKinematicHeading();
-	Point getAccelerometerPosition();
-	Point getGPSPosition();
-	Point getKalmanPosition();
-	double getKalmanHeading();
 
 private:
 	void update(double);
 	void updateActuators(double);
 	void updateVelocityActuators();
 	double random();
-	void setUpKalmanMatrices();
+	double random(double, double);	// random number between the two values
 
+	// real quad bike positions (used to update actual quad bike position)
+	// dont read directly from these values, use get() functions to add error
+	// to the readings as what we would get IRL.
 	Point realPosition;
 	double realAbsoluteHeading;
 	double realVelocity;
@@ -61,13 +59,18 @@ private:
 	Gear realGear;
 	double realBrakePercentage;
 
+	// individual elements of the kalman filter for visualisation purposes
+	// in virtual platform.
 	Point kinematicPosition;
 	double kinematicHeading;
-	Point accelerometerPosition;
-	Point gpsPosition;
-	Point oldgpsPosition;
-	double timeSinceLastGpsUpdate;
 
+	// the following are used to update fake positional data.
+	double timeSinceLastGpsUpdate;
+	double imuHeading;
+	double imuFloat;
+	Point oldPositionAtGpsUpdate;
+
+	// desired actuator positions/states
 	double desiredSteeringAngle;
 	double desiredVelocity;
 	double desiredThrottlePercentage;
@@ -75,24 +78,6 @@ private:
 	double desiredBrakePercentage;
 
 	double gearTimer;
-
-	//kalman filter matrices:
-	// prediction step:
-	Matrix<double> mu;					// state space
-	Matrix<double> sigma;				// uncertainty of motion, covariance matrix
-	Matrix<double> g;					// state update function
-
-	// correction step:
-	Matrix<double> K;					// Kalman Gain
-	Matrix<double> G;					// Jacobian of g
-	Matrix<double> R;					// motion noise from g
-	Matrix<double> h;					// observation function, h
-	Matrix<double> H;					// Jacobian of h
-	Matrix<double> z;					// observation
-	Matrix<double> I;					// identity matrix
-	Matrix<double> Q;					// uncertainty of sensor observation
-
-	Matrix<double> A;
 
 
 	double velocityChangeRate;			// metres/second^2
@@ -108,8 +93,6 @@ private:
 	double throttleAccuracy;			// percent of spread each side of real value
 	double gpsAccuracy;					// meters spread each side of real value
 	double maxGpsMove;					// how much the gps will move each second at maximum
-
-	Point oldPositionAtGpsUpdate;
 
 };
 

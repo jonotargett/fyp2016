@@ -14,6 +14,9 @@ DummyHardware::~DummyHardware()
 double DummyHardware::random() {
 	return (((double)rand() / (RAND_MAX)) - 0.5) * 2.0;
 }
+double DummyHardware::random(double low, double high) {
+	return ((double)rand() / (RAND_MAX) * (high - low)) + low;
+}
 
 
 bool DummyHardware::initialise() {
@@ -30,42 +33,35 @@ bool DummyHardware::initialise() {
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2.5;				// meters spread each side of real value
-	maxGpsMove = 0.5;
-
-	/*
-	double const positionAccuracy = 0;				// meters of spread each side of real value
-	double const headingAccuracy = 0;				// radians of spread each side of real value
-	double const velocityAccuracy = 0;				// m/s of spread each side of real value
-	double const steeringAccuracy = 0;				// radians of spread each side of real value
-	double const brakeAccuracy = 0;					// percent of spread each side of real value
-	double const throttleAccuracy = 0;				// percent of spread each side of real value
-	*/
+	maxGpsMove = 0.5;				// max distance the gps can move on each update (from previous position)
+	imuFloat = 0.011;				// radians of inaccuracy per radian (slightly randomized further down in initialisation) (0.011 is 4 degrees / 360 degrees)
 
 	srand((unsigned int)time(NULL));
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
+	// we KNOW the starting position and heading of the quad bike
 	realPosition = Point(0, 0);
-	kinematicPosition = realPosition;
-	accelerometerPosition = realPosition;
-	gpsPosition = realPosition;
-	oldgpsPosition = realPosition;
-	oldPositionAtGpsUpdate = realPosition;
-	setPosition(realPosition);
-
 	realAbsoluteHeading = 10.0 * PI / 180;
-	kinematicHeading = realAbsoluteHeading;
+	
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
 	realThrottlePercentage = 0.0;
 	realGear = GEAR_NEUTRAL;
-
+	
 	desiredSteeringAngle = 0.0;
 	desiredVelocity = 0.0;
+
+	// initialising sensor information
+	kinematicPosition = realPosition;
+	kinematicHeading = realAbsoluteHeading;
+	imuHeading = random(-2*PI, 2*PI);		// we have no idea what the first value of the heading is going to be!
+	imuFloat += random(-imuFloat / 10, imuFloat / 10);	
+
+	oldPositionAtGpsUpdate = realPosition;
+	setPosition(realPosition);
 	timeSinceLastGpsUpdate = 0.0;
-
-	setUpKalmanMatrices();
-
+	
 
 	// return true once everything is initialised.
 	// seeing as there is no actual hardware here,
@@ -78,13 +74,14 @@ bool DummyHardware::initialise() {
 }
 
 void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
-
+	
+	// actuator logic (fake a slow merge towards desired position)
 	updateActuators(time);
-	setSteeringAngle(realSteeringAngle + random() * steeringAccuracy);
-	setBrakePercentage(realBrakePercentage + random() * brakeAccuracy);
-	setThrottlePercentage(realThrottlePercentage + random() * throttleAccuracy);
-	setGear(realGear);
-
+	
+	// ************************************************************************************************
+	// mimicking what the real quad bike would be doing:
+	// ************************************************************************************************
+	
 	// fake accelerating to throttle speed
 	// each throttle percent corresponds to a certian speed given by throttleSpeed
 	// not entirely realistic when on hills and stuff but for flat ground close enough
@@ -125,7 +122,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		distanceRight = turnRadius - turnRadius * cos(angleTurned);
 	}
 
-	// updating position
+	// updating real position
 	Point oldPosition = realPosition;
 	realPosition.x += distanceForward * sin(realAbsoluteHeading) + distanceRight * cos(realAbsoluteHeading);
 	realPosition.y += distanceForward * cos(realAbsoluteHeading) - distanceRight * sin(realAbsoluteHeading);
@@ -134,26 +131,19 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	while (realAbsoluteHeading > PI) realAbsoluteHeading -= 2 * PI;
 	while (realAbsoluteHeading < -PI) realAbsoluteHeading += 2 * PI;
 
-	// this keeps the quad going at a constant speed given by desiredVelocity.
+	// ****************************************************************************************************
+	// control function to keep the quad going at a constant velocity given desiredVelocity
+	// **************************************************************************************************
+	// this probably belongs in HardwareInterface but whatever.
+	// TODO() move to the HardwareInterface
 	updateVelocityActuators();
-
-	// return values back to the hardware interface, as if theyd been measured.
-	setAbsoluteHeading(realAbsoluteHeading + random() * headingAccuracy);
-
-	// to mimic wheel encoder (perfectly accurate at 0m/s, and will always have direction right.
-	// error gets worse as speed gets greater (hence, * realVelocity)
-	if (realVelocity > 0) setVelocity(abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
-	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
-	if (realVelocity == 0) setVelocity(0);
-
-
 
 
 	/**************************************
 	updating 3 different ways we would know position, IMU, GPS, and mathematical model (kinematics)
 	***************************************/
-
-	// kinematics
+	// kinematics (this is purely here for the virtual platform visualisation), its not actually used in
+	// the hardware interface, it does its own calculations for this.
 	double kinDistanceTravelled = getVelocity() * time;
 	double kinDistanceForward = 0;
 	double kinDistanceRight = 0;
@@ -175,6 +165,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	// gets updated once every second. has fairly constant error when moving, big fluctuations when still (not implemented).
 	// max movement of gps each second is as listed in maxGpsMove;
 	// new gps point needs to be within 2.5 meters of new real position, and within maxGpsMove of old gps coordinate (after being updated)
+	Point gpsPosition = getGpsPosition(); // need to set to getGpsPosition otherwise if it doesnt update here it will setGpsPosition to (0, 0) later on
 	timeSinceLastGpsUpdate += time;
 	if (timeSinceLastGpsUpdate >= 1.0) {
 		Point realMoveVector = realPosition - oldPositionAtGpsUpdate;
@@ -188,124 +179,43 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 			randy = pow(random(), 1);
 			newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
 		}
-		oldgpsPosition = gpsPosition;
 		oldPositionAtGpsUpdate = realPosition;
 
 		gpsPosition.x = realPosition.x + randx * gpsAccuracy;
 		gpsPosition.y = realPosition.y + randy * gpsAccuracy;
+
 		timeSinceLastGpsUpdate -= 1;
 	}
 
+	// imu
+	// imu heading is pretty accurate, for our purposes here it adds imuFloat (error) for every radian traversed.
+	imuHeading += angleTurned + imuFloat * angleTurned;
+	
 
-	// Kalman filter:
-	// update kalman kinematics
-	double kalmanDistanceTravelled = getVelocity() * time;
-	double kalmanDistanceForward = 0;
-	double kalmanDistanceRight = 0;
-	double kalmanAngleTurned = 0;
-	if (abs(getSteeringAngle()) < 0.01) {
-		kalmanDistanceForward = kalmanDistanceTravelled;
-	}
-	else {
-		double turnRadius = wheelBase / tan(-getSteeringAngle());
-		kalmanAngleTurned = kalmanDistanceTravelled / turnRadius;
-		kalmanDistanceForward = turnRadius * sin(angleTurned);
-		kalmanDistanceRight = turnRadius - turnRadius * cos(kalmanAngleTurned);
-	}
-
-	// update state prediction
-	mu.put(0, 0, mu.get(0, 0) + kalmanDistanceForward * sin(mu.get(2, 0)) + kalmanDistanceRight * cos(mu.get(2, 0)));
-	mu.put(1, 0, mu.get(1, 0) + kalmanDistanceForward * cos(mu.get(2, 0)) - kalmanDistanceRight * sin(mu.get(2, 0)));
-	mu.put(2, 0, mu.get(2, 0) + kalmanAngleTurned);
-
-	// update jacobian of g for our current position
-	G.put(0, 2, kalmanDistanceForward * cos(mu.get(2, 0) - kalmanDistanceRight * sin(mu.get(2, 0))));
-	G.put(1, 2, -kalmanDistanceForward * sin(mu.get(2, 0) - kalmanDistanceRight * cos(mu.get(2, 0))));
-
-	// update R based on the time step, we are out by 0.5m every 20m
-	// heading is out by 2 (s.d) degrees for every meter travelled
-	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025, 2));
-	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025, 2));
-	R.put(2, 2, pow(kalmanDistanceTravelled * 2 * PI/180, 2));
-
-	sigma = ((G * sigma) * G.getTranspose()) + R;
-
-	//put the IMU through the kalman filter
-	// IMU is out by 1 degree for every 360 degrees travelled. 
-	double imuHeading = realAbsoluteHeading;
-	Matrix<double> imuZ = Matrix<double>(1, 1);
-	imuZ.put(0, 0, imuHeading);
-	Matrix<double> imuX = Matrix<double>(1, 1);
-	imuX.put(0, 0, mu.get(2, 0));
-	Matrix<double> imuQ = Matrix<double>(1, 1);
-	imuQ.put(0, 0, 0.1);
-	Matrix<double> imuH = Matrix<double>(1, 3);
-	imuH.put(0, 2, 1);
-	Matrix<double> imuK = Matrix<double>(3, 1);
-	imuK = sigma * imuH.getTranspose() * (imuH * sigma * imuH.getTranspose() + imuQ).getInverse();
-	mu = mu + imuK * (imuZ - imuX);
-	sigma = (I - imuK * imuH) * sigma;
-
-	// if we have a new GPS coordinate put it through the kalman filter
-	if (oldgpsPosition.x != gpsPosition.x && oldgpsPosition.y != gpsPosition.y) {
-		// the observation matrix
-		Point gpsHeadingVector = gpsPosition - oldgpsPosition;
-		double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x);
-		while (gpsAngle > PI) gpsAngle -= 2 * PI;
-		while (gpsAngle < -PI) gpsAngle += 2 * PI;
-		z.put(0, 0, gpsPosition.x);
-		z.put(1, 0, gpsPosition.y);
-		z.put(2, 0, gpsAngle);
-
-		// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
-		double positionAccuracy = 3 - getVelocity() * 2.3;
-		if (positionAccuracy < 0.25) positionAccuracy = 0.25;
-		Q.put(0, 0, 0.25);
-		Q.put(1, 1, 0.25);
-		// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed > 0.5m/s gps has s.d approx 10 degrees (0.17 rads)
-		double steerAccuracy = PI - getVelocity() * 5.94;
-		if (steerAccuracy < 0.17) steerAccuracy = 0.17;
-		Q.put(2, 2, steerAccuracy);
-
-		K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
-		mu = mu + K * (z - mu);
-		sigma = (I - (K*H))*sigma;
-	}
-
-	setPosition(Point(mu.get(0, 0), mu.get(1, 0)));
+	// ************************************************************************************************
+	// return values back to the hardeware interface, as if they had been measured.
+	// *************************************************************************************************
+	setSteeringAngle(realSteeringAngle + random() * steeringAccuracy);
+	setBrakePercentage(realBrakePercentage + random() * brakeAccuracy);
+	setThrottlePercentage(realThrottlePercentage + random() * throttleAccuracy);
+	setGear(realGear);
+	setImuHeading(imuHeading);
+	setPosition(realPosition);
 	setAbsoluteHeading(realAbsoluteHeading);
+	setGpsPosition(gpsPosition);
+
+	// to mimic wheel encoder (perfectly accurate at 0m/s, and will always have direction right.
+	// error gets worse as speed gets greater (hence, * realVelocity)
+	if (realVelocity > 0) setVelocity(abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
+	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
+	if (realVelocity == 0) setVelocity(0);
 }
 
-
-void DummyHardware::setUpKalmanMatrices() {
-	mu = Matrix<double>(3, 1);				// state space (x, y, theta)
-	sigma = Matrix<double>(3, 3);				// uncertainty of motion
-	g = Matrix<double>(3, 1);					// state update function
-	K = Matrix<double>(3, 3);					// Kalman Gain
-	G = Matrix<double>(3, 3);					// Jacobian of g
-	R = Matrix<double>(3, 3);					// motion noise from g, variance matrix
-	h = Matrix<double>(3, 1);					// observation function, h
-	H = IdentityMatrix<double>(3, 3);			// Jacobian of h (in this case will remain as the identity matrix)
-	z = Matrix<double>(3, 1);					// observation
-	I = IdentityMatrix<double>(3, 3);			// identity matrix
-	Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
-
-	mu.put(0, 0, realPosition.x);
-	mu.put(1, 0, realPosition.y);
-	mu.put(2, 0, realAbsoluteHeading);
-
-	G = I;
-
-}
-
-Point DummyHardware::getKalmanPosition() {
-	return Point(mu.get(0, 0), mu.get(1, 0));
-}
-double DummyHardware::getKalmanHeading() {
-	return mu.get(2, 0);
-}
 double DummyHardware::getKinematicHeading() {
 	return kinematicHeading;
+}
+Point DummyHardware::getKinematicPosition() {
+	return kinematicPosition;
 }
 
 void DummyHardware::updateActuators(double time) {
@@ -480,17 +390,6 @@ bool DummyHardware::updateLoop() {
 
 	return true;
 }
-
-Point DummyHardware::getKinematicPosition() {
-	return kinematicPosition;
-}
-Point DummyHardware::getAccelerometerPosition() {
-	return accelerometerPosition;
-}
-Point DummyHardware::getGPSPosition() {
-	return gpsPosition;
-}
-
 
 Point DummyHardware::getRealPosition() {
 	return realPosition;

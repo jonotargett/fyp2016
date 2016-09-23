@@ -3,6 +3,7 @@
 #include "Log.h"
 
 #include "Point.h"
+#include "Matrix.h"
 //#include "Thread.h"
 //#include "HRTimer.h"
 
@@ -46,7 +47,7 @@ public:
 	void stop();
 
 	/*
-	Returns: the current value as stored in this class
+	Returns: the current value as stored in this class (the value read by quad bike sensors)
 	*/
 	Point getPosition();
 	double getAbsoluteHeading();
@@ -55,6 +56,11 @@ public:
 	double getBrakePercentage();
 	double getSteeringAngle();
 	double getThrottlePercentage();
+	
+	Point getGpsPosition();
+	double getImuHeading();
+	Point getKalmanPosition();
+	double getKalmanHeading();
 	
 	virtual void setDesiredVelocity(double);
 	virtual void setDesiredSteeringAngle(double);
@@ -89,6 +95,13 @@ private:
 	double throttlePercentage;
 	double brakePercentage;
 	Gear gear;
+	Point gpsPosition;
+	double imuHeading;
+
+	// Kalman filter stuff:
+	void updateKalmanFilter();
+	Matrix<double> mu;			// state space
+	Matrix<double> sigma;		// uncertainty of current position
 
 	
 
@@ -112,6 +125,8 @@ protected:
 	void setBrakePercentage(double);
 	void setSteeringAngle(double);
 	void setThrottlePercentage(double);
+	void setGpsPosition(Point);
+	void setImuHeading(double);
 
 
 	/*
@@ -124,6 +139,8 @@ protected:
 	bool throttlePercentageLock;
 	bool gearLock;
 	bool brakeLock;
+	bool gpsPositionLock;
+	bool imuHeadingLock;
 
 
 };
