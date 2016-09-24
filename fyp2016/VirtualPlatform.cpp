@@ -289,7 +289,7 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y + 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y - 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y - 1);
-	/*
+	
 	// draw the position determined by the Kalman filter, kalmanPosition
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
 	Point kalmanDrawPos = transform(hw->getKalmanPosition());
@@ -302,7 +302,7 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y + 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y - 1);
 	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y - 1);
-	*/
+	
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }
 

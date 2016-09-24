@@ -28,80 +28,58 @@ HardwareInterface::~HardwareInterface()
 	alive = false;
 }
 
-void HardwareInterface::updateKalmanFilter() {
-	/*//kalman filter matrices:
+void HardwareInterface::updateKalmanFilter(double time) {
+
+	//kalman filter matrices:
 	// prediction step:
-	Matrix<double> mu;					// state space
-	Matrix<double> sigma;				// uncertainty of motion, covariance matrix
-	Matrix<double> g;					// state update function
+	Matrix<double> g = Matrix<double>(3, 1);					// state update function
 
-										// correction step:
-	Matrix<double> K;					// Kalman Gain
-	Matrix<double> G;					// Jacobian of g
-	Matrix<double> R;					// motion noise from g
-	Matrix<double> h;					// observation function, h
-	Matrix<double> H;					// Jacobian of h
-	Matrix<double> z;					// observation
-	Matrix<double> I;					// identity matrix
-	Matrix<double> Q;					// uncertainty of sensor observation
-
-	Matrix<double> A;*/
+	// observation step:
+	Matrix<double> K = Matrix<double>(3, 3);					// Kalman Gain
+	Matrix<double> G = Matrix<double>(3, 3);					// Jacobian of g
+	Matrix<double> R = Matrix<double>(3, 3);					// motion covariance from g
+	Matrix<double> h = Matrix<double>(3, 1);					// observation function, h
+	Matrix<double> H = Matrix<double>(3, 3);					// Jacobian of h
+	Matrix<double> z = Matrix<double>(3, 1);					// observation
+	Matrix<double> I = IdentityMatrix<double>(3, 3);			// identity matrix
+	Matrix<double> Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
 
 
-	/*// Kalman filter:
-	// update kalman kinematics
-	double kalmanDistanceTravelled = getVelocity() * time;
-	double kalmanDistanceForward = 0;
-	double kalmanDistanceRight = 0;
-	double kalmanAngleTurned = 0;
+	// update kalman quad bike kinematics
+	double kinDistanceTravelled = getVelocity() * time;
+	double kinDistanceForward = 0;
+	double kinDistanceRight = 0;
+	double kinAngleTurned = 0;
 	if (abs(getSteeringAngle()) < 0.01) {
-		kalmanDistanceForward = kalmanDistanceTravelled;
+		kinDistanceForward = kinDistanceTravelled;
 	}
 	else {
 		double turnRadius = wheelBase / tan(-getSteeringAngle());
-		kalmanAngleTurned = kalmanDistanceTravelled / turnRadius;
-		kalmanDistanceForward = turnRadius * sin(angleTurned);
-		kalmanDistanceRight = turnRadius - turnRadius * cos(kalmanAngleTurned);
-	}
-
-	// get our IMU predicted heading before we update the predicted heading.
-	// IMU is out by 1 degree for every 360 degrees travelled.
-	imuHeading += angleTurned + (imuFloat * abs(angleTurned));
+		kinAngleTurned = kinDistanceTravelled / turnRadius;
+		kinDistanceForward = turnRadius * sin(kinAngleTurned);
+		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
+	}	
 
 	// update state prediction
-	mu.put(0, 0, mu.get(0, 0) + kalmanDistanceForward * sin(mu.get(2, 0)) + kalmanDistanceRight * cos(mu.get(2, 0)));
-	mu.put(1, 0, mu.get(1, 0) + kalmanDistanceForward * cos(mu.get(2, 0)) - kalmanDistanceRight * sin(mu.get(2, 0)));
-	mu.put(2, 0, mu.get(2, 0) + kalmanAngleTurned);
+	mu.put(0, 0, mu.get(0, 0) + kinDistanceForward * sin(mu.get(2, 0)) + kinDistanceRight * cos(mu.get(2, 0)));
+	mu.put(1, 0, mu.get(1, 0) + kinDistanceForward * cos(mu.get(2, 0)) - kinDistanceRight * sin(mu.get(2, 0)));
+	mu.put(2, 0, mu.get(2, 0) + kinAngleTurned);
 
 	// update jacobian of g for our current position
-	G.put(0, 2, kalmanDistanceForward * cos(mu.get(2, 0) - kalmanDistanceRight * sin(mu.get(2, 0))));
-	G.put(1, 2, -kalmanDistanceForward * sin(mu.get(2, 0) - kalmanDistanceRight * cos(mu.get(2, 0))));
+	G.put(0, 2, kinDistanceForward * cos(mu.get(2, 0) - kinDistanceRight * sin(mu.get(2, 0))));
+	G.put(1, 2, -kinDistanceForward * sin(mu.get(2, 0) - kinDistanceRight * cos(mu.get(2, 0))));
 
 	// update R based on the time step, we are out by 0.5m every 20m
 	// heading is out by 5 (s.d) degrees for every meter travelled
-	R.put(0, 0, pow(kalmanDistanceTravelled * 0.025, 2));
-	R.put(1, 1, pow(kalmanDistanceTravelled * 0.025, 2));
-	R.put(2, 2, pow(kalmanDistanceTravelled * 5 * PI/180, 2));
+	R.put(0, 0, pow(kinDistanceTravelled * 0.025, 2));
+	R.put(1, 1, pow(kinDistanceTravelled * 0.025, 2));
+	R.put(2, 2, pow(kinDistanceTravelled * 5 * PI/180, 2));
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
-	//put the IMU through the kalman filter
-	// IMU is out by 1 degree for every 1080 degrees travelled.
-	Matrix<double> imuZ = Matrix<double>(1, 1);
-	imuZ.put(0, 0, imuHeading);
-	Matrix<double> imuX = Matrix<double>(1, 1);
-	imuX.put(0, 0, mu.get(2, 0));
-	Matrix<double> imuQ = Matrix<double>(1, 1);
-	imuQ.put(0, 0, imuFloat * angleTurned);
-	Matrix<double> imuH = Matrix<double>(1, 3);
-	imuH.put(0, 2, 1);
-	Matrix<double> imuK = Matrix<double>(3, 1);
-	imuK = sigma * imuH.getTranspose() * (imuH * sigma * imuH.getTranspose() + imuQ).getInverse();
-	mu = mu + imuK * (imuZ - imuX);
-	sigma = (I - imuK * imuH) * sigma;
 
 	// if we have a new GPS coordinate put it through the kalman filter
-	if (gpsUpdated) {
+	/*if (gpsUpdated) {
 		// the observation matrix
 		Point gpsHeadingVector = gpsPosition - oldKalmanPositionAtLastGPS;
 		double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x);
@@ -129,6 +107,12 @@ void HardwareInterface::updateKalmanFilter() {
 		gpsUpdated = false;
 
 	}*/
+}
+
+void HardwareInterface::resetKalmanState(Point position, double heading) {
+	mu.put(0, 0, position.x);
+	mu.put(1, 0, position.y);
+	mu.put(2, 0, heading);
 }
 
 Point HardwareInterface::getKalmanPosition() {

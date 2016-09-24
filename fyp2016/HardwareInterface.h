@@ -7,6 +7,10 @@
 //#include "Thread.h"
 //#include "HRTimer.h"
 
+#ifndef PI
+#define PI 3.1415926535
+#endif
+
 #include <thread>
 #include <chrono>
 
@@ -45,6 +49,9 @@ public:
 
 	bool start();
 	void stop();
+
+	void updateKalmanFilter(double time);
+	void resetKalmanState(Point position, double heading);
 
 	/*
 	Returns: the current value as stored in this class (the value read by quad bike sensors)
@@ -99,11 +106,8 @@ private:
 	double imuHeading;
 
 	// Kalman filter stuff:
-	void updateKalmanFilter();
 	Matrix<double> mu;			// state space
 	Matrix<double> sigma;		// uncertainty of current position
-
-	
 
 protected:
 	//Thread* updater;

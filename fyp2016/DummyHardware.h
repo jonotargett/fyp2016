@@ -8,9 +8,6 @@
 
 // want our updateloop to run at 60hz.
 #define REFRESH_RATE 60
-#ifndef PI
-#define PI 3.1415926535
-#endif
 
 
 class DummyHardware :
@@ -83,9 +80,6 @@ private:
 	double velocityChangeRate;			// metres/second^2
 	double frictionalDecayRate;			// %/second??
 	double brakingAcceleration;			// m/s/s at 100% brake. interpolate inbetween
-
-	double positionPrecision;			// meters of spread each side of real value
-	double driftSpeed;					// drift speed of real position
 	double headingAccuracy;				// radians of spread each side of real value
 	double velocityAccuracy;			// m/s of spread each side of real value
 	double steeringAccuracy;			// radians of spread each side of real value

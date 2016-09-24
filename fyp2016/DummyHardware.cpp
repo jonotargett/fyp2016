@@ -25,10 +25,8 @@ bool DummyHardware::initialise() {
 	frictionalDecayRate = 120;		// %/second??
 	brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
 
-	positionPrecision = 0.5;		// meters of spread each side of real value
-	driftSpeed = 0.2;				// meters of drift per second
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
-	velocityAccuracy = 0.5;			// m/s of spread each side of real value
+	velocityAccuracy = 0.1;			// m/s of spread each side of real value @ full speed
 	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
@@ -60,7 +58,18 @@ bool DummyHardware::initialise() {
 
 	oldPositionAtGpsUpdate = realPosition;
 	setPosition(realPosition);
+	setSteeringAngle(realSteeringAngle + random() * steeringAccuracy);
+	setBrakePercentage(realBrakePercentage + random() * brakeAccuracy);
+	setThrottlePercentage(realThrottlePercentage + random() * throttleAccuracy);
+	setGear(realGear);
+	setImuHeading(imuHeading);
+	setPosition(realPosition);
+	setAbsoluteHeading(realAbsoluteHeading);
+	setGpsPosition(realPosition);
+
 	timeSinceLastGpsUpdate = 0.0;
+
+	resetKalmanState(realPosition, realAbsoluteHeading);
 	
 
 	// return true once everything is initialised.
@@ -144,7 +153,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	***************************************/
 	// kinematics (this is purely here for the virtual platform visualisation), its not actually used in
 	// the hardware interface, it does its own calculations for this.
-	double kinDistanceTravelled = getVelocity() * time;
+	/*double kinDistanceTravelled = getVelocity() * time;
 	double kinDistanceForward = 0;
 	double kinDistanceRight = 0;
 	double kinAngleTurned = 0;
@@ -159,7 +168,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	}
 	kinematicPosition.x += kinDistanceForward * sin(kinematicHeading) + kinDistanceRight * cos(kinematicHeading);
 	kinematicPosition.y += kinDistanceForward * cos(kinematicHeading) - kinDistanceRight * sin(kinematicHeading);
-	kinematicHeading += kinAngleTurned;
+	kinematicHeading += kinAngleTurned;*/
 
 	// GPS
 	// gets updated once every second. has fairly constant error when moving, big fluctuations when still (not implemented).
@@ -206,9 +215,11 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 	// to mimic wheel encoder (perfectly accurate at 0m/s, and will always have direction right.
 	// error gets worse as speed gets greater (hence, * realVelocity)
-	if (realVelocity > 0) setVelocity(abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
-	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity + random() * velocityAccuracy * realVelocity * 3));
+	if (realVelocity > 0) setVelocity(abs(realVelocity + random(0.5, 1) * velocityAccuracy * realVelocity / 1.2));
+	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity - random(0.5, 1) * velocityAccuracy * realVelocity / 1.2));
 	if (realVelocity == 0) setVelocity(0);
+
+	updateKalmanFilter(time);
 }
 
 double DummyHardware::getKinematicHeading() {
