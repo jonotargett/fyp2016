@@ -121,8 +121,8 @@ bool FeatureDetector::createImage(Visual displayMode) {
 				//uint8_t l = ((int8_t)v);
 
 
-				float gain = (pow(((float)j*3.0 / (float)rows), 3.0) + 1.0f);
-				v *= gain;
+				float gain = (float)(pow(((float)j*3.0 / (float)rows), 3.0) + 1.0f);
+				v = (int) (v * gain);
 
 				uint32_t offset = ((uint16_t)v) * 3;
 

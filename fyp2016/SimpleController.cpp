@@ -85,8 +85,8 @@ bool SimpleController::updateLoop() {
 void SimpleController::updateDynamics() {
 	
 	Point quadPosition = hwi->getPosition();
-	float quadHeading = hwi->getAbsoluteHeading();
-	ns->updatePoint(quadPosition, quadHeading);
+	double quadHeading = hwi->getAbsoluteHeading();
+	ns->updatePoint(quadPosition, (float)quadHeading);
 	Point currentPoint = ns->getPoint();
 
 	double angleToPathPoint = -1 * atan2(currentPoint.y - quadPosition.y, currentPoint.x - quadPosition.x) + PI / 2;
@@ -101,7 +101,7 @@ void SimpleController::updateDynamics() {
 	hwi->setDesiredSteeringAngle(steerAngleReq);
 	
 
-	float desiredVelocity;
+	double desiredVelocity;
 	if (ns->isNextPoint()) {
 		 desiredVelocity = distance * 1.8;
 	}

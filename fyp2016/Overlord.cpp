@@ -45,7 +45,7 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(6, 4));
 	ns->addPoint(Point(10, 8));
 	ns->addPoint(Point(14, -1));
-	ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
+	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising drive controller..." << endl;
@@ -223,8 +223,8 @@ void Overlord::handleEvents() {
 			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
 			float ang = p->data[0];	// in degrees
 			float mag = p->data[1];
-			float throttle = sin(ang * PI/180.0) * mag;
-			float steering = cos(ang * PI / 180.0) * mag;
+			float throttle = (float) (sin(ang * PI/180.0) * mag);
+			float steering = (float) (cos(ang * PI / 180.0) * mag);
 			hwi->setDesiredThrottlePercentage(throttle * 20);
 			hwi->setDesiredSteeringAngle(steering * 80);
 
@@ -259,7 +259,7 @@ void Overlord::handleEvents() {
 			break;
 		case ID_REQ_QUAD_SPEED:
 		{
-			float speed = dhwi->getVelocity();
+			float speed = (float)dhwi->getVelocity();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_SPEED;
@@ -272,7 +272,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_HEADING:
 		{
-			float head = dhwi->getAbsoluteHeading();
+			float head = (float) dhwi->getAbsoluteHeading();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_HEADING;
@@ -291,8 +291,8 @@ void Overlord::handleEvents() {
 			op->packetID = ID_QUAD_POSITION;
 			op->length = 2;
 			op->data = new float[2];
-			op->data[0] = pos.x;
-			op->data[1] = pos.y;
+			op->data[0] = (float)pos.x;
+			op->data[1] = (float)pos.y;
 			comms->send(op);
 			handled = true;
 			break;
@@ -325,7 +325,7 @@ void Overlord::handleEvents() {
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
-			ns->subdivide(dhwi->getPosition(), dhwi->getAbsoluteHeading());
+			ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 			//vp->drawPathToTexture();
 			handled = true;
 			break;

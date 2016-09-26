@@ -476,8 +476,8 @@ bool GPR::getData(bool andKeep) {
 		unsigned int ch2_count = 0;
 
 
-		int16_t vMax1 = -65535, vMax2 = -65535, vMaxD = -65535;
-		int16_t vMin1 = 65535, vMin2 = 65535, vMinD = 65535;
+		int16_t vMax1 = (int16_t) -65535, vMax2 = (int16_t) -65535, vMaxD = (int16_t) -65535;
+		int16_t vMin1 = (int16_t) 65535, vMin2 = (int16_t) 65535, vMinD = (int16_t) 65535;
 
 
 		for (unsigned int i = 0; i < 64 * reading; i++) {

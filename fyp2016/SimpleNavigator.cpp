@@ -40,8 +40,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 	if (!isNextPoint()) 
 		return false;
 
-	float lookAheadDistance = 1.8;
-	float turnTolerance = 0.4;
+	double lookAheadDistance = 1.8;
+	double turnTolerance = 0.4;
 	int increment = 0;
 	increment = (travelPathForwards) ? 1 : -1;
 	
@@ -50,8 +50,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 	// than look ahead distance
 	// if the distance gets smaller, we have a turn inbound. stop incrememting!
 	
-	float distanceNow = position.getDistanceTo(path.at(currentPathPoint));
-	float distanceNext = position.getDistanceTo(path.at(currentPathPoint + increment));
+	double distanceNow = position.getDistanceTo(path.at(currentPathPoint));
+	double distanceNext = position.getDistanceTo(path.at(currentPathPoint + increment));
 
 	// while we are cruising, and less than the look ahead distnace
 	while (navState == NAV_CRUISE && distanceNow < lookAheadDistance) {
@@ -79,8 +79,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 		navState = NAV_CRUISE;
 		
 		// but do we have another turn???
-		float nowTurnDistance = 0;
-		float nextTurnDistance = 0;
+		double nowTurnDistance = 0;
+		double nextTurnDistance = 0;
 		nextTurnPoint = turnPoint;
 		
 		do {

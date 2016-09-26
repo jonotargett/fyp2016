@@ -262,7 +262,7 @@ void VirtualPlatform::redrawSimulationTexture() {
 	// draw the IMU heading vector:
 	double imuHeading = hw->getImuHeading();
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xAA, 0xFF, 0xFF);
-	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).x, transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).y);
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, (int)transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).x, (int)transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).y);
 	/*
 	// draw the position determined by the mathematical model, kinematic position
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
