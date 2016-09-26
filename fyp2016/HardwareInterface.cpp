@@ -62,6 +62,14 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	Matrix<double> R = Matrix<double>(3, 3);					// motion covariance from g
 	Matrix<double> I = IdentityMatrix<double>(3, 3);			// identity matrix
 
+	Matrix<double> z;											// observation
+	Matrix<double> Q;											// uncertainty of sensor observation
+	Matrix<double> K;											// Kalman Gain
+	Matrix<double> H;
+
+	Point posPrior = Point(mu.get(0, 0), mu.get(1, 0));
+	double headingPrior = mu.get(2, 0);
+
 	// update kalman quad bike kinematics
 	double kinDistanceTravelled = getVelocity() * time;
 	double kinDistanceForward = 0;
@@ -77,35 +85,35 @@ void HardwareInterface::updateKalmanFilter(double time) {
 		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
 	}
 
-	double globalDeltaX = kinDistanceForward * sin(mu.get(2, 0)) + kinDistanceRight * cos(mu.get(2, 0));
-	double globalDeltaY = kinDistanceForward * cos(mu.get(2, 0)) - kinDistanceRight * sin(mu.get(2, 0));
+	double globalDeltaX = kinDistanceForward * sin(headingPrior) + kinDistanceRight * cos(headingPrior);
+	double globalDeltaY = kinDistanceForward * cos(headingPrior) - kinDistanceRight * sin(headingPrior);
 
 	setGpsPosition(Point(gpsPosition.x + globalDeltaX, gpsPosition.y + globalDeltaY));
 
 	// update state prediction
-	mu.put(0, 0, mu.get(0, 0) + globalDeltaX);
-	mu.put(1, 0, mu.get(1, 0) + globalDeltaY);
-	mu.put(2, 0, mu.get(2, 0) + kinAngleTurned);
+	mu.put(0, 0, posPrior.x + globalDeltaX);
+	mu.put(1, 0, posPrior.y + globalDeltaY);
+	mu.put(2, 0, headingPrior + kinAngleTurned);
 
 	// update jacobian of g for our current position
-	G.put(0, 2, kinDistanceForward * cos(mu.get(2, 0) - kinDistanceRight * sin(mu.get(2, 0))));
-	G.put(1, 2, -kinDistanceForward * sin(mu.get(2, 0) - kinDistanceRight * cos(mu.get(2, 0))));
+	G.put(0, 2, kinDistanceForward * cos(headingPrior) - kinDistanceRight * sin(headingPrior));
+	G.put(1, 2, -kinDistanceForward * sin(headingPrior) - kinDistanceRight * cos(headingPrior));
 
 	// update R based on the time step, we are out by 0.5m every 20m
 	// heading is out by 5 (s.d) degrees for every meter travelled
 	R.put(0, 0, pow(kinDistanceTravelled * 0.025 *8, 2));
 	R.put(1, 1, pow(kinDistanceTravelled * 0.025 * 8, 2));
-	R.put(2, 2, pow(kinDistanceTravelled * 5 * PI/180, 2));
+	R.put(2, 2, pow(kinDistanceTravelled * 50 * PI/180, 2));
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
-
-
-	// GPS observations:
-	Matrix<double> z = Matrix<double>(3, 1);					// observation
-	Matrix<double> Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
-	Matrix<double> K = Matrix<double>(3, 3);					// Kalman Gain
-	Matrix<double> H = IdentityMatrix<double>(3, 3);			// Jacobian of h
+	/////////////////////////////////
+	////// GPS observations://///////
+	//////////////////////////////////
+	z = Matrix<double>(3, 1);					// observation
+	Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
+	K = Matrix<double>(3, 3);					// Kalman Gain
+	H = IdentityMatrix<double>(3, 3);			// Jacobian of h
 
 		// the observation matrix
 	Point gpsHeadingVector = gpsPosition - oldKalmanPositionAtLastGPS;
@@ -134,11 +142,30 @@ void HardwareInterface::updateKalmanFilter(double time) {
 
 	oldKalmanPositionAtLastGPS = Point(mu.get(0, 0), mu.get(1, 0));
 	gpsUpdated = false;
+	
+	/////////////////////////////////
+	////// IMU observations://///////
+	//////////////////////////////////
+	z = Matrix<double>(1, 1);					// observation
+	Q = Matrix<double>(1, 1);					// uncertainty of sensor observation
+	K = Matrix<double>(3, 1);					// Kalman Gain
+	H = IdentityMatrix<double>(1, 3);			// Jacobian of h
 
+	double deltaHeading = imuHeading - imuInitialHeading;
 
+	z.put(0, 0, headingPrior + deltaHeading);
+	Q.put(0, 0, 0.0001 * PI / 180);
+	H.put(0, 2, 1);
+
+	K = (sigma * H.getTranspose()) * (H * sigma * H.getTranspose() + Q).getInverse();
+	mu = mu + K * (z.get(0,0) - mu.get(2, 0));
+	sigma = (I - (K*H))*sigma;
+
+	imuInitialHeading = imuHeading;
 
 	// set the actual position and heading to what we calculate:
 	setPosition(Point(mu.get(0, 0), mu.get(1, 0)));
+	setAbsoluteHeading(mu.get(2, 0));
 
 }
 

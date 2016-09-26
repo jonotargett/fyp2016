@@ -27,7 +27,7 @@ bool DummyHardware::initialise() {
 
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
 	velocityAccuracy = 0.025;		// m/s of spread each side of real value @ full speed (0.5m error over 20m)
-	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value
+	steeringAccuracy = 5 * PI/180;	// radians of spread each side of real value at full lock
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2.5;				// meters spread each side of real value
@@ -55,8 +55,8 @@ bool DummyHardware::initialise() {
 	kinematicHeading = realAbsoluteHeading;
 	imuHeading = random(-PI, PI);		// we have no idea what the first value of the heading is going to be!
 	imuFloat += random(-imuFloat / 10, imuFloat / 10);
-	if (imuHeading > PI) imuHeading -= 2 * PI;
-	if (imuHeading < -PI) imuHeading += 2 * PI;
+	imuHeading = 1.5;
+	imuFloat = 0;
 
 	oldPositionAtGpsUpdate = realPosition;
 	setPosition(realPosition);
@@ -199,12 +199,14 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		kinDistanceForward = kinDistanceTravelled;
 	}
 	else {
-		double turnRadius = wheelBase / tan(-getSteeringAngle());
-		kinAngleTurned = kinDistanceTravelled / turnRadius;
-		kinDistanceForward = turnRadius * sin(kinAngleTurned);
-		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
+		double kinTurnRadius = wheelBase / tan(-getSteeringAngle());
+		kinAngleTurned = kinDistanceTravelled / kinTurnRadius;
+		kinDistanceForward = kinTurnRadius * sin(kinAngleTurned);
+		kinDistanceRight = kinTurnRadius - kinTurnRadius * cos(kinAngleTurned);
 	}
+
 	kinematicHeading += kinAngleTurned;
+
 	kinematicPosition.x += kinDistanceForward * sin(kinematicHeading) + kinDistanceRight * cos(kinematicHeading);
 	kinematicPosition.y += kinDistanceForward * cos(kinematicHeading) - kinDistanceRight * sin(kinematicHeading);
 	
@@ -212,7 +214,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	// ************************************************************************************************
 	// return values back to the hardeware interface, as if they had been measured.
 	// *************************************************************************************************
-	setSteeringAngle(realSteeringAngle + random() * steeringAccuracy);
+	setSteeringAngle(realSteeringAngle + steeringAccuracy * realSteeringAngle/(24*PI/180));
 	setBrakePercentage(realBrakePercentage + random() * brakeAccuracy);
 	setThrottlePercentage(realThrottlePercentage + random() * throttleAccuracy);
 	setGear(realGear);

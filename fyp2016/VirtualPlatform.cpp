@@ -252,9 +252,6 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(heading), quadLoc.y + 2 * cos(heading))).x, transform(Point(quadLoc.x + 2 * sin(heading), quadLoc.y + 2 * cos(heading))).y);
 
-	// draw the kalman heading vector:
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
-	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).x, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).y);
 	*/
 
 	///////////////////////
@@ -293,7 +290,10 @@ void VirtualPlatform::redrawSimulationTexture() {
 	Point kalmanDrawPos = transform(hw->getKalmanPosition());
 	SDL_Rect kalmanRect = { kalmanDrawPos.x - ptSize, kalmanDrawPos.y - ptSize, ptSize * 2, ptSize * 2 };
 	SDL_RenderFillRect(simulationCanvas->getRenderer(), &kalmanRect);
+
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).x, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).y);
 	
+
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }
 
