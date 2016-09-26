@@ -84,6 +84,12 @@ bool SimpleController::updateLoop() {
 
 void SimpleController::updateDynamics() {
 	
+	if (!hwi->getImuStabilised()) {
+		hwi->setDesiredSteeringAngle(0);
+		hwi->setDesiredVelocity(0);
+		return;
+	}
+
 	Point quadPosition = hwi->getPosition();
 	double quadHeading = hwi->getAbsoluteHeading();
 	ns->updatePoint(quadPosition, (float)quadHeading);
@@ -118,5 +124,4 @@ void SimpleController::updateDynamics() {
 	else {
 		hwi->setDesiredVelocity(-desiredVelocity);
 	}
-	//hwi->setDesiredVelocity(0);
 }

@@ -225,7 +225,7 @@ Packet* QuadInterface::processPacket() {
 
 
 bool QuadInterface::updateLoop() {
-
+	Log::i << "ksadj" << endl;
 
 	return true;
 }

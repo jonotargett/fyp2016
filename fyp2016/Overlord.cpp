@@ -44,7 +44,7 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(2, 3));
 	ns->addPoint(Point(6, 4));
 	ns->addPoint(Point(10, 8));
-	ns->addPoint(Point(14, -1));
+	ns->addPoint(Point(110, 108));
 	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
@@ -112,8 +112,6 @@ void Overlord::run() {
 		hwi->setDesiredSteeringAngle(steerAngle);
 		hwi->setDesiredGear(dhwi->getGear());*/
 		
-
-
 		// periodic refresh shit. runs at 60Hz ish. ---------------------------//
 		Log::setVerbosity(LOG_INFORMATIVE);
 

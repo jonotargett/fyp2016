@@ -48,8 +48,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	setupFont();
 
 	drawScale = 60;
-	focusX = 4;
-	focusY = 3;
+	focusX = 2;
+	focusY = 2;
 
 	return true;
 }
@@ -59,6 +59,8 @@ void VirtualPlatform::update() {
 	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph->post(hw->getRealGear());
 	throttleGraph->post(round(hw->getRealThrottlePercentage()));
+	//focusX = hw->getRealPosition().x;
+	//focusY = hw->getRealPosition().y;
 }
 
 
@@ -253,55 +255,44 @@ void VirtualPlatform::redrawSimulationTexture() {
 	// draw the kalman heading vector:
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
 	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).x, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).y);
-
-	// draw the kinematic heading vector:
-	double kinHeading = hw->getKinematicHeading();
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
-	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).x, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).y);
 	*/
-	// draw the IMU heading vector:
+
+	///////////////////////
+	////// IMU visual /////
+	///////////////////////
 	double imuHeading = hw->getImuHeading();
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0xAA, 0xFF, 0xFF);
 	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, (int)transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).x, (int)transform(Point(quadLoc.x + 2 * sin(imuHeading), quadLoc.y + 2 * cos(imuHeading))).y);
-	/*
-	// draw the position determined by the mathematical model, kinematic position
+	
+	//location size
+	int ptSize = 3; // each side of actual location
+
+	///////////////////////
+	// kinematic visual ///
+	///////////////////////
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xFF, 0x00, 0x00, 0xFF);
 	Point kinematicDrawPos = transform(hw->getKinematicPosition());
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x, (int)kinematicDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x + 1, (int)kinematicDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kinematicDrawPos.x - 1, (int)kinematicDrawPos.y - 1);
-	*/
-	// draw the position determined by the GPS, gps position
+	SDL_Rect kinematicRect = { kinematicDrawPos.x - ptSize, kinematicDrawPos.y - ptSize, ptSize * 2, ptSize * 2 };
+	SDL_RenderFillRect(simulationCanvas->getRenderer(), &kinematicRect);
+
+	double kinHeading = hw->getKinematicHeading();
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).x, transform(Point(quadLoc.x + 2 * sin(kinHeading), quadLoc.y + 2 * cos(kinHeading))).y);
+
+	///////////////////////
+	////// gps visual /////
+	///////////////////////
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0x00, 0xFF, 0xFF);
 	Point gpsDrawPos = transform(hw->getGpsPosition());
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x, (int)gpsDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x + 1, (int)gpsDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)gpsDrawPos.x - 1, (int)gpsDrawPos.y - 1);
+	SDL_Rect gpsRect = { gpsDrawPos.x - ptSize, gpsDrawPos.y - ptSize, ptSize*2, ptSize *2};
+	SDL_RenderFillRect(simulationCanvas->getRenderer(), &gpsRect);
 	
-	// draw the position determined by the Kalman filter, kalmanPosition
+	///////////////////////
+	///// kalman visual ///
+	///////////////////////
 	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x00, 0xAA, 0x00, 0xFF);
 	Point kalmanDrawPos = transform(hw->getKalmanPosition());
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x, (int)kalmanDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y + 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x + 1, (int)kalmanDrawPos.y - 1);
-	SDL_RenderDrawPoint(simulationCanvas->getRenderer(), (int)kalmanDrawPos.x - 1, (int)kalmanDrawPos.y - 1);
+	SDL_Rect kalmanRect = { kalmanDrawPos.x - ptSize, kalmanDrawPos.y - ptSize, ptSize * 2, ptSize * 2 };
+	SDL_RenderFillRect(simulationCanvas->getRenderer(), &kalmanRect);
 	
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }

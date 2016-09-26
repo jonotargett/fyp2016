@@ -26,7 +26,7 @@ bool DummyHardware::initialise() {
 	brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
 
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
-	velocityAccuracy = 0.1;			// m/s of spread each side of real value @ full speed
+	velocityAccuracy = 0.025;		// m/s of spread each side of real value @ full speed (0.5m error over 20m)
 	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
@@ -53,8 +53,10 @@ bool DummyHardware::initialise() {
 	// initialising sensor information
 	kinematicPosition = realPosition;
 	kinematicHeading = realAbsoluteHeading;
-	imuHeading = random(-2*PI, 2*PI);		// we have no idea what the first value of the heading is going to be!
-	imuFloat += random(-imuFloat / 10, imuFloat / 10);	
+	imuHeading = random(-PI, PI);		// we have no idea what the first value of the heading is going to be!
+	imuFloat += random(-imuFloat / 10, imuFloat / 10);
+	if (imuHeading > PI) imuHeading -= 2 * PI;
+	if (imuHeading < -PI) imuHeading += 2 * PI;
 
 	oldPositionAtGpsUpdate = realPosition;
 	setPosition(realPosition);
@@ -66,6 +68,8 @@ bool DummyHardware::initialise() {
 	setPosition(realPosition);
 	setAbsoluteHeading(realAbsoluteHeading);
 	setGpsPosition(realPosition);
+
+	setImuInitialHeading(imuHeading);
 
 	timeSinceLastGpsUpdate = 0.0;
 
@@ -149,27 +153,8 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 
 
 	/**************************************
-	updating 3 different ways we would know position, IMU, GPS, and mathematical model (kinematics)
+	updating ways we would know position, IMU, GPS
 	***************************************/
-	// kinematics (this is purely here for the virtual platform visualisation), its not actually used in
-	// the hardware interface, it does its own calculations for this.
-	/*double kinDistanceTravelled = getVelocity() * time;
-	double kinDistanceForward = 0;
-	double kinDistanceRight = 0;
-	double kinAngleTurned = 0;
-	if (abs(getSteeringAngle()) < 0.01) {
-		kinDistanceForward = kinDistanceTravelled;
-	}
-	else {
-		double turnRadius = wheelBase / tan(-getSteeringAngle());
-		kinAngleTurned = kinDistanceTravelled / turnRadius;
-		kinDistanceForward = turnRadius * sin(angleTurned);
-		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
-	}
-	kinematicPosition.x += kinDistanceForward * sin(kinematicHeading) + kinDistanceRight * cos(kinematicHeading);
-	kinematicPosition.y += kinDistanceForward * cos(kinematicHeading) - kinDistanceRight * sin(kinematicHeading);
-	kinematicHeading += kinAngleTurned;*/
-
 	// GPS
 	// gets updated once every second. has fairly constant error when moving, big fluctuations when still (not implemented).
 	// max movement of gps each second is as listed in maxGpsMove;
@@ -194,11 +179,34 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		gpsPosition.y = realPosition.y + randy * gpsAccuracy;
 
 		timeSinceLastGpsUpdate -= 1;
+		setGpsUpdated();
 	}
 
 	// imu
 	// imu heading is pretty accurate, for our purposes here it adds imuFloat (error) for every radian traversed.
 	imuHeading += angleTurned + imuFloat * angleTurned;
+	if (imuHeading > PI) imuHeading -= 2 * PI;
+	if (imuHeading < -PI) imuHeading += 2 * PI;
+
+
+	// kinematics (debug purposes only) simply draw this point ot the screen
+	// update kalman quad bike kinematics
+	double kinDistanceTravelled = getVelocity() * time;
+	double kinDistanceForward = 0;
+	double kinDistanceRight = 0;
+	double kinAngleTurned = 0;
+	if (abs(getSteeringAngle()) < 0.01) {
+		kinDistanceForward = kinDistanceTravelled;
+	}
+	else {
+		double turnRadius = wheelBase / tan(-getSteeringAngle());
+		kinAngleTurned = kinDistanceTravelled / turnRadius;
+		kinDistanceForward = turnRadius * sin(kinAngleTurned);
+		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
+	}
+	kinematicHeading += kinAngleTurned;
+	kinematicPosition.x += kinDistanceForward * sin(kinematicHeading) + kinDistanceRight * cos(kinematicHeading);
+	kinematicPosition.y += kinDistanceForward * cos(kinematicHeading) - kinDistanceRight * sin(kinematicHeading);
 	
 
 	// ************************************************************************************************
@@ -209,7 +217,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	setThrottlePercentage(realThrottlePercentage + random() * throttleAccuracy);
 	setGear(realGear);
 	setImuHeading(imuHeading);
-	setPosition(realPosition);
+	//setPosition(realPosition); // this is done in the hardwareinterface class
 	setAbsoluteHeading(realAbsoluteHeading);
 	setGpsPosition(gpsPosition);
 
@@ -219,7 +227,7 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 	if (realVelocity < 0) setVelocity(-1 * abs(realVelocity - random(0.5, 1) * velocityAccuracy * realVelocity / 1.2));
 	if (realVelocity == 0) setVelocity(0);
 
-	updateKalmanFilter(time);
+	updateHardware(time);
 }
 
 double DummyHardware::getKinematicHeading() {

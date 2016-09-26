@@ -186,10 +186,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	}
 
 
-
 	currentPathPoint = 0;
-	double const distanceBetweenWaypoints = 0.1;
-	double const distanceBetweenTurnWaypoints = 0.1;
+	double const distanceBetweenWaypoints = 1;
+	double const distanceBetweenTurnWaypoints = 0.2;
 	double const turnRadius = 3.25;		// max turn radius of the quad bike
 	
 	// heading of quad bike at each point of an N-point turn
@@ -227,17 +226,13 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		// while our intermediate point is still between the two 'ultimate' waypoints
 		// intermediate is calculated based on curPoint to remove accumulative error
 		int index = 0;
-		while (intermediate.x * FactorX <= nexPoint.x * FactorX && intermediate.y * FactorY <= nexPoint.y * FactorY) {
+		while (intermediate.x * FactorX < nexPoint.x * FactorX && intermediate.y * FactorY < nexPoint.y * FactorY) {
 			Point p = Point(intermediate.x, intermediate.y);
 			subdividedPath.push_back(p);
 			index++;
 			intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
 			intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
 		}
-
-		// add the last ultimate waypoint if its not already there
-		if (subdividedPath.at(subdividedPath.size() - 1).x != nexPoint.x || subdividedPath.at(subdividedPath.size() - 1).y != nexPoint.y)
-			subdividedPath.push_back(Point(nexPoint.x, nexPoint.y));
 
 		/*
 			waypoints for turn subdivision calculated below
@@ -249,7 +244,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 			waypoint added at each step.
 		*/
 		
-		// if there is a next line segment to line up with:
+		// if there is a next line segment to line up with (if we need to turn):
 		if (i + 2 < path.size()) {
 			
 			// figure out the turn angle
@@ -271,7 +266,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
 				// distance from waypoint to begin conducting hte turn
 				double d = abs(turnRadius * tan(turnAngle / 2));
-				Point endPoint = subdividedPath.at(subdividedPath.size() - 1);
+				Point endPoint = nexPoint;
 				double distanceFromRemoved = 0;
 
 				// remove the last few points from the straight line segment up to a distance d from the turn waypoint

@@ -50,7 +50,7 @@ public:
 	bool start();
 	void stop();
 
-	void updateKalmanFilter(double time);
+	void updateHardware(double time);
 	void resetKalmanState(Point position, double heading);
 
 	/*
@@ -68,6 +68,9 @@ public:
 	double getImuHeading();
 	Point getKalmanPosition();
 	double getKalmanHeading();
+	void setGpsUpdated();
+	bool getImuStabilised();
+	void setImuInitialHeading(double);
 	
 	virtual void setDesiredVelocity(double);
 	virtual void setDesiredSteeringAngle(double);
@@ -89,6 +92,8 @@ public:
 
 private:
 	
+	void updateKalmanFilter(double time);
+
 	bool alive;
 	/*
 	variables holding sensor data, actuator data
@@ -103,7 +108,11 @@ private:
 	double brakePercentage;
 	Gear gear;
 	Point gpsPosition;
+	Point oldKalmanPositionAtLastGPS;
+	bool gpsUpdated;
+	double imuInitialHeading;
 	double imuHeading;
+	bool imuStable;			//imu takes time to settle to a stable place
 
 	// Kalman filter stuff:
 	Matrix<double> mu;			// state space

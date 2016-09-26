@@ -10,10 +10,13 @@ HardwareInterface::HardwareInterface()
 {
 	// instantiate all the variables
 	positionLock = false;
-	position = Point();
-
 	gpsPositionLock = false;
 	imuHeadingLock = false;
+
+	imuStable = false;
+	
+	position = Point();
+	oldKalmanPositionAtLastGPS = Point();
 
 	mu = Matrix<double>(3, 1);
 	sigma = Matrix<double>(3, 3);
@@ -28,22 +31,36 @@ HardwareInterface::~HardwareInterface()
 	alive = false;
 }
 
-void HardwareInterface::updateKalmanFilter(double time) {
+bool HardwareInterface::getImuStabilised() {
+	return imuStable;
+}
 
+void HardwareInterface::updateHardware(double time) {
+	//need to make sure imu has stabilised
+	if (!imuStable) {
+		if (imuInitialHeading - imuHeading == 0) {
+			imuStable = true;
+		}
+		imuInitialHeading = imuHeading;
+		Log::d << "Waiting for IMU to stabilise..." << endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		return;
+	}
+	
+	updateKalmanFilter(time);
+}
+
+void HardwareInterface::setImuInitialHeading(double x) {
+	imuInitialHeading = x;
+}
+
+void HardwareInterface::updateKalmanFilter(double time) {
 	//kalman filter matrices:
 	// prediction step:
 	Matrix<double> g = Matrix<double>(3, 1);					// state update function
-
-	// observation step:
-	Matrix<double> K = Matrix<double>(3, 3);					// Kalman Gain
 	Matrix<double> G = Matrix<double>(3, 3);					// Jacobian of g
 	Matrix<double> R = Matrix<double>(3, 3);					// motion covariance from g
-	Matrix<double> h = Matrix<double>(3, 1);					// observation function, h
-	Matrix<double> H = Matrix<double>(3, 3);					// Jacobian of h
-	Matrix<double> z = Matrix<double>(3, 1);					// observation
 	Matrix<double> I = IdentityMatrix<double>(3, 3);			// identity matrix
-	Matrix<double> Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
-
 
 	// update kalman quad bike kinematics
 	double kinDistanceTravelled = getVelocity() * time;
@@ -58,11 +75,16 @@ void HardwareInterface::updateKalmanFilter(double time) {
 		kinAngleTurned = kinDistanceTravelled / turnRadius;
 		kinDistanceForward = turnRadius * sin(kinAngleTurned);
 		kinDistanceRight = turnRadius - turnRadius * cos(kinAngleTurned);
-	}	
+	}
+
+	double globalDeltaX = kinDistanceForward * sin(mu.get(2, 0)) + kinDistanceRight * cos(mu.get(2, 0));
+	double globalDeltaY = kinDistanceForward * cos(mu.get(2, 0)) - kinDistanceRight * sin(mu.get(2, 0));
+
+	setGpsPosition(Point(gpsPosition.x + globalDeltaX, gpsPosition.y + globalDeltaY));
 
 	// update state prediction
-	mu.put(0, 0, mu.get(0, 0) + kinDistanceForward * sin(mu.get(2, 0)) + kinDistanceRight * cos(mu.get(2, 0)));
-	mu.put(1, 0, mu.get(1, 0) + kinDistanceForward * cos(mu.get(2, 0)) - kinDistanceRight * sin(mu.get(2, 0)));
+	mu.put(0, 0, mu.get(0, 0) + globalDeltaX);
+	mu.put(1, 0, mu.get(1, 0) + globalDeltaY);
 	mu.put(2, 0, mu.get(2, 0) + kinAngleTurned);
 
 	// update jacobian of g for our current position
@@ -71,48 +93,63 @@ void HardwareInterface::updateKalmanFilter(double time) {
 
 	// update R based on the time step, we are out by 0.5m every 20m
 	// heading is out by 5 (s.d) degrees for every meter travelled
-	R.put(0, 0, pow(kinDistanceTravelled * 0.025, 2));
-	R.put(1, 1, pow(kinDistanceTravelled * 0.025, 2));
+	R.put(0, 0, pow(kinDistanceTravelled * 0.025 *8, 2));
+	R.put(1, 1, pow(kinDistanceTravelled * 0.025 * 8, 2));
 	R.put(2, 2, pow(kinDistanceTravelled * 5 * PI/180, 2));
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
 
-	// if we have a new GPS coordinate put it through the kalman filter
-	/*if (gpsUpdated) {
+
+	// GPS observations:
+	Matrix<double> z = Matrix<double>(3, 1);					// observation
+	Matrix<double> Q = Matrix<double>(3, 3);					// uncertainty of sensor observation
+	Matrix<double> K = Matrix<double>(3, 3);					// Kalman Gain
+	Matrix<double> H = IdentityMatrix<double>(3, 3);			// Jacobian of h
+
 		// the observation matrix
-		Point gpsHeadingVector = gpsPosition - oldKalmanPositionAtLastGPS;
-		double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x);
-		while (gpsAngle > PI) gpsAngle -= 2 * PI;
-		while (gpsAngle < -PI) gpsAngle += 2 * PI;
-		z.put(0, 0, gpsPosition.x);
-		z.put(1, 0, gpsPosition.y);
-		z.put(2, 0, gpsAngle);
+	Point gpsHeadingVector = gpsPosition - oldKalmanPositionAtLastGPS;
+	double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x); // converts to our origin and direction
+	while (gpsAngle > PI) gpsAngle -= 2 * PI;
+	while (gpsAngle < -PI) gpsAngle += 2 * PI;
+	z.put(0, 0, gpsPosition.x);
+	z.put(1, 0, gpsPosition.y);
+	z.put(2, 0, gpsAngle);
 
-		// update Q for the GPS, if we are moving, s.d = 3m at 0m/s, and s.d = 0.25m at 1.2m/s (full speed)
-		double positionAccuracy = 3 - getVelocity() * 2.3;
-		if (positionAccuracy < 0.25) positionAccuracy = 0.25;
-		Q.put(0, 0, 0.25);
-		Q.put(1, 1, 0.25);
-		// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed = 0.5m/s gps has s.d approx 10 degrees (0.17 rads), at speed = 1.3m/s gps has s.d approx 3 degrees
-		//double headingAccuracy = exp(-4 * getVelocity()) + 3 * PI/180;
-		double headingAccuracy = 20;
-		Q.put(2, 2, headingAccuracy);
+	// update Q for the GPS, position s.d = 2m at 0m/s, and s.d = 0.5m at 1.2m/s (full speed).
+	// heading, at speed = 0, gps is totally wrong, s.d = PI, at speed = 0.5m/s gps has s.d approx 
+	// 10 degrees (0.17 rads), at speed = 1.2m/s gps has s.d approx 3 degrees
+	double positionAccuracy = 2 - getVelocity() * 1.25;
+	if (positionAccuracy < 0.5) positionAccuracy = 0.5;
+	positionAccuracy = 0.1;
+	double headingAccuracy = exp(-8 * (getVelocity() - 0.2)) + 3 * PI / 180;
+	positionAccuracy = 0.1;
+	Q.put(0, 0, pow(positionAccuracy, 2));
+	Q.put(1, 1, pow(positionAccuracy, 2));
+	Q.put(2, 2, pow(50, 2));
 
-		K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
-		mu = mu + K * (z - mu);
-		sigma = (I - (K*H))*sigma;
+	K = sigma * H.getTranspose() * (H * sigma * H.getTranspose() + Q).getInverse();
+	mu = mu + K * (z - mu);
+	sigma = (I - (K*H))*sigma;
 
-		oldKalmanPositionAtLastGPS = Point(mu.get(0, 0), mu.get(1, 0));
-		gpsUpdated = false;
+	oldKalmanPositionAtLastGPS = Point(mu.get(0, 0), mu.get(1, 0));
+	gpsUpdated = false;
 
-	}*/
+
+
+	// set the actual position and heading to what we calculate:
+	setPosition(Point(mu.get(0, 0), mu.get(1, 0)));
+
 }
 
 void HardwareInterface::resetKalmanState(Point position, double heading) {
 	mu.put(0, 0, position.x);
 	mu.put(1, 0, position.y);
 	mu.put(2, 0, heading);
+}
+
+void HardwareInterface::setGpsUpdated() {
+	gpsUpdated = true;
 }
 
 Point HardwareInterface::getKalmanPosition() {
