@@ -37,13 +37,15 @@ public:
 	void addPoint(LatLng);
 
 	// returns true if there is a next point in the path
-	bool updatePoint(Point position, float heading);
+	bool updatePoint(Point position, float heading, float velocity);
 	// get the current point to steer to
 	Point getPoint();
 	// is the quad travelling in the forwards direction (mainly for defining turns)
-	bool getIsForwards();
+	// done by checking if the point is in front or behind of quad bike now.
+	//bool getIsForwards();
 	// does the point exist when the argument is added to the currentPathPoint
 	bool isNextPoint();
+	bool isConverging();
 
 	bool subdivide(Point quadPosition, float heading);
 	bool startPath();
@@ -70,9 +72,11 @@ private:
 	unsigned int turnPoint;
 	unsigned int nextTurnPoint;
 	bool travelPathForwards;
-	bool isForwards;
+	//bool isForwards;
 	NavState navState;
 	bool pathNavigationCompleted;
+	double distanceToTurn;
+	bool converging;
 
 	double simpleTurnMaxAngleRad;
 	double noTurnMaxRads;

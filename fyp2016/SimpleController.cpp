@@ -92,12 +92,13 @@ void SimpleController::updateDynamics() {
 
 	Point quadPosition = hwi->getPosition();
 	double quadHeading = hwi->getAbsoluteHeading();
-	ns->updatePoint(quadPosition, (float)quadHeading);
+	ns->updatePoint(quadPosition, (float)quadHeading, hwi->getVelocity());
 	Point currentPoint = ns->getPoint();
 
 	double angleToPathPoint = -1 * atan2(currentPoint.y - quadPosition.y, currentPoint.x - quadPosition.x) + PI / 2;
 	if (angleToPathPoint > PI) angleToPathPoint -= 2 * PI;
 	if (angleToPathPoint < -PI) angleToPathPoint += 2 * PI;
+
 	double alpha = angleToPathPoint - quadHeading;
 	double distance = quadPosition.getDistanceTo(currentPoint);
 	double steerAngleReq = -atan(2 * hwi->wheelBase * sin(alpha) / distance);
@@ -117,11 +118,21 @@ void SimpleController::updateDynamics() {
 	
 	if (desiredVelocity > hwi->cruiseVelocity) desiredVelocity = hwi->cruiseVelocity;
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 2 * PI / 180) desiredVelocity = 0;
+	if (!ns->isConverging()) {
+		desiredVelocity = 0;
+	}
 
-	if (ns->getIsForwards()) {
+	// done by checking if point is in front or behid of quad bike now.
+	/*if (ns->getIsForwards()) {
 		hwi->setDesiredVelocity(desiredVelocity);
 	}
 	else {
 		hwi->setDesiredVelocity(-desiredVelocity);
+	}*/
+	if (angleToPathPoint > PI/2 || angleToPathPoint < -PI/2) {
+		hwi->setDesiredVelocity(-desiredVelocity);
+	}
+	else {
+		hwi->setDesiredVelocity(desiredVelocity);
 	}
 }
