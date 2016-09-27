@@ -39,7 +39,7 @@ bool DummyHardware::initialise() {
 	startTime = std::chrono::high_resolution_clock::now();
 
 	// we KNOW the starting position and heading of the quad bike
-	realPosition = Point(0, 0);
+	realPosition = Point(3, 1);
 	realAbsoluteHeading = 10.0 * PI / 180;
 	
 	realVelocity = 0.0;

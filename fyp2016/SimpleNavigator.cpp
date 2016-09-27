@@ -54,7 +54,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 	}
 
 	double lookAheadDistance = 1.8;
-	double turnTolerance = 0.4;
+	double turnTolerance = 0.2;
 	int increment = 0;
 	increment = (travelPathForwards) ? 1 : -1;
 	
@@ -190,11 +190,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	// then connect that line to the first point in the path.
 	// TODO
 
-	// heading of quad bike at each point of an N-point turn (from google sketchup)
-	// currently based on a max turn angle of 21.5 degrees, 
-	// -> minTurnRadius = 3.25m
-	std::vector<double> turnAngleListDegrees = {
-		0, 26.7, 60.5, 77.3, 95.6, 113.9, 130.8, 180 };
+	// TODO(Harry) make sure points arent too close together, if they are remove one.
 
 	clearSubdividedPath();
 
@@ -225,15 +221,16 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		Point intermediate = Point();						// intermediate holds the current intermediate waypoint
 		intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
 		intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
-		while (intermediate.x * FactorX < nexPoint.x * FactorX && intermediate.y * FactorY < nexPoint.y * FactorY) {
+		while (intermediate.x * FactorX <= nexPoint.x * FactorX && intermediate.y * FactorY <= nexPoint.y * FactorY) {
 			subdividedPath.push_back(Point(intermediate.x, intermediate.y));
 			index++;
 			intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
 			intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
-			
 		}
-		// add the last point we would have missed in the while loop
-		subdividedPath.push_back(Point(nexPoint.x, nexPoint.y));
+		// add the last point we might have missed in the while loop
+		if (subdividedPath.at(subdividedPath.size() - 1).x != nexPoint.x || subdividedPath.at(subdividedPath.size() - 1).y != nexPoint.y) {
+			subdividedPath.push_back(nexPoint);
+		}
 
 		/*
 		waypoints for turn subdivision calculated below
@@ -267,11 +264,12 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 			else if (abs(turnAngle) <= simpleTurnMaxAngleRad) {
 				// conduct a simple turn
 				if (!simpleTurn(directionVector, turnAngle, i + 1, curPoint)) {
-					nPointTurn(directionVector, turnAngle);
+					nPointTurn(directionVector, turnAngle, i + 1);
 				}
 			}
 			else {
 				// conduct N-Point turn
+				nPointTurn(directionVector, turnAngle, i + 1);
 			}
 
 		}
@@ -280,6 +278,8 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
 		Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
 	}
+
+	Log::d << "Path subdivision completed" << endl;
 	return true;
 }
 
@@ -344,271 +344,96 @@ bool SimpleNavigator::simpleTurn(Point heading, double turnAngle, int turnIndexP
 
 	return true;
 }
-bool SimpleNavigator::nPointTurn(Point heading, double turnAngle) {
-	Log::i << "conducted nPoint turn" << endl;
-	return true;
-}
+bool SimpleNavigator::nPointTurn(Point heading, double turnAngle, int turnIndexPoint) {
+	// excludes the very first point and includes the very last point (of each sub turn)
+
+	// delta Y stuff here
+	//double deltaY = getDeltaY(abs(turnAngle));
+	//if (deltaY > 0.2) deltaY = 0.2;
+	Point turnPoint;
+	turnPoint = path.at(turnIndexPoint);
+	//subdividedPath.push_back(Point(turnPoint.x, turnPoint.y));
 
 
-
-bool SimpleNavigator::subdivideOld(Point quadPosition, float heading) {
-
-	// need to connect the quadbike to the path, if it isnt already.
-	// add a line which extends from the front of hte quad bike a small distance,
-	// then connect that line to the first point in the path.
-	double distanceToStart = quadPosition.getDistanceTo(path.at(0));
-	if (distanceToStart > 1) {
-		path.insert(path.begin(), Point(quadPosition.x + 0.1*sin(heading), quadPosition.y + 0.1*cos(heading)));
-		path.insert(path.begin(), Point(quadPosition.x, quadPosition.y));
-	}
-	else {
-		Log::e << "Cannot start demining process as quadbike begins too close to an unscanned region";
-		return false;
-	}
-
-	// reset the current path point for nav purposees
-	currentPathPoint = 0;
-
-	double const distanceBetweenWaypoints = 1;
-	double const distanceBetweenTurnWaypoints = 0.2;
-	double const minTurnRadius = 3.25;		// max turn radius of the quad bike
-	
-	// heading of quad bike at each point of an N-point turn
+	// heading of quad bike at each point of an N-point turn (from google sketchup)
 	// currently based on a max turn angle of 21.5 degrees, 
 	// -> minTurnRadius = 3.25m
 	std::vector<double> turnAngleListDegrees = {
 		0, 26.7, 60.5, 77.3, 95.6, 113.9, 130.8, 180 };
 
-	 subdividedPath.clear();
-
-	// for each line segment (each line between two 'ultimate' waypoints)
-	Point curPoint = path.at(0);
-	Point nexPoint = path.at(1);
-	for (unsigned int i = 0; i < path.size() - 1; i++) {
-		
-		/*
-			subdividing straight line segments:
-			get a unit vector in the direction from the start point to the finish point.
-			place a waypoint at each specified distance using the unit vector.
-		*/
-		
-		nexPoint = path.at(i + 1);
-
-		Point directionVector = Point(nexPoint.x - curPoint.x,
-									nexPoint.y - curPoint.y);
-		directionVector.normalise();
-
-		// intermediate holds the current intermediate waypoint
-		Point intermediate = Point(curPoint.x, curPoint.y);
-
-		// FactorXY used for determining whether intermediate point is still within boundary points.
-		double FactorX = (directionVector.x != 0) ? directionVector.x / abs(directionVector.x) : 0;
-		double FactorY = (directionVector.y != 0) ? directionVector.y / abs(directionVector.y) : 0;
-		
-		// while our intermediate point is still between the two 'ultimate' waypoints
-		// intermediate is calculated based on curPoint to remove accumulative error
-		int index = 0;
-		while (intermediate.x * FactorX < nexPoint.x * FactorX && intermediate.y * FactorY < nexPoint.y * FactorY) {
-			Point p = Point(intermediate.x, intermediate.y);
-			subdividedPath.push_back(p);
-			index++;
-			intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
-			intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
-		}
-
-		/*
-			waypoints for turn subdivision calculated below
-			turn orients the quadbike such that its heading matches the heading
-			of the next line segment. The main for loop (iterating on i) can
-			then proceed.
-			uses a vector from the centre of the turn circle to the quadbike to
-			calculate waypoints. the vector is incrementally rotated and a
-			waypoint added at each step.
-		*/
-		
-		// if there is a next line segment to line up with (if we need to turn):
-		if (i + 2 < path.size()) {
-			
-			// figure out the turn angle
-			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
-			double angle2 = atan2(nexPoint.y - path.at(i + 2).y, nexPoint.x - path.at(i + 2).x);
-			
-			// positive is clockwise. turn angle from -pi to pi
-			double turnAngle = (angle1 - angle2);
-			if (turnAngle<0) {
-				turnAngle += 2 * PI;
-			}
-			if (turnAngle > PI) {
-				turnAngle -= 2 * PI;
-			}
-
-			if (abs(turnAngle) <= simpleTurnMaxAngleRad && i > 0) {// conduct a simple turn 
-				
-				//(i > 0 because we dont want to do it on the first turn to alight the quad bike)
-
-				// distance from waypoint to begin conducting hte turn
-				double d = abs(minTurnRadius * tan(turnAngle / 2));
-				Point endPoint = nexPoint;
-				double distanceFromRemoved = 0;
-
-				// remove the last few points from the straight line segment up to a distance d from the turn waypoint
-				while (distanceFromRemoved <= d) {
-					subdividedPath.erase(subdividedPath.end() - 1);
-					distanceFromRemoved = endPoint.getDistanceTo(subdividedPath.at(subdividedPath.size() - 1));
-				}
-				
-				// add a point a distance d from the endpoint
-				Point dPoint = Point(endPoint.x + -d * directionVector.x, endPoint.y + -d * directionVector.y);
-				subdividedPath.push_back(dPoint);
-
-
-				// dirVector holds the vector from the centre of the turning circle
-				// to the quad bike. needs some manipulation before we have the
-				// correct vector.
-				// get direction vector from initial point to final point of line segment
-				Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
-				dirVector.normalise();
-				dirVector.x *= minTurnRadius;
-				dirVector.y *= minTurnRadius;
-
-				// factor to multiply angles and such. if a right turn = -1, if left = 1
-				int turnFactor = (turnAngle >= 0) ? -1 : 1;
-
-				// first turn arc, a RIGHT turn arc has negative x, a LEFT turn arc has negative y
-				double tempX = dirVector.x;
-				dirVector.x = dirVector.y * turnFactor;
-				dirVector.y = -tempX * turnFactor;
-
-				// centre of the turning circle
-				double centreX = dPoint.x - dirVector.x;
-				double centreY = dPoint.y - dirVector.y;
-
-
-
-				// k increments the angle and places multiple waypoints for each of the turns.
-				// increment holds the change in angle needed
-				double increment = distanceBetweenTurnWaypoints / minTurnRadius;
-				for (double k = increment; k < abs(turnAngle); k += increment) {
-
-					double newVecX = cos(k * turnFactor) * dirVector.x - sin(k * turnFactor) * dirVector.y;
-					double newVecY = sin(k * turnFactor) * dirVector.x + cos(k * turnFactor) * dirVector.y;
-
-					if (k > abs(turnAngle)) {
-						break;
-					}
-
-					Point pp = Point(centreX + newVecX, centreY + newVecY);
-					subdividedPath.push_back(pp);
-				}
-
-			}
-			else {// conduct N-Point turn
-				
-				// add a point to adjust for the distance set off from the next line segment
-				
-				//used to get deltaY from an approximate function, now uses linear interpolation from getDeltaY function
-				//double deltaY = 0.5843*pow(abs(turnAngle), 4) - 3.1669*pow(abs(turnAngle), 3) + 5.968*pow(abs(turnAngle), 2) - 4.047*abs(turnAngle) + 0.1295;
-				
-				double deltaY = getDeltaY(abs(turnAngle));
-				if (deltaY > 0.2) deltaY = 0.2;
-				Point turnPoint;
-				turnPoint.x = nexPoint.x - directionVector.x*deltaY;
-				turnPoint.y = nexPoint.y - directionVector.y*deltaY;
-				subdividedPath.push_back(Point(turnPoint.x, turnPoint.y));
-
-				// current path angle, clockwise from positive y (note, we are using 
-				// cartesian coordinates +y is up, +x is right).
-				double currentAngle = (atan2(nexPoint.y - curPoint.y, nexPoint.x - curPoint.x) - PI / 2) * -1;
-
-				// convert turnAngleListDegrees to radians
-				std::vector<double> turnAngleListRads;
-				for (unsigned int m = 0; m < turnAngleListDegrees.size(); m++) {
-					turnAngleListRads.push_back(turnAngleListDegrees.at(m) * PI / 180);
-				}
-
-				// dirVector holds the vector from the centre of the turning circle
-				// to the quad bike. needs some manipulation before we have the
-				// correct vector.
-				// get direction vector from initial point to final point of line segment
-
-				Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
-				dirVector.normalise();
-				dirVector.x *= minTurnRadius;
-				dirVector.y *= minTurnRadius;
-
-				// factor to multiply angles and such. if a right turn = 1, if left = -1
-				int turnFactor = (turnAngle >= 0) ? 1 : -1;
-
-				// first turn arc, a RIGHT turn arc has negative x, a LEFT turn arc has negative y
-				double tempX = dirVector.x;
-				dirVector.x = dirVector.y * turnFactor;
-				dirVector.y = -tempX * turnFactor;
-
-				// centre of the turning circle
-				double centreX = turnPoint.x - dirVector.x;
-				double centreY = turnPoint.y - dirVector.y;
-
-				bool hasReachedCorrectAngle = false;
-
-				// j cycles through each of the turns in the N-point turn
-				for (int j = 0; j < 7; j++) {
-
-					// k increments the angle and places multiple waypoints for each of the turns.
-					// increment holds the change in angle needed
-					double increment = distanceBetweenTurnWaypoints / minTurnRadius;
-					for (double k = increment; k < (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j)); k += increment) {
-						double newVecX = cos(k * turnFactor) * dirVector.x + sin(k * turnFactor) * dirVector.y;
-						double newVecY = -sin(k * turnFactor) * dirVector.x + cos(k * turnFactor) * dirVector.y;
-
-						if (k + turnAngleListRads.at(j) > turnAngle * turnFactor) {
-							hasReachedCorrectAngle = true;
-							break;
-						}
-
-						Point pp = Point(centreX + newVecX, centreY + newVecY);
-						subdividedPath.push_back(pp);
-					}
-					if (hasReachedCorrectAngle) {
-						break;
-					}
-					//adding the last point that the for loop would have missed.
-					double finalTurnAngle = (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j));
-					double newVecX = cos(finalTurnAngle * turnFactor) * dirVector.x + sin(finalTurnAngle * turnFactor) * dirVector.y;
-					double newVecY = -sin(finalTurnAngle * turnFactor) * dirVector.x + cos(finalTurnAngle * turnFactor) * dirVector.y;
-
-					Point pp = Point(centreX + newVecX, centreY + newVecY);
-					subdividedPath.push_back(pp);
-
-					if (finalTurnAngle + turnAngleListRads.at(j) > turnAngle * turnFactor) {
-						hasReachedCorrectAngle = true;
-						break;
-					}
-
-					// set up direction vector for the next arc in the n-point turn
-					double rotationAngle = turnAngleListRads.at(j + 1) - turnAngleListRads.at(j);
-					double tempX = cos(rotationAngle * turnFactor) * dirVector.x + sin(rotationAngle * turnFactor) * dirVector.y;
-					dirVector.y = -sin(rotationAngle * turnFactor) * dirVector.x + cos(rotationAngle * turnFactor) * dirVector.y;
-					dirVector.x = tempX;
-
-					//then flip it so we turn the other way
-					dirVector.y *= -1;
-					dirVector.x *= -1;
-
-					centreX -= 2 * dirVector.x;
-					centreY -= 2 * dirVector.y;
-				}
-			}
-
-		}
-		curPoint = subdividedPath.at(subdividedPath.size() - 1);
+	// convert turnAngleListDegrees to radians
+	std::vector<double> turnAngleListRads;
+	for (unsigned int m = 0; m < turnAngleListDegrees.size(); m++) {
+		turnAngleListRads.push_back(turnAngleListDegrees.at(m) * PI / 180);
 	}
 
-	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
-		//Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
+	// turnVector holds the vector from the centre of the turning circle
+	// to the quad bike. needs some manipulation before we have the
+	// correct vector.
+	// get direction vector from initial point to final point of line segment
+
+	Point turnVector = heading;
+	turnVector.normalise();
+	turnVector.x *= minTurnRadius;
+	turnVector.y *= minTurnRadius;
+
+	int turnFactor = (turnAngle >= 0) ? 1 : -1;// factor to multiply angles and such. if a right turn = 1, if left = -1
+	double tempX = turnVector.x;// first turn arc, a RIGHT turn arc has negative x, a LEFT turn arc has negative y
+	turnVector.x = turnVector.y * turnFactor;
+	turnVector.y = -tempX * turnFactor;
+
+	Point centre = Point(turnPoint.x - turnVector.x, turnPoint.y - turnVector.y);	// centre of the turning circle
+
+	bool hasReachedCorrectAngle = false;
+
+	// j cycles through each of the turns in the N-point turn
+	for (int j = 0; j < 7; j++) {
+
+		// k increments the angle and places multiple waypoints for each of the turns.
+		// increment holds the change in angle needed
+		double increment = distanceBetweenTurnWaypoints / minTurnRadius;
+		for (double k = increment; k < (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j)); k += increment) {
+			double newVecX = cos(k * turnFactor) * turnVector.x + sin(k * turnFactor) * turnVector.y;
+			double newVecY = -sin(k * turnFactor) * turnVector.x + cos(k * turnFactor) * turnVector.y;
+
+			if (k + turnAngleListRads.at(j) >= turnAngle * turnFactor) {
+				hasReachedCorrectAngle = true;
+				break;
+			}
+
+			Point pp = Point(centre.x + newVecX, centre.y + newVecY);
+			subdividedPath.push_back(pp);
+		}
+		if (hasReachedCorrectAngle) {
+			break;
+		}
+		//adding the last point that the for loop would have missed.
+		double finalTurnAngle = (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j));
+		double newVecX = cos(finalTurnAngle * turnFactor) * turnVector.x + sin(finalTurnAngle * turnFactor) * turnVector.y;
+		double newVecY = -sin(finalTurnAngle * turnFactor) * turnVector.x + cos(finalTurnAngle * turnFactor) * turnVector.y;
+		Point pp = Point(centre.x + newVecX, centre.y + newVecY);
+		subdividedPath.push_back(pp);
+
+		if (finalTurnAngle + turnAngleListRads.at(j) >= turnAngle * turnFactor) {
+			hasReachedCorrectAngle = true;
+			break;
+		}
+
+		// set up direction vector for the next arc in the n-point turn
+		double rotationAngle = turnAngleListRads.at(j + 1) - turnAngleListRads.at(j);
+		double tempX = cos(rotationAngle * turnFactor) * turnVector.x + sin(rotationAngle * turnFactor) * turnVector.y;
+		turnVector.y = -sin(rotationAngle * turnFactor) * turnVector.x + cos(rotationAngle * turnFactor) * turnVector.y;
+		turnVector.x = tempX;
+
+		//then flip it so we turn the other way
+		turnVector.y *= -1;
+		turnVector.x *= -1;
+
+		centre.x -= 2 * turnVector.x;
+		centre.y -= 2 * turnVector.y;
 	}
 
-	Log::d << "Path subdivision completed" << endl;
-	return false;
+	return true;
 }
 
 /*

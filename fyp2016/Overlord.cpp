@@ -41,10 +41,10 @@ bool Overlord::initialise() {
 	ns = new SimpleNavigator();
 	ns->initialise();
 	ns->clearPath();
-	ns->addPoint(Point(2, 3));
-	ns->addPoint(Point(6, 4));
-	ns->addPoint(Point(10, 6));
-	//ns->addPoint(Point(110, 108));
+	ns->addPoint(Point(3, 2));
+	ns->addPoint(Point(3, 5.01));
+	ns->addPoint(Point(7, 5));
+	ns->addPoint(Point(10, 7));
 	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	

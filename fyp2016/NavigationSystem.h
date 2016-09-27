@@ -47,7 +47,6 @@ public:
 	HARRISON: your stuff goes into this method
 	*/
 	virtual bool subdivide(Point, float) = 0;
-	virtual bool subdivideOld(Point, float) = 0;
 
 
 	/*
