@@ -48,8 +48,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	setupFont();
 
 	drawScale = 60;
-	focusX = 2;
-	focusY = 2;
+	focusX = 6;
+	focusY = 4;
 
 	return true;
 }
@@ -159,10 +159,10 @@ void VirtualPlatform::drawPathToTexture() {
 	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(pathCanvas->getRenderer());
 	// drawing the path in this for loop
-	for (int i = 0; i < (int)ns->getPath().size() - 1; i++) {
+	for (int i = 0; i < (int)ns->getSubdividedPath().size() - 1; i++) {
 
-		Point loc1 = Point(ns->getPath().at(i).x, ns->getPath().at(i).y);
-		Point loc2 = Point(ns->getPath().at(i + 1).x, ns->getPath().at(i + 1).y);
+		Point loc1 = Point(ns->getSubdividedPath().at(i).x, ns->getSubdividedPath().at(i).y);
+		Point loc2 = Point(ns->getSubdividedPath().at(i + 1).x, ns->getSubdividedPath().at(i + 1).y);
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
 		Point loc1transf = transform(loc1);

@@ -4,12 +4,17 @@
 
 SimpleNavigator::SimpleNavigator()
 {
-	simpleTurnMaxAngleRad = 50 * PI / 180;
 	isForwards = true;
 	travelPathForwards = true;
 	currentPathPoint = 0;
 	navState = NAV_CRUISE;
 	nextTurnPoint = 0;
+
+	noTurnMaxRads = 10 * PI / 180;
+	simpleTurnMaxAngleRad = 50 * PI / 180;
+	distanceBetweenWaypoints = 0.2;			// meters
+	distanceBetweenTurnWaypoints = 0.2;
+	minTurnRadius = 3.25;		// min turn radius of the quad bike
 }
 
 
@@ -21,6 +26,7 @@ SimpleNavigator::~SimpleNavigator()
 bool SimpleNavigator::initialise() {
 	// doing this because i have no idea how to poperly initialise the vector
 	addPoint(Point(0, 0));
+	pathNavigationCompleted = true;
 
 	Log::d << "Navigator initialised." << std::endl;
 	return true;
@@ -31,14 +37,21 @@ void SimpleNavigator::clearPath() {
 	path.clear();
 }
 
+void SimpleNavigator::clearSubdividedPath() {
+	subdividedPath.clear();
+}
+
 void SimpleNavigator::setPath(std::vector<Point>) {
 
 }
 
 bool SimpleNavigator::updatePoint(Point position, float heading) {
 
-	if (!isNextPoint()) 
+	if (!isNextPoint() && !pathNavigationCompleted) {
+		Log::i << "No next point -> Path navigation complete." << endl;
+		pathNavigationCompleted = true;
 		return false;
+	}
 
 	double lookAheadDistance = 1.8;
 	double turnTolerance = 0.4;
@@ -50,8 +63,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 	// than look ahead distance
 	// if the distance gets smaller, we have a turn inbound. stop incrememting!
 	
-	double distanceNow = position.getDistanceTo(path.at(currentPathPoint));
-	double distanceNext = position.getDistanceTo(path.at(currentPathPoint + increment));
+	double distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
+	double distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
 
 	// while we are cruising, and less than the look ahead distnace
 	while (navState == NAV_CRUISE && distanceNow < lookAheadDistance) {
@@ -60,8 +73,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 			return true;
 		}
 		currentPathPoint += increment;
-		distanceNow = position.getDistanceTo(path.at(currentPathPoint));
-		distanceNext = position.getDistanceTo(path.at(currentPathPoint + increment));
+		distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
+		distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
 
 		if (distanceNow > distanceNext) {
 			// we have a turn coming up
@@ -84,8 +97,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 		nextTurnPoint = turnPoint;
 		
 		do {
-			nowTurnDistance = path.at(turnPoint).getDistanceTo(path.at(currentPathPoint));
-			nextTurnDistance = path.at(turnPoint).getDistanceTo(path.at(currentPathPoint + increment));
+			nowTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint));
+			nextTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint + increment));
 			if (nowTurnDistance > nextTurnDistance) {
 				
 				// we have another turn coming up
@@ -99,16 +112,13 @@ bool SimpleNavigator::updatePoint(Point position, float heading) {
 			}
 			currentPathPoint += increment;
 		} while (nowTurnDistance < lookAheadDistance);
-
-		
-		
 	}
 	return true;
 }
 
 Point SimpleNavigator::getPoint() {
-	if (currentPathPoint < path.size()) {
-		return path.at(currentPathPoint);
+	if (currentPathPoint < subdividedPath.size()) {
+		return subdividedPath.at(currentPathPoint);
 	}
 	else {
 		return Point(NULL, NULL);
@@ -122,7 +132,7 @@ bool SimpleNavigator::getIsForwards() {
 
 bool SimpleNavigator::isNextPoint() {
 	if (travelPathForwards) {
-		if (currentPathPoint + 1 >= path.size() - 1) {
+		if (currentPathPoint + 1 >= subdividedPath.size() - 1) {
 			return false;
 		}
 	}
@@ -155,8 +165,8 @@ bool SimpleNavigator::startPath() {
 	return true;
 }
 
-std::vector<Point> SimpleNavigator::getPath() {
-	return path;
+std::vector<Point> SimpleNavigator::getSubdividedPath() {
+	return subdividedPath;
 }
 
 void SimpleNavigator::setBaseLocation(LatLng ll) {
@@ -171,6 +181,177 @@ segment is subdivided and waypoints for a turn into the next line segment is
 calculated and added.
 */
 bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
+	// reset the current path point for nav purposees
+	currentPathPoint = 0;
+	pathNavigationCompleted = false;
+	
+	// need to connect the quadbike to the path, if it isnt already.
+	// add a line which extends from the front of hte quad bike a small distance,
+	// then connect that line to the first point in the path.
+	// TODO
+
+	// heading of quad bike at each point of an N-point turn (from google sketchup)
+	// currently based on a max turn angle of 21.5 degrees, 
+	// -> minTurnRadius = 3.25m
+	std::vector<double> turnAngleListDegrees = {
+		0, 26.7, 60.5, 77.3, 95.6, 113.9, 130.8, 180 };
+
+	clearSubdividedPath();
+
+	
+	/*
+	for each line segment (each line between two 'ultimate' waypoints)
+	subdivide the straight line segment:
+	get a unit vector in the direction from the start point to the finish point.
+	place a waypoint at each specified distance using the unit vector.
+	the step for each line segment excludes the very first point of the line segment
+	and includes the very last point of hte line segment.
+	*/
+	Point curPoint = path.at(0);
+	Point nexPoint = path.at(1);
+	for (unsigned int i = 0; i < path.size() - 1; i++) {
+		nexPoint = path.at(i+1);
+
+		Point directionVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
+		directionVector.normalise();
+
+		// FactorXY used for determining whether intermediate point is still within boundary points.
+		double FactorX = (directionVector.x != 0) ? directionVector.x / abs(directionVector.x) : 0;
+		double FactorY = (directionVector.y != 0) ? directionVector.y / abs(directionVector.y) : 0;
+
+		// while our intermediate point is still between the two 'ultimate' waypoints
+		// intermediate is calculated based on curPoint to remove accumulative error
+		int index = 1;
+		Point intermediate = Point();						// intermediate holds the current intermediate waypoint
+		intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
+		intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
+		while (intermediate.x * FactorX < nexPoint.x * FactorX && intermediate.y * FactorY < nexPoint.y * FactorY) {
+			subdividedPath.push_back(Point(intermediate.x, intermediate.y));
+			index++;
+			intermediate.x = curPoint.x + index * (directionVector.x * distanceBetweenWaypoints);
+			intermediate.y = curPoint.y + index * (directionVector.y * distanceBetweenWaypoints);
+			
+		}
+		// add the last point we would have missed in the while loop
+		subdividedPath.push_back(Point(nexPoint.x, nexPoint.y));
+
+		/*
+		waypoints for turn subdivision calculated below
+		turn orients the quadbike such that its heading matches the heading
+		of the next line segment. The main for loop (iterating on i) can
+		then proceed.
+		uses a vector from the centre of the turn circle to the quadbike to
+		calculate waypoints. the vector is incrementally rotated and a
+		waypoint added at each step.
+		*/
+
+		// if there is a next line segment to line up with (if we need to turn):
+		if (i + 2 < path.size()) {
+			// figure out the turn angle
+			double angle1 = atan2(curPoint.y - nexPoint.y, curPoint.x - nexPoint.x);
+			double angle2 = atan2(nexPoint.y - path.at(i + 2).y, nexPoint.x - path.at(i + 2).x);
+
+			// positive is clockwise. turn angle from -pi to pi
+			double turnAngle = (angle1 - angle2);
+			if (turnAngle<0) {
+				turnAngle += 2 * PI;
+			}
+			if (turnAngle > PI) {
+				turnAngle -= 2 * PI;
+			}
+
+
+			if (abs(turnAngle) <= noTurnMaxRads) {
+				// we dont need to do a turn, just start subdividing hte next line.
+			}
+			else if (abs(turnAngle) <= simpleTurnMaxAngleRad) {
+				// conduct a simple turn
+				if (!simpleTurn(directionVector, turnAngle, i + 1, curPoint)) {
+					nPointTurn(directionVector, turnAngle);
+				}
+			}
+			else {
+				// conduct N-Point turn
+			}
+
+		}
+		curPoint = subdividedPath.at(subdividedPath.size() - 1);	// start the next line segment from the very last point in the path.
+	}
+	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
+		Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
+	}
+	return true;
+}
+
+bool SimpleNavigator::simpleTurn(Point heading, double turnAngle, int turnIndexPoint, Point previousLinearPoint) {
+	// how much room either side of 'index' that we need to do the turn
+	// and check to see if we have that much room
+	double d = abs(minTurnRadius * tan(turnAngle / 2));
+	Point prePoint = previousLinearPoint;
+	Point indexPoint = path.at(turnIndexPoint);
+	Point endPoint = path.at(turnIndexPoint + 1);
+	if (prePoint.getDistanceTo(indexPoint) <= d || indexPoint.getDistanceTo(endPoint) <= d) {
+		return false;
+	}
+	
+	// remove the last few points from the straight line segment up to a distance d from the turn waypoint
+	double distanceFromRemoved = indexPoint.getDistanceTo(subdividedPath.at(subdividedPath.size() - 1));
+	while (distanceFromRemoved <= d) {
+		//TODO() do i need to 'delete' this point as well?
+		subdividedPath.erase(subdividedPath.end() - 1);
+		distanceFromRemoved = indexPoint.getDistanceTo(subdividedPath.at(subdividedPath.size() - 1));
+	}
+
+	// start the turn from a distance d from indpoint
+	Point startTurn = indexPoint - (heading * d);
+
+	// turnVector holds the vector from the centre of the turning circle
+	// to the quad bike. needs some manipulation before we have the
+	// correct vector.
+	// get direction vector from initial point to final point of line segment
+	Point turnVector = heading;
+	turnVector.normalise();
+	turnVector.x *= minTurnRadius;
+	turnVector.y *= minTurnRadius;
+
+	int turnFactor = (turnAngle >= 0) ? -1 : 1;		// factor to multiply angles and such. if a right turn = -1, if left = 1
+	double tempX = turnVector.x;					// first turn arc, a RIGHT turn arc has negative x, a LEFT turn arc has negative y
+	turnVector.x = turnVector.y * turnFactor;
+	turnVector.y = -tempX * turnFactor;
+
+	// centre of the turning circle
+	Point centre = startTurn - turnVector;
+
+	// k increments the angle and places multiple waypoints for each of the turns.
+	// increment holds the change in angle needed
+	double increment = distanceBetweenTurnWaypoints / minTurnRadius;
+	for (double k = increment; k < abs(turnAngle); k += increment) {
+		double newVecX = cos(k * turnFactor) * turnVector.x - sin(k * turnFactor) * turnVector.y;
+		double newVecY = sin(k * turnFactor) * turnVector.x + cos(k * turnFactor) * turnVector.y;
+		if (k > abs(turnAngle)) {
+			break;
+		}
+		Point pp = Point(centre.x + newVecX, centre.y + newVecY);
+		subdividedPath.push_back(pp);
+	}
+
+	// add the last point in the turn we would have missed in the loop
+	double k = abs(turnAngle);
+	double newVecX = cos(k * turnFactor) * turnVector.x - sin(k * turnFactor) * turnVector.y;
+	double newVecY = sin(k * turnFactor) * turnVector.x + cos(k * turnFactor) * turnVector.y;
+	Point pp = Point(centre.x + newVecX, centre.y + newVecY);
+	subdividedPath.push_back(pp);
+
+	return true;
+}
+bool SimpleNavigator::nPointTurn(Point heading, double turnAngle) {
+	Log::i << "conducted nPoint turn" << endl;
+	return true;
+}
+
+
+
+bool SimpleNavigator::subdivideOld(Point quadPosition, float heading) {
 
 	// need to connect the quadbike to the path, if it isnt already.
 	// add a line which extends from the front of hte quad bike a small distance,
@@ -185,15 +366,16 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		return false;
 	}
 
-
+	// reset the current path point for nav purposees
 	currentPathPoint = 0;
+
 	double const distanceBetweenWaypoints = 1;
 	double const distanceBetweenTurnWaypoints = 0.2;
-	double const turnRadius = 3.25;		// max turn radius of the quad bike
+	double const minTurnRadius = 3.25;		// max turn radius of the quad bike
 	
 	// heading of quad bike at each point of an N-point turn
 	// currently based on a max turn angle of 21.5 degrees, 
-	// -> turnRadius = 3.25m
+	// -> minTurnRadius = 3.25m
 	std::vector<double> turnAngleListDegrees = {
 		0, 26.7, 60.5, 77.3, 95.6, 113.9, 130.8, 180 };
 
@@ -265,7 +447,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 				//(i > 0 because we dont want to do it on the first turn to alight the quad bike)
 
 				// distance from waypoint to begin conducting hte turn
-				double d = abs(turnRadius * tan(turnAngle / 2));
+				double d = abs(minTurnRadius * tan(turnAngle / 2));
 				Point endPoint = nexPoint;
 				double distanceFromRemoved = 0;
 
@@ -286,8 +468,8 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 				// get direction vector from initial point to final point of line segment
 				Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
 				dirVector.normalise();
-				dirVector.x *= turnRadius;
-				dirVector.y *= turnRadius;
+				dirVector.x *= minTurnRadius;
+				dirVector.y *= minTurnRadius;
 
 				// factor to multiply angles and such. if a right turn = -1, if left = 1
 				int turnFactor = (turnAngle >= 0) ? -1 : 1;
@@ -305,7 +487,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
 				// k increments the angle and places multiple waypoints for each of the turns.
 				// increment holds the change in angle needed
-				double increment = distanceBetweenTurnWaypoints / turnRadius;
+				double increment = distanceBetweenTurnWaypoints / minTurnRadius;
 				for (double k = increment; k < abs(turnAngle); k += increment) {
 
 					double newVecX = cos(k * turnFactor) * dirVector.x - sin(k * turnFactor) * dirVector.y;
@@ -351,8 +533,8 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
 				Point dirVector = Point(nexPoint.x - curPoint.x, nexPoint.y - curPoint.y);
 				dirVector.normalise();
-				dirVector.x *= turnRadius;
-				dirVector.y *= turnRadius;
+				dirVector.x *= minTurnRadius;
+				dirVector.y *= minTurnRadius;
 
 				// factor to multiply angles and such. if a right turn = 1, if left = -1
 				int turnFactor = (turnAngle >= 0) ? 1 : -1;
@@ -373,7 +555,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
 					// k increments the angle and places multiple waypoints for each of the turns.
 					// increment holds the change in angle needed
-					double increment = distanceBetweenTurnWaypoints / turnRadius;
+					double increment = distanceBetweenTurnWaypoints / minTurnRadius;
 					for (double k = increment; k < (turnAngleListRads.at(j + 1) - turnAngleListRads.at(j)); k += increment) {
 						double newVecX = cos(k * turnFactor) * dirVector.x + sin(k * turnFactor) * dirVector.y;
 						double newVecY = -sin(k * turnFactor) * dirVector.x + cos(k * turnFactor) * dirVector.y;
@@ -421,13 +603,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		curPoint = subdividedPath.at(subdividedPath.size() - 1);
 	}
 
-	clearPath();
-
 	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
-		addPoint(subdividedPath.at(i));
 		//Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
 	}
-	subdividedPath.clear();
 
 	Log::d << "Path subdivision completed" << endl;
 	return false;
