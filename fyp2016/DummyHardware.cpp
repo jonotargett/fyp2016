@@ -27,7 +27,7 @@ bool DummyHardware::initialise() {
 
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
 	velocityAccuracy = 0.025;		// m/s of spread each side of real value @ full speed (0.5m error over 20m)
-	steeringAccuracy = 5 * PI/180;	// radians of spread each side of real value at full lock
+	steeringAccuracy = 1 * PI/180;	// radians of spread each side of real value at full lock
 	brakeAccuracy = 0;				// percent of spread each side of real value
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2.5;				// meters spread each side of real value
@@ -270,11 +270,9 @@ void DummyHardware::updateActuators(double time) {
 }
 
 void DummyHardware::setDesiredSteeringAngle(double x) {
-	double pi = PI;
-	double limit = 24 * pi / 180;
-
-	if (x > limit) x = limit;
-	if (x < -limit) x = -limit;
+	if (x > maxSteerAngle) x = maxSteerAngle;
+	if (x < -maxSteerAngle) x = -maxSteerAngle;
+	
 	desiredSteeringAngle = x;
 }
 void DummyHardware::setDesiredThrottlePercentage(double x) {

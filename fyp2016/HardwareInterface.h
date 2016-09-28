@@ -80,13 +80,15 @@ public:
 	virtual void updateVelocityActuators();
 	virtual void emergencyStop() = 0;
 
+	double centreHeading(double h, double centre);
+
 	const double width = 1.18;
 	const double length = 1.86;
 	const double wheelBase = 1.28;
 	const double overHang = (length - wheelBase) / 2;
 	const double wheelRadius = 0.3;
 	const double wheelWidth = 0.25;
-	const double maxSteerAngle = 24 * 3.141592 / 180;
+	const double maxSteerAngle = 24 * PI / 180;
 	const double cruiseVelocity = 1.5;
 	const double idleSpeed = 0.25;
 

@@ -13,8 +13,8 @@ SimpleNavigator::SimpleNavigator()
 	converging = true;
 
 	noTurnMaxRads = 10 * PI / 180;
-	simpleTurnMaxAngleRad = 50 * PI / 180;
-	distanceBetweenWaypoints = 0.2;			// meters
+	simpleTurnMaxAngleRad = 40 * PI / 180;
+	distanceBetweenWaypoints = 3;			// meters
 	distanceBetweenTurnWaypoints = 0.2;
 	minTurnRadius = 3.25;		// min turn radius of the quad bike
 
@@ -60,7 +60,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 		return false;
 	}
 
-	double lookAheadDistance = 1.8;
+	double lookAheadDistance = 1.5;
 	double turnTolerance = 0.2;
 	int increment = 0;
 	increment = (travelPathForwards) ? 1 : -1;
@@ -138,73 +138,6 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 		} while (nowTurnDistance < lookAheadDistance);
 	}
 
-	/*if (!isNextPoint() && !pathNavigationCompleted) {
-		Log::i << "No next point -> Path navigation complete." << endl;
-		pathNavigationCompleted = true;
-		return false;
-	}
-
-	double lookAheadDistance = 1.8;
-	double turnTolerance = 0.2;
-	int increment = 0;
-	increment = (travelPathForwards) ? 1 : -1;
-	
-	// when incrementing the point, the distnace has to get bigger or smaller,
-	// if the distance gets bigger, keep incremening until distance is bigger
-	// than look ahead distance
-	// if the distance gets smaller, we have a turn inbound. stop incrememting!
-	
-	double distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
-	double distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
-
-	// while we are cruising, and less than the look ahead distnace
-	while (navState == NAV_CRUISE && distanceNow < lookAheadDistance) {
-		if (!isNextPoint()) {
-			// have already incremented pathPoint by now
-			return true;
-		}
-		currentPathPoint += increment;
-		distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
-		distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
-
-		if (distanceNow > distanceNext) {
-			// we have a turn coming up
-			navState = NAV_TURNINBOUND;
-			turnPoint = currentPathPoint;
-			break;
-		}
-	}
-	// turn stuff
-	// we know where the first turn point is at this stage, turnPoint
-	// is there another turn point after this?:
-	// if true, we have reached the turn point.
-	if (distanceNow < turnTolerance && navState == NAV_TURNINBOUND) {
-		isForwards = !isForwards;
-		navState = NAV_CRUISE;
-		
-		// but do we have another turn???
-		double nowTurnDistance = 0;
-		double nextTurnDistance = 0;
-		nextTurnPoint = turnPoint;
-		
-		do {
-			nowTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint));
-			nextTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint + increment));
-			if (nowTurnDistance > nextTurnDistance) {
-				
-				// we have another turn coming up
-				navState = NAV_TURNINBOUND;
-				turnPoint = currentPathPoint;
-				break;
-			}
-			if (!isNextPoint()) {
-				// there is no next turn point because theres no next point
-				break;
-			}
-			currentPathPoint += increment;
-		} while (nowTurnDistance < lookAheadDistance);
-	}
-	return true;*/
 }
 
 Point SimpleNavigator::getPoint() {

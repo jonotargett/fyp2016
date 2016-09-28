@@ -30,6 +30,11 @@ public:
 	virtual void setPath(std::vector<Point>) = 0;
 
 	/*
+	gets the current point to turn to
+	*/
+	virtual Point getPoint() = 0;
+
+	/*
 	adds the current point to the navigation path, appending to the end of the list
 	*/
 	virtual void addPoint(Point) = 0;

@@ -138,7 +138,7 @@ void VirtualPlatform::redrawGraphTexture() {
 	drawText(titleText, 840, 440);
 
 	titleText = "Steer Angle: ";
-	std::string stang = std::to_string((int)round(abs(steerAngle * 180 / 3.1416)));
+	std::string stang = std::to_string((int)round(abs(steerAngle * 180 / PI)));
 	titleText += stang;
 	titleText += " degrees";
 	//drawText(titleText, 840, 176);
@@ -293,6 +293,14 @@ void VirtualPlatform::redrawSimulationTexture() {
 
 	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).x, transform(Point(quadLoc.x + 2 * sin(kalmanHeading), quadLoc.y + 2 * cos(kalmanHeading))).y);
 	
+	/////////////////////////
+	// currentPoint visual //
+	/////////////////////////
+	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0xCC, 0x00, 0xCC, 0xFF);
+	Point currentTurnPoint = transform(ns->getPoint());
+	SDL_Rect curTurnRect = { currentTurnPoint.x - ptSize, currentTurnPoint.y - ptSize, ptSize * 2, ptSize * 2 };
+	SDL_RenderFillRect(simulationCanvas->getRenderer(), &curTurnRect);
+
 
 	SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 }

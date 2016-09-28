@@ -118,8 +118,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 		// the observation matrix
 	Point gpsHeadingVector = gpsPosition - oldKalmanPositionAtLastGPS;
 	double gpsAngle = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x); // converts to our origin and direction
-	while (gpsAngle > PI) gpsAngle -= 2 * PI;
-	while (gpsAngle < -PI) gpsAngle += 2 * PI;
+	gpsAngle = centreHeading(gpsAngle, headingPrior);
 	z.put(0, 0, gpsPosition.x);
 	z.put(1, 0, gpsPosition.y);
 	z.put(2, 0, gpsAngle);
@@ -151,7 +150,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	K = Matrix<double>(3, 1);					// Kalman Gain
 	H = IdentityMatrix<double>(1, 3);			// Jacobian of h
 
-	double deltaHeading = imuHeading - imuInitialHeading;
+	double deltaHeading = imuHeading - centreHeading(imuInitialHeading, imuHeading);
 
 	z.put(0, 0, headingPrior + deltaHeading);
 	Q.put(0, 0, 0.0001 * PI / 180);
@@ -164,9 +163,17 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	imuInitialHeading = imuHeading;
 
 	// set the actual position and heading to what we calculate:
+	mu.put(2, 0, centreHeading(mu.get(2, 0), 0));
 	setPosition(Point(mu.get(0, 0), mu.get(1, 0)));
 	setAbsoluteHeading(mu.get(2, 0));
 
+}
+
+double HardwareInterface::centreHeading(double h, double centre) {
+	double heading = h;
+	while (heading > centre + PI) heading -= 2 * PI;
+	while (heading < centre - PI) heading += 2 * PI;
+	return heading;
 }
 
 void HardwareInterface::resetKalmanState(Point position, double heading) {

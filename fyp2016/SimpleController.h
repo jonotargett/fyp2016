@@ -52,6 +52,8 @@ public:
 	void updateDynamics();
 	void landMineDetected();
 
+	int timer;
+
 	bool updateLoop();
 
 };
