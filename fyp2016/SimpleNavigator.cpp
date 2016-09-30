@@ -14,7 +14,7 @@ SimpleNavigator::SimpleNavigator()
 
 	noTurnMaxRads = 10 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
-	distanceBetweenWaypoints = 3;			// meters
+	distanceBetweenWaypoints = 0.5;			// meters
 	distanceBetweenTurnWaypoints = 0.2;
 	minTurnRadius = 3.25;		// min turn radius of the quad bike
 

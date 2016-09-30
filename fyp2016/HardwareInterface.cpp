@@ -77,7 +77,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	double kinDistanceForward = 0;
 	double kinDistanceRight = 0;
 	double kinAngleTurned = 0;
-	if (abs(getSteeringAngle()) < 0.01) {
+	if (abs(getSteeringAngle()) < 0.001) {
 		kinDistanceForward = kinDistanceTravelled;
 	}
 	else {
@@ -105,7 +105,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	// heading is out by 5 (s.d) degrees for every meter travelled
 	R.put(0, 0, pow(kinDistanceTravelled * 0.025 *8, 2));
 	R.put(1, 1, pow(kinDistanceTravelled * 0.025 * 8, 2));
-	R.put(2, 2, pow(kinDistanceTravelled * 10 * PI/180, 2));
+	R.put(2, 2, pow(kinDistanceTravelled * 50 * PI/180, 2));
 
 	sigma = ((G * sigma) * G.getTranspose()) + R;
 
@@ -126,7 +126,6 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	z.put(0, 0, kinematicAlteredGps.x);
 	z.put(1, 0, kinematicAlteredGps.y);
 	z.put(2, 0, gpsHeading);
-	Log::i << gpsHeadingVector.getLength() << endl;
 	// update Q for the GPS, position s.d = 2m at 0m/s, and s.d = 0.5m at 1.2m/s (full speed).
 	// heading, at speed = 0, gps is totally wrong, s.d = infinity, at speed = 0.5m/s gps has s.d approx 
 	// 10 degrees (0.17 rads), at speed = 1.2m/s gps has s.d approx 3 degrees
