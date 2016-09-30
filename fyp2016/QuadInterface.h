@@ -12,7 +12,7 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 
 */
 
-#define COM_PORT 4			// if COM port is known
+#define COM_PORT 5			// if COM port is known
 #define MAX_COM_SEARCH 10		// search between COM1 and COMx
 #define SEARCH_INTERVAL 1000	// time to wait between checking successive COM ports
 #define BAUD_RATE 57600
@@ -38,7 +38,7 @@ public:
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);
 	void setDesiredThrottlePercentage(double);
-	void setDesiredBrake(double);
+	void setDesiredBrakePercentage(double);
 	void setDesiredGear(Gear);
 
 	void emergencyStop();
@@ -57,5 +57,6 @@ private:
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastThrottle;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastSteering;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastGear;
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastBrake;
 };
 

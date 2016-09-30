@@ -17,7 +17,10 @@ QuadInterface::QuadInterface()
 	comPort = 1;
 	connected = false;
 	current = std::chrono::high_resolution_clock::now();
-	lastThrottle = std::chrono::high_resolution_clock::now();
+	lastThrottle = current;
+	lastSteering = current;
+	lastGear = current;
+	lastBrake = current;
 }
 
 
@@ -280,8 +283,27 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 	}
 }
 
-void QuadInterface::setDesiredBrake(double b) {
+void QuadInterface::setDesiredBrakePercentage(double b) {
+	if (!connected)
+		return;
 
+	current = std::chrono::high_resolution_clock::now();
+	seconds = current - lastBrake;
+
+	if (seconds.count() > 0.100) {
+		Packet* p = new Packet();
+
+		p->packetID = ID_SET_QUAD_BRAKE;
+		p->length = 1;
+		p->data = new float[1];
+		p->data[0] = (float)b;
+
+		uint8_t* bytes = p->toBytes();
+
+		serial.SendData((char*)bytes, p->getByteLength());
+
+		lastBrake = current;
+	}
 }
 
 void QuadInterface::setDesiredGear(Gear g) {

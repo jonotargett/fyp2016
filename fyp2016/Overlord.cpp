@@ -108,10 +108,12 @@ void Overlord::run() {
 		// TODO() changed throttle percentage for better visual effect
 		/*hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
 		float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
-		if (steerAngle > 22) steerAngle = 22;
-		if (steerAngle < -22) steerAngle = -22;
+		if (steerAngle > 20) steerAngle = 20;
+		if (steerAngle < -20) steerAngle = -20;
 		hwi->setDesiredSteeringAngle(steerAngle);
-		hwi->setDesiredGear(dhwi->getGear());*/
+		hwi->setDesiredGear(dhwi->getGear());
+		hwi->setDesiredBrakePercentage(dhwi->getBrakePercentage());*/
+		hwi->emergencyStop();
 		
 		// periodic refresh shit. runs at 60Hz ish. ---------------------------//
 		Log::setVerbosity(LOG_INFORMATIVE);

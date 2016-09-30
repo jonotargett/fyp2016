@@ -23,7 +23,7 @@ bool DummyHardware::initialise() {
 
 	velocityChangeRate = 0.6;		// metres/second^2
 	frictionalDecayRate = 120;		// %/second??
-	brakingAcceleration = 50;		// m/s/s at 100% brake. interpolate inbetween
+	brakingAcceleration = 20;		// m/s/s at 100% brake. interpolate inbetween
 
 	headingAccuracy = 0;			// radians of spread each side of real value (this wont be a thing, will come from kalman filter)
 	velocityAccuracy = 0.025;		// m/s of spread each side of real value @ full speed (0.5m error over 20m)
@@ -305,14 +305,14 @@ void DummyHardware::updateVelocityActuators() {
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
 		setDesiredGear(GEAR_NEUTRAL);
-		setDesiredBrake(15);
+		setDesiredBrake(50);
 	}
 	else if (desiredVelocity > 0) {
 		// if we are travelling in the wrong direction
 		if (getVelocity() < 0) {
 			setDesiredThrottlePercentage(0);
 			setDesiredGear(GEAR_NEUTRAL);
-			setDesiredBrake(15);
+			setDesiredBrake(50);
 			return;
 		}
 		// if we are travelling in the correct direction
@@ -329,7 +329,7 @@ void DummyHardware::updateVelocityActuators() {
 			}
 			else {
 				setDesiredThrottlePercentage(0);
-				setDesiredBrake(15);
+				setDesiredBrake(50);
 			}
 		}
 		// otherwise we'll feather the throttle
@@ -350,7 +350,7 @@ void DummyHardware::updateVelocityActuators() {
 		if (getVelocity()  > 0) {
 			setDesiredThrottlePercentage(0);
 			setDesiredGear(GEAR_NEUTRAL);
-			setDesiredBrake(15);
+			setDesiredBrake(50);
 			return;
 		}
 		// if we are travelling in the correct direction
@@ -363,7 +363,7 @@ void DummyHardware::updateVelocityActuators() {
 		if (abs(desiredVelocity) < idleSpeed) {
 			if (getVelocity()  < desiredVelocity) {
 				setDesiredThrottlePercentage(0);
-				setDesiredBrake(15);
+				setDesiredBrake(50);
 			}
 			else {
 				setDesiredThrottlePercentage(0);
