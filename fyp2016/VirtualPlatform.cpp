@@ -282,6 +282,9 @@ void VirtualPlatform::redrawSimulationTexture() {
 	Point gpsDrawPos = transform(hw->getGpsPosition());
 	SDL_Rect gpsRect = { gpsDrawPos.x - ptSize, gpsDrawPos.y - ptSize, ptSize*2, ptSize *2};
 	SDL_RenderFillRect(simulationCanvas->getRenderer(), &gpsRect);
+
+	double gpsHeading = hw->getGpsHeading();
+	SDL_RenderDrawLine(simulationCanvas->getRenderer(), (int)transform(quadLoc).x, (int)transform(quadLoc).y, transform(Point(quadLoc.x + 2 * sin(gpsHeading), quadLoc.y + 2 * cos(gpsHeading))).x, transform(Point(quadLoc.x + 2 * sin(gpsHeading), quadLoc.y + 2 * cos(gpsHeading))).y);
 	
 	///////////////////////
 	///// kalman visual ///

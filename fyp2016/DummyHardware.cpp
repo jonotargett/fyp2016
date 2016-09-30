@@ -32,15 +32,15 @@ bool DummyHardware::initialise() {
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2.5;				// meters spread each side of real value
 	maxGpsMove = 0.5;				// max distance the gps can move on each update (from previous position)
-	imuFloat = 0.011;				// radians of inaccuracy per radian (slightly randomized further down in initialisation) (0.011 is 4 degrees / 360 degrees)
+	imuFloat = 0.014;				// degrees of inaccuracy per degree (slightly randomized further down in initialisation) (0.014 is 5 degrees / 360 degrees)
 
 	srand((unsigned int)time(NULL));
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
 	// we KNOW the starting position and heading of the quad bike
-	realPosition = Point(3, 1);
-	realAbsoluteHeading = 10.0 * PI / 180;
+	realPosition = Point(3, 2);
+	realAbsoluteHeading = 5.0 * PI / 180;
 	
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;

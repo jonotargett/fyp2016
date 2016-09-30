@@ -229,6 +229,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	*/
 	Point curPoint = path.at(0);
 	Point nexPoint = path.at(1);
+
+	subdividedPath.push_back(path.at(0));
+
 	for (unsigned int i = 0; i < path.size() - 1; i++) {
 		nexPoint = path.at(i+1);
 

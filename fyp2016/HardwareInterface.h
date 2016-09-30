@@ -65,6 +65,7 @@ public:
 	double getThrottlePercentage();
 	
 	Point getGpsPosition();
+	double getGpsHeading();
 	double getImuHeading();
 	Point getKalmanPosition();
 	double getKalmanHeading();
@@ -110,6 +111,9 @@ private:
 	double brakePercentage;
 	Gear gear;
 	Point gpsPosition;
+	Point gpsPrevPosition;
+	Point kinematicAlteredGps;
+	double gpsHeading;
 	Point oldKalmanPositionAtLastGPS;
 	bool gpsUpdated;
 	double imuInitialHeading;
