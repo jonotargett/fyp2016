@@ -129,7 +129,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	// heading, at speed = 0, gps is totally wrong, s.d = infinity, at speed = 0.5m/s gps has s.d approx 
 	// 10 degrees (0.17 rads), at speed = 1.2m/s gps has s.d approx 3 degrees
 	double positionAccuracy = 1 - getVelocity() * 0.8;
-	if (positionAccuracy < 0.05) positionAccuracy = 0.05;
+	if (positionAccuracy < 0.1) positionAccuracy = 0.1;
 	Q.put(0, 0, pow(positionAccuracy, 2));
 	Q.put(1, 1, pow(positionAccuracy, 2));
 
