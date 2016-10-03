@@ -69,7 +69,6 @@ public:
 	double getImuHeading();
 	Point getKalmanPosition();
 	double getKalmanHeading();
-	void setGpsUpdated();
 	bool getImuStabilised();
 	void setImuInitialHeading(double);
 	
