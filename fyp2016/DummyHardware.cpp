@@ -2,6 +2,7 @@
 
 
 
+
 DummyHardware::DummyHardware()
 {
 }
@@ -32,14 +33,14 @@ bool DummyHardware::initialise() {
 	throttleAccuracy = 0;			// percent of spread each side of real value
 	gpsAccuracy = 2.5;				// meters spread each side of real value
 	maxGpsMove = 0.5;				// max distance the gps can move on each update (from previous position)
-	imuFloat = 0.014;				// degrees of inaccuracy per degree (slightly randomized further down in initialisation) (0.014 is 5 degrees / 360 degrees)
+	imuFloat = 1/360;				// degrees of inaccuracy per degree
 
 	srand((unsigned int)time(NULL));
 	//hrt = HRTimer();
 	startTime = std::chrono::high_resolution_clock::now();
 
 	// we KNOW the starting position and heading of the quad bike
-	realPosition = Point(3, 2);
+	realPosition = Point(0, 0);
 	realAbsoluteHeading = 5.0 * PI / 180;
 	
 	realVelocity = 0.0;
@@ -55,8 +56,7 @@ bool DummyHardware::initialise() {
 	kinematicHeading = realAbsoluteHeading;
 	imuHeading = random(-PI, PI);		// we have no idea what the first value of the heading is going to be!
 	imuFloat += random(-imuFloat / 10, imuFloat / 10);
-	imuHeading = 1.5;
-	imuFloat = 0;
+	Log::i << "imuFloat: " << imuFloat << endl;
 
 	oldPositionAtGpsUpdate = realPosition;
 	setPosition(realPosition);
@@ -83,10 +83,30 @@ bool DummyHardware::initialise() {
 
 	start();
 
+	//myfile.open("data.txt");
+	//myfile << "time realx realy realh kalx kaly kalh gpsx gpsy gpsh kinx kiny kinh imuh" << endl;
+
+
 	return true;
 }
 
 void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
+
+	/*Point gpsHeadingVector = getGpsPosition() - gpsPrevPosition;
+	double gpsHeading;
+	gpsHeading = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x); // converts to our origin and direction
+	gpsHeading = centreHeading(gpsHeading, 0);
+
+	myfile << timeasdfa << " ";
+	myfile << realPosition.x << " " << realPosition.y << " " << centreHeading(realAbsoluteHeading, 0) * 180/PI << " ";
+	myfile << getKalmanPosition().x << " " << getKalmanPosition().y << " " << getKalmanHeading() * 180/PI << " ";
+	myfile << getGpsPosition().x << " " << getGpsPosition().y << " " << gpsHeading * 180 / PI << " ";
+	myfile << getKinematicPosition().x << " " << getKinematicPosition().y << " " << getKinematicHeading() * 180/PI << " ";
+	myfile << getImuHeading() * 180 / PI << endl;
+	timeasdfa += time;*/
+
+
+
 	
 	// actuator logic (fake a slow merge towards desired position)
 	updateActuators(time);
@@ -168,23 +188,22 @@ void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined b
 		double randy = pow(random(), 1);
 		Point newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
 
-		while (newGpsPos.getDistanceTo(oldPositionAtGpsUpdate + realMoveVector) > maxGpsMove) {
-			randx = pow(random(), 1);
-			randy = pow(random(), 1);
-			newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
-		}
+			while (newGpsPos.getDistanceTo(oldPositionAtGpsUpdate + realMoveVector) > maxGpsMove) {
+				randx = pow(random(), 1);
+				randy = pow(random(), 1);
+				newGpsPos = Point(realPosition.x + randx * gpsAccuracy, realPosition.y + randy * gpsAccuracy);
+			}
 		oldPositionAtGpsUpdate = realPosition;
 
 		gpsPosition.x = realPosition.x + randx * gpsAccuracy;
 		gpsPosition.y = realPosition.y + randy * gpsAccuracy;
 
 		timeSinceLastGpsUpdate -= 1;
-		setGpsUpdated();
 	}
 
 	// imu
 	// imu heading is pretty accurate, for our purposes here it adds imuFloat (error) for every radian traversed.
-	imuHeading += angleTurned + imuFloat * angleTurned;
+	imuHeading += angleTurned + abs(imuFloat * angleTurned);
 	if (imuHeading > PI) imuHeading -= 2 * PI;
 	if (imuHeading < -PI) imuHeading += 2 * PI;
 

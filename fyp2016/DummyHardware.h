@@ -10,10 +10,16 @@
 #define REFRESH_RATE 60
 
 
+
+#include <iostream>
+#include <fstream>
+
 class DummyHardware :
 	public HardwareInterface
 {
 public:
+	std::ofstream myfile;
+
 	DummyHardware();
 	~DummyHardware();
 
@@ -55,6 +61,8 @@ private:
 	double realThrottlePercentage;
 	Gear realGear;
 	double realBrakePercentage;
+
+	double timeasdfa = 0;
 
 	// individual elements of the kalman filter for visualisation purposes
 	// in virtual platform.

@@ -92,7 +92,7 @@ public:
 	const double maxSteerAngle = 24 * PI / 180;
 	const double cruiseVelocity = 1.5;
 	const double idleSpeed = 0.25;
-
+	Point gpsPrevPosition;
 private:
 	
 	void updateKalmanFilter(double time);
@@ -111,11 +111,9 @@ private:
 	double brakePercentage;
 	Gear gear;
 	Point gpsPosition;
-	Point gpsPrevPosition;
+
 	Point kinematicAlteredGps;
 	double gpsHeading;
-	Point oldKalmanPositionAtLastGPS;
-	bool gpsUpdated;
 	double imuInitialHeading;
 	double imuHeading;
 	bool imuStable;			//imu takes time to settle to a stable place

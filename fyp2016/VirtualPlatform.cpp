@@ -47,9 +47,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 60;
-	focusX = 6;
-	focusY = 4;
+	drawScale = 50;
+	focusX = 5;
+	focusY = 6;
 
 	return true;
 }
@@ -59,8 +59,8 @@ void VirtualPlatform::update() {
 	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph->post(hw->getRealGear());
 	throttleGraph->post(round(hw->getRealThrottlePercentage()));
-	//focusX = hw->getRealPosition().x;
-	//focusY = hw->getRealPosition().y;
+	focusX = hw->getRealPosition().x;
+	focusY = hw->getRealPosition().y;
 }
 
 
