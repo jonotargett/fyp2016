@@ -46,7 +46,10 @@ public:
 private:
 	Packet* processPacket();
 	bool establishCOM(int);
+	void updateVelocityActuators();
 	bool connected;
+
+	double desiredVelocity;
 
 	CSerial serial;
 	int comPort;

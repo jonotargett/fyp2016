@@ -267,6 +267,8 @@ void* UpdaterRunnable::run() {
 */
 
 
+
+
 void HardwareInterface::setDesiredVelocity(double x) {}
 void HardwareInterface::setDesiredSteeringAngle(double x) {}
 void HardwareInterface::setDesiredThrottlePercentage(double x) {}

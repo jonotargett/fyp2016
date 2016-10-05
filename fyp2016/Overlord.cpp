@@ -88,6 +88,7 @@ bool Overlord::initialise() {
 void Overlord::run() {
 
 	std::chrono::duration<double> seconds;
+	std::chrono::duration<double> quadTimer;
 	
 	// display the window for the first time
 	window->showWindow(true);
@@ -107,6 +108,7 @@ void Overlord::run() {
 	
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
+	std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
 
 	while (!window->shouldQuit()) {
 
@@ -114,23 +116,30 @@ void Overlord::run() {
 		window->handleEvents();
 		this->handleEvents();
 
-		// setting real hardware to same as virtual hardware
-		// TODO() changed throttle percentage for better visual effect
-		/*hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
-		float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
-		if (steerAngle > 20) steerAngle = 20;
-		if (steerAngle < -20) steerAngle = -20;
-		hwi->setDesiredSteeringAngle(steerAngle);
-		hwi->setDesiredGear(dhwi->getGear());
-		hwi->setDesiredBrakePercentage(dhwi->getBrakePercentage());*/
-		hwi->emergencyStop();
+
 		
 		// periodic refresh shit. runs at 60Hz ish. ---------------------------//
 		Log::setVerbosity(LOG_INFORMATIVE);
 
 		current = std::chrono::high_resolution_clock::now();
 		seconds = current - lastDataUpdate;
-
+		
+		/***********************************
+		timer for testing real quad bike actuators
+		************************************/
+		quadTimer = t2 - startTime;
+		//if (quadTimer.count() > 4) {
+			//hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
+			//float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
+			//if (steerAngle > 20) steerAngle = 20;
+			//if (steerAngle < -20) steerAngle = -20;
+			//hwi->emergencyStop();
+			//hwi->setDesiredSteeringAngle(steerAngle);
+			//hwi->setDesiredGear(GEAR_NEUTRAL);
+			//hwi->setDesiredBrakePercentage(0.1);
+			//hwi->setDesiredThrottlePercentage(0);
+		//}
+		
 		
 		if (seconds.count() > (1.0 / (double)DATA_REFRESH_RATE)) {
 			lastDataUpdate = current;

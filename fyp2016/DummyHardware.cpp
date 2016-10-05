@@ -83,15 +83,16 @@ bool DummyHardware::initialise() {
 
 	start();
 
+	//error visualisation, see update()
 	//myfile.open("data.txt");
 	//myfile << "time realx realy realh kalx kaly kalh gpsx gpsy gpsh kinx kiny kinh imuh" << endl;
-
 
 	return true;
 }
 
 void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
 
+	// was for writing things to a file for error visualisation
 	/*Point gpsHeadingVector = getGpsPosition() - gpsPrevPosition;
 	double gpsHeading;
 	gpsHeading = PI / 2 - atan2(gpsHeadingVector.y, gpsHeadingVector.x); // converts to our origin and direction
@@ -297,11 +298,13 @@ void DummyHardware::setDesiredSteeringAngle(double x) {
 void DummyHardware::setDesiredThrottlePercentage(double x) {
 	if (x > 100) x = 100;
 	if (x < 0) x = 0;
+	if (x > 0) setDesiredBrake(0);
 	desiredThrottlePercentage = x;
 }
 void DummyHardware::setDesiredBrake(double x) {
 	if (x > 100) x = 100;
 	if (x < 0) x = 0;
+	if (x > 0) setDesiredThrottlePercentage(0);
 	desiredBrakePercentage = x;
 }
 void DummyHardware::setDesiredGear(Gear x) {
@@ -355,12 +358,6 @@ void DummyHardware::updateVelocityActuators() {
 		// maybe add brakes in here later for a really large 
 		// difference in actual speed and desired speed
 		else {
-			/*if (getVelocity()  < desiredVelocity) {
-				setDesiredThrottlePercentage(desiredThrottlePercentage + 0.05);
-			}
-			if (getVelocity()  > desiredVelocity) {
-				setDesiredThrottlePercentage(desiredThrottlePercentage - 0.05);
-			}*/
 			setDesiredThrottlePercentage(throttlePercentageRequired);
 		}
 	}
@@ -395,12 +392,6 @@ void DummyHardware::updateVelocityActuators() {
 		else {
 			
 			//REMEMBER WE'RE IN REVERSE HERE
-			/*if (getVelocity()  < desiredVelocity) {
-				setDesiredThrottlePercentage(desiredThrottlePercentage - 0.05);
-			}
-			if (getVelocity()  > desiredVelocity) {
-				setDesiredThrottlePercentage(desiredThrottlePercentage + 0.05);
-			}*/
 			setDesiredThrottlePercentage(throttlePercentageRequired);
 		}
 	}

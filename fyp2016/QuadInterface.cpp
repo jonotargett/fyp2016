@@ -21,6 +21,8 @@ QuadInterface::QuadInterface()
 	lastSteering = current;
 	lastGear = current;
 	lastBrake = current;
+
+	desiredVelocity = 0;
 }
 
 
@@ -67,7 +69,6 @@ bool QuadInterface::initialise() {
 	}
 
 	Log::i << "Connection established on COM" << comPort << endl;
-
 
 	start();
 
@@ -228,13 +229,13 @@ Packet* QuadInterface::processPacket() {
 
 
 bool QuadInterface::updateLoop() {
-	Log::i << "ksadj" << endl;
+	updateVelocityActuators();
 
 	return true;
 }
 
 void QuadInterface::setDesiredVelocity(double v) {
-
+	desiredVelocity = v;
 }
 
 void QuadInterface::setDesiredSteeringAngle(double a) {
@@ -284,6 +285,7 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 }
 
 void QuadInterface::setDesiredBrakePercentage(double b) {
+
 	if (!connected)
 		return;
 
@@ -343,4 +345,79 @@ void QuadInterface::emergencyStop() {
 
 	delete bytes;
 	delete p;
+}
+
+void QuadInterface::updateVelocityActuators() {
+	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
+
+	if (desiredVelocity == 0) {
+		setDesiredThrottlePercentage(0);
+		setDesiredGear(GEAR_NEUTRAL);
+		setDesiredBrakePercentage(50);
+	}
+	else if (desiredVelocity > 0) {
+		// if we are travelling in the wrong direction
+		if (getVelocity() < 0) {
+			setDesiredThrottlePercentage(0);
+			setDesiredGear(GEAR_NEUTRAL);
+			setDesiredBrakePercentage(50);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			setDesiredGear(GEAR_FORWARD);
+			setDesiredBrakePercentage(0);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (desiredVelocity < idleSpeed) {
+			if (getVelocity()  < desiredVelocity) {
+				setDesiredThrottlePercentage(0);
+				setDesiredBrakePercentage(0);
+			}
+			else {
+				setDesiredThrottlePercentage(0);
+				setDesiredBrakePercentage(50);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large 
+		// difference in actual speed and desired speed
+		else {
+			setDesiredThrottlePercentage(throttlePercentageRequired);
+		}
+	}
+	else if (desiredVelocity < 0) {
+		// if we are travelling in the wrong direction
+		if (getVelocity()  > 0) {
+			setDesiredThrottlePercentage(0);
+			setDesiredGear(GEAR_NEUTRAL);
+			setDesiredBrakePercentage(50);
+			return;
+		}
+		// if we are travelling in the correct direction
+		else {
+			setDesiredGear(GEAR_REVERSE);
+			setDesiredBrakePercentage(0);
+		}
+
+		// if desiredVelocity is so slow that we need to feather the brakes
+		if (abs(desiredVelocity) < idleSpeed) {
+			if (getVelocity()  < desiredVelocity) {
+				setDesiredThrottlePercentage(0);
+				setDesiredBrakePercentage(50);
+			}
+			else {
+				setDesiredThrottlePercentage(0);
+				setDesiredBrakePercentage(0);
+			}
+		}
+		// otherwise we'll feather the throttle
+		// maybe add brakes in here later for a really large
+		// difference in actual speed and desired speed
+		else {
+			//REMEMBER WE'RE IN REVERSE HERE
+			setDesiredThrottlePercentage(throttlePercentageRequired);
+		}
+	}
 }
