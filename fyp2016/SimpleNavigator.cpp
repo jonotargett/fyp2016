@@ -324,7 +324,6 @@ bool SimpleNavigator::simpleTurn(Point heading, double turnAngle, int turnIndexP
 	// remove the last few points from the straight line segment up to a distance d from the turn waypoint
 	double distanceFromRemoved = indexPoint.getDistanceTo(subdividedPath.at(subdividedPath.size() - 1));
 	while (distanceFromRemoved <= d) {
-		//TODO() do i need to 'delete' this point as well?
 		subdividedPath.erase(subdividedPath.end() - 1);
 		distanceFromRemoved = indexPoint.getDistanceTo(subdividedPath.at(subdividedPath.size() - 1));
 	}
@@ -373,13 +372,15 @@ bool SimpleNavigator::simpleTurn(Point heading, double turnAngle, int turnIndexP
 }
 bool SimpleNavigator::nPointTurn(Point heading, double turnAngle, int turnIndexPoint) {
 	// excludes the very first point and includes the very last point (of each sub turn)
-
-	// delta Y stuff here
-	//double deltaY = getDeltaY(abs(turnAngle));
-	//if (deltaY > 0.2) deltaY = 0.2;
+	heading.normalise();
+	//delta Y stuff here
+	double deltaY = getDeltaY(abs(turnAngle));
+	if (deltaY > 0.3) deltaY = 0.3;
 	Point turnPoint;
 	turnPoint = path.at(turnIndexPoint);
-	//subdividedPath.push_back(Point(turnPoint.x, turnPoint.y));
+	turnPoint.x -= heading.x * deltaY;
+	turnPoint.y -= heading.y * deltaY;
+	subdividedPath.push_back(turnPoint);
 
 
 	// heading of quad bike at each point of an N-point turn (from google sketchup)

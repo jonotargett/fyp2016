@@ -41,7 +41,7 @@ bool DummyHardware::initialise() {
 
 	// we KNOW the starting position and heading of the quad bike
 	realPosition = Point(0, 0);
-	realAbsoluteHeading = 5.0 * PI / 180;
+	realAbsoluteHeading = 0.0 * PI / 180;
 	
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
