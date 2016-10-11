@@ -112,7 +112,7 @@ bool QuadInterface::establishCOM(int portnum) {
 	startTime = std::chrono::high_resolution_clock::now();
 	uint8_t* ret = new uint8_t[1];
 	bool finished = false;
-	bool collectingPacket = false;
+	collectingPacket = false;
 	int count = 0;
 	Packet* rp = NULL;
 
@@ -230,6 +230,76 @@ Packet* QuadInterface::processPacket() {
 
 bool QuadInterface::updateLoop() {
 	updateVelocityActuators();
+
+	//check for communications
+	int count = 0;
+	uint8_t* ret = new uint8_t[1];
+	Packet* rp = NULL;
+	bool finished = false;
+
+	if (serial.ReadDataWaiting() > 0) {
+		//read 1 byte at a time
+		count = serial.ReadData(ret, 1);
+		if (count != 1) {
+			Log::d << "Invalid COM read error" << endl;
+			serial.Close();
+			return false;
+		}
+		else {
+
+			//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+
+			if (ret[0] == ID_SOH) {
+				collectingPacket = true;
+			}
+			else if (ret[0] == ID_ETB) {
+				collectingPacket = false;
+				rp = processPacket();
+				finished = true;
+			}
+			else if (collectingPacket) {
+				receivedBuffer.push(ret[0]);
+			}
+		}
+	}
+
+	//if we just received a finished packet
+	if (finished) {
+		switch (rp->packetID) {
+		case ID_QUAD_GEAR:
+			if (rp->data[0] == 1) {
+				setGear(GEAR_FORWARD);
+			}
+			else if (rp->data[0] == -1) {
+				setGear(GEAR_REVERSE);
+			}
+			else {
+				setGear(GEAR_NEUTRAL);
+			}
+			break;
+		case ID_QUAD_BRAKE:
+			setBrakePercentage((double)rp->data[0]);
+			break;
+		case ID_QUAD_THROTTLE:
+			setThrottlePercentage((double)rp->data[0]);
+			break;
+		case ID_QUAD_STEERING:
+			setSteeringAngle((double)rp->data[0]);
+			break;
+		case ID_QUAD_GPS:
+			setGpsPosition(Point(rp->data[0], rp->data[1]));
+			break;
+		case ID_QUAD_IMU:
+			setImuHeading(rp->data[0]);
+			break;
+		case ID_IDLE:
+			//do something to check the timeout with the arduino
+			break;
+		default:
+			// do nothing?
+		}
+
+	}
 
 	return true;
 }

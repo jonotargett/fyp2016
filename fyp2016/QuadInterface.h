@@ -54,6 +54,7 @@ private:
 	CSerial serial;
 	int comPort;
 	std::queue<uint8_t> receivedBuffer;
+	bool collectingPacket;
 	
 	std::chrono::duration<double> seconds;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;

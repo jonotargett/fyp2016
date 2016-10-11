@@ -19,17 +19,17 @@ enum ID : uint8_t {
 	ID_SHOW_FD = 0x41,
 	ID_SHOW_VP = 0x42,
 
-	ID_QUAD_POSITION = 0x50,
-	ID_QUAD_HEADING = 0x51,
-	ID_QUAD_SPEED = 0x52,
+	ID_QUAD_POSITION = 0x50,			// single float
+	ID_QUAD_HEADING = 0x51,				// single float
+	ID_QUAD_SPEED = 0x52,				// single float
 	ID_REQ_QUAD_POSITION = 0x53,
 	ID_REQ_QUAD_HEADING = 0x54,
 	ID_REQ_QUAD_SPEED = 0x55,
 
 	ID_CLEAR_NAV_POINTS = 0x60,
 	ID_NAV_POINTS = 0x61,
-	ID_NAV_PATH = 0x62,
-	ID_NAV_ZONE = 0x63,
+	ID_NAV_PATH = 0x62,					// doubles array [lat, lon]
+	ID_NAV_ZONE = 0x63,					// doubles array [lat, lon]
 	ID_NAV_BASELOC = 0x64,
 
 	ID_SET_QUAD_THROTTLE = 0x70,
@@ -40,10 +40,12 @@ enum ID : uint8_t {
 	ID_REQ_QUAD_STEERING = 0x75,
 	ID_REQ_QUAD_BRAKE = 0x76,
 	ID_REQ_QUAD_GEAR = 0x77,
-	ID_QUAD_THROTTLE = 0x78,
-	ID_QUAD_STEERING = 0x79,
-	ID_QUAD_BRAKE = 0x7A,
-	ID_QUAD_GEAR = 0x7B,
+	ID_QUAD_THROTTLE = 0x78,			// single float
+	ID_QUAD_STEERING = 0x79,			// single float
+	ID_QUAD_BRAKE = 0x7A,				// single float
+	ID_QUAD_GEAR = 0x7B,				// single float, -1 rev, 0 neutral, 1 forward
+	ID_QUAD_GPS = 0x7C,					// two floats, [lat, lon]
+	ID_QUAD_IMU = 0x7D,					// single float
 
 	ID_STOP_ENGINE = 0x80,
 	ID_HANDBRAKE_ON = 0x81,
