@@ -348,7 +348,7 @@ void QuadInterface::emergencyStop() {
 }
 
 void QuadInterface::updateVelocityActuators() {
-	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
+	double throttlePercentageRequired = abs(desiredVelocity) * 5;
 
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
