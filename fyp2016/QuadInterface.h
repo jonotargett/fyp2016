@@ -40,6 +40,7 @@ public:
 	void setDesiredThrottlePercentage(double);
 	void setDesiredBrakePercentage(double);
 	void setDesiredGear(Gear);
+	void setInitialQuadPosition(double, double);
 
 	void emergencyStop();
 
@@ -50,6 +51,8 @@ private:
 	bool connected;
 
 	double desiredVelocity;
+	double initialLongitude;
+	double initialLatitude;
 
 	CSerial serial;
 	int comPort;

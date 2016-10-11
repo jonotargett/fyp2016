@@ -226,6 +226,12 @@ Packet* QuadInterface::processPacket() {
 	return p;
 }
 
+void QuadInterface::setInitialQuadPosition(double longitude, double latitude) {
+	double adjustedLong = longitude - 138.33;
+	double adjustedLat = latitude + 35.1;
+	setPosition(Point(longitude* 111312 * cos(latitude), latitude * 111312));
+}
+
 
 
 bool QuadInterface::updateLoop() {
@@ -286,8 +292,14 @@ bool QuadInterface::updateLoop() {
 		case ID_QUAD_STEERING:
 			setSteeringAngle((double)rp->data[0]);
 			break;
-		case ID_QUAD_GPS:
-			setGpsPosition(Point(rp->data[0], rp->data[1]));
+		case ID_QUAD_GPS: 
+			{
+				double gpsLong = rp->data[0];
+				double gpsLat = rp->data[1];
+				double adjustedLong = gpsLong - 138.33;
+				double adjustedLat = gpsLat + 35.1;
+				setGpsPosition(Point(adjustedLong * 111312 * cos(gpsLat), adjustedLat * 111312));
+			}
 			break;
 		case ID_QUAD_IMU:
 			setImuHeading(rp->data[0]);
@@ -297,6 +309,7 @@ bool QuadInterface::updateLoop() {
 			break;
 		default:
 			// do nothing?
+			break;
 		}
 
 	}
