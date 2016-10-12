@@ -131,17 +131,20 @@ void Overlord::run() {
 		timer for testing real quad bike actuators
 		************************************/
 		quadTimer = t2 - startTime;
-		//if (quadTimer.count() > 4) {
-			//hwi->setDesiredThrottlePercentage(dhwi->getThrottlePercentage() * 3);
-			//float steerAngle = dhwi->getSteeringAngle() * 180 / PI;
-			//if (steerAngle > 20) steerAngle = 20;
-			//if (steerAngle < -20) steerAngle = -20;
-			//hwi->emergencyStop();
-			//hwi->setDesiredSteeringAngle(steerAngle);
-			//hwi->setDesiredGear(GEAR_NEUTRAL);
-			//hwi->setDesiredBrakePercentage(0.1);
-			//hwi->setDesiredThrottlePercentage(0);
-		//}
+		double timeSinceStart = quadTimer.count();
+		if (timeSinceStart < 2) {
+			hwi->setDesiredGear(GEAR_NEUTRAL);
+		}
+		if (timeSinceStart > 6 && timeSinceStart < 8) {
+			hwi->setDesiredThrottlePercentage(10);
+		}
+		if (timeSinceStart > 8) {
+			hwi->setDesiredThrottlePercentage(0);
+			hwi->setDesiredBrakePercentage(100);
+		}
+		/***********************************
+		end of testing
+		************************************/
 		
 		
 		if (seconds.count() > (1.0 / (double)DATA_REFRESH_RATE)) {
