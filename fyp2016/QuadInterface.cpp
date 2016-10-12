@@ -304,6 +304,9 @@ bool QuadInterface::updateLoop() {
 		case ID_QUAD_IMU:
 			setImuHeading(rp->data[0]);
 			break;
+		case ID_QUAD_SPEED:
+			setVelocity(rp->data[0]);
+			break;
 		case ID_IDLE:
 			//do something to check the timeout with the arduino
 			break;
