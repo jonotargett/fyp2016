@@ -58,6 +58,26 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(3, -20));
 	ns->addPoint(Point(6, -20));
 	ns->addPoint(Point(6, 0));
+	
+	// example used in 4.5.4 Path subdivision
+	/*drawScale = 45;
+	focusX = 20;
+	focusY = 20;
+	ns->addPoint(Point(0, 0));
+	ns->addPoint(Point(13, 15));
+	ns->addPoint(Point(18.5, 19));
+	ns->addPoint(Point(21, 19));
+	ns->addPoint(Point(22.2, 21.6));
+	ns->addPoint(Point(23.4, 23.2));*/
+
+	// example used in 4.5.3 Turning the platform a specified angle
+	/*drawScale = 45;
+	focusX = 20;
+	focusY = 20;
+	ns->addPoint(Point(0, 0));
+	ns->addPoint(Point(20, 0));
+	ns->addPoint(Point(20, 20));
+	ns->addPoint(Point(24, 24));*/
 
 	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;

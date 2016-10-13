@@ -12,7 +12,7 @@ SimpleNavigator::SimpleNavigator()
 	distanceToTurn = 0;
 	converging = true;
 
-	noTurnMaxRads = 10 * PI / 180;
+	noTurnMaxRads = 15 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
 	distanceBetweenWaypoints = 0.5;			// meters
 	distanceBetweenTurnWaypoints = 0.2;
@@ -205,6 +205,10 @@ segment is subdivided and waypoints for a turn into the next line segment is
 calculated and added.
 */
 bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
+	
+	//subdividedPath = path;
+	//return true;
+
 	// reset the current path point for nav purposees
 	currentPathPoint = 0;
 	pathNavigationCompleted = false;

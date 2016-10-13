@@ -47,9 +47,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 30;
-	focusX = 2;
-	focusY = -2;
+	drawScale = 45;
+	focusX = 0;
+	focusY = 0;
 
 	return true;
 }
@@ -193,9 +193,9 @@ void VirtualPlatform::redrawSimulationTexture() {
 	SDL_RenderCopy(simulationCanvas->getRenderer(), pathCanvas->getTexture(), NULL, NULL);
 
 	// drawing crosshairs over the focus point
-	SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
-	SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
-	SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
+	//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
+	//SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 - 10, textureWidth / 2 + 10, textureHeight / 2 + 10);
+	//SDL_RenderDrawLine(simulationCanvas->getRenderer(), textureWidth / 2 - 10, textureHeight / 2 + 10, textureWidth / 2 + 10, textureHeight / 2 - 10);
 
 	// Ackermann steering, inside wheel is sharper than outside wheel
 	double leftWheelAngle = atan(hw->wheelBase / (hw->wheelBase / tan(steerAngle) - hw->width / 2));
