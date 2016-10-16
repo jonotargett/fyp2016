@@ -66,7 +66,7 @@ private:
 	// previous linear point is basically the last 'path' point before hte turn point (turnIndexPont)
 	// used to determine if a simpleturn is possible based on the distance back to it.
 	bool simpleTurn(Point heading, double turnAngle, int turnIndexPoint, Point previousLinearPoint);
-	bool nPointTurn(Point heading, double turnAngle, int turnIndexPoint);
+	bool nPointTurn(Point heading, double turnAngle, Point turnIndexPoint);
 
 	unsigned int currentPathPoint;
 	unsigned int turnPoint;

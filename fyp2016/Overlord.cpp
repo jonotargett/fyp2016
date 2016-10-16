@@ -27,22 +27,20 @@ bool Overlord::initialise() {
 	comms->setListener(this);
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
-	Log::i << "-> Initialising dummy hardware interface..." << endl;
-	dhwi = new DummyHardware();
-	dhwi->initialise();
-	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
-
 	Log::i << "-> Initialising hardware interface..." << endl;
 	hwi = new QuadInterface();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 
+	Log::i << "-> Initialising dummy hardware interface..." << endl;
+	dhwi = new DummyHardware();
+	dhwi->initialise();
+	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
+
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
 	ns->clearPath();
-	/*ns->addPoint(Point(0, 1));
-	ns->addPoint(Point(0.5, 2.5));
 	ns->addPoint(Point(3, 3));
 	ns->addPoint(Point(3, 6));
 	ns->addPoint(Point(4, 9));
@@ -51,13 +49,14 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(9, 14));
 	ns->addPoint(Point(7, 14));
 	ns->addPoint(Point(4, 13));
-	ns->addPoint(Point(-8, 2));*/
-	ns->addPoint(Point(0, 1));
+	ns->addPoint(Point(-8, 2));
+	// realistic swathe example
+	/*ns->addPoint(Point(0, 1));
 	ns->addPoint(Point(0, 3));
 	ns->addPoint(Point(3, 3));
 	ns->addPoint(Point(3, -20));
 	ns->addPoint(Point(6, -20));
-	ns->addPoint(Point(6, 0));
+	ns->addPoint(Point(6, 0));*/
 	
 	// example used in 4.5.4 Path subdivision
 	/*drawScale = 45;

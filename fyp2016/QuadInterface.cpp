@@ -148,7 +148,7 @@ bool QuadInterface::establishCOM(int portnum) {
 			}
 			else {
 
-				//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+				Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
 
 				if (ret[0] == ID_SOH) {
 					collectingPacket = true;
@@ -294,6 +294,8 @@ bool QuadInterface::updateLoop() {
 			break;
 		case ID_QUAD_GPS: 
 			{
+			Log::e << "received IMU packet" << endl;
+
 				double gpsLong = rp->data[0];
 				double gpsLat = rp->data[1];
 				double adjustedLong = gpsLong - 138.33;

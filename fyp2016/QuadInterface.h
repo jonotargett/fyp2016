@@ -16,7 +16,7 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 #define MAX_COM_SEARCH 10		// search between COM1 and COMx
 #define SEARCH_INTERVAL 1000	// time to wait between checking successive COM ports
 #define BAUD_RATE 57600
-#define COM_TIMEOUT 100			// maximum wait time before severing COM 
+#define COM_TIMEOUT 1000			// maximum wait time before severing COM 
 
 
 #include <queue>

@@ -222,6 +222,29 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 
 	clearSubdividedPath();
 
+
+
+	/* 
+	align the quad bike with the start of the path
+	*/
+	// figure out the turn angle
+	double ang1 = atan2(cos(heading), sin(heading));
+	double ang2 = atan2(quadPosition.y - path.at(0).y, quadPosition.x - path.at(0).x);
+	Log::i << ang1 * 180 / PI<< ", " << ang2 * 180/PI<< endl;
+
+	// positive is clockwise. turn angle from -pi to pi
+	double turnAngle = (ang1 - ang2);
+	if (turnAngle<0) {
+		turnAngle += 2 * PI;
+	}
+	if (turnAngle > PI) {
+		turnAngle -= 2 * PI;
+	}
+	subdividedPath.push_back(quadPosition);
+	nPointTurn(Point(sin(heading), cos(heading)), turnAngle, quadPosition);
+	path.insert(path.begin(), subdividedPath.back());
+
+
 	
 	/*
 	for each line segment (each line between two 'ultimate' waypoints)
@@ -295,12 +318,12 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 			else if (abs(turnAngle) <= simpleTurnMaxAngleRad) {
 				// conduct a simple turn
 				if (!simpleTurn(directionVector, turnAngle, i + 1, curPoint)) {
-					nPointTurn(directionVector, turnAngle, i + 1);
+					nPointTurn(directionVector, turnAngle, path.at(i + 1));
 				}
 			}
 			else {
 				// conduct N-Point turn
-				nPointTurn(directionVector, turnAngle, i + 1);
+				nPointTurn(directionVector, turnAngle, path.at(i+1));
 			}
 
 		}
@@ -374,14 +397,14 @@ bool SimpleNavigator::simpleTurn(Point heading, double turnAngle, int turnIndexP
 
 	return true;
 }
-bool SimpleNavigator::nPointTurn(Point heading, double turnAngle, int turnIndexPoint) {
+bool SimpleNavigator::nPointTurn(Point heading, double turnAngle, Point turningPoint) {
 	// excludes the very first point and includes the very last point (of each sub turn)
 	heading.normalise();
 	//delta Y stuff here
 	double deltaY = getDeltaY(abs(turnAngle));
 	if (deltaY > 0.3) deltaY = 0.3;
 	Point turnPoint;
-	turnPoint = path.at(turnIndexPoint);
+	turnPoint = turningPoint;
 	turnPoint.x -= heading.x * deltaY;
 	turnPoint.y -= heading.y * deltaY;
 	subdividedPath.push_back(turnPoint);
