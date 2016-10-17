@@ -369,11 +369,11 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastSteering;
 
-	if (!manualControl) {
+	//if (!manualControl) {
 		if (seconds.count() < 0.050) {
 			return;
 		}
-	}
+	//}
 
 	Log::i << "Sending steering: " << a << endl;
 
@@ -482,8 +482,11 @@ void QuadInterface::updateVelocityActuators() {
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 	double testThrottle = (1.4 - 0.25) / 0.05;
 
+	
+
 	if (desiredVelocity > 0) {
 		setDesiredThrottlePercentage(75);
+		Log::i << "updating actuatros;als" << endl;
 	}
 	if (desiredVelocity < 0) {
 		setDesiredThrottlePercentage(75);
