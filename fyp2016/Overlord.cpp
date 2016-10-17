@@ -270,12 +270,12 @@ void Overlord::handleEvents() {
 			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
 			float ang = p->data[0];	// in degrees
 			float mag = p->data[1];
-			float velocity = (float) (sin(ang * PI/180.0) * mag);
-			float steering = (float) (cos(ang * PI / 180.0) * mag);
+			float velocity = (float) (sin(ang * PI/180.0) * mag) * 1.2f;
+			float steering = (float) (cos(ang * PI / 180.0) * mag) * 23.5f;
 
 			Log::d << "Steering: " << steering << " / Velocity: " << velocity << endl;
-			hwi->setDesiredVelocity(1.2f * mag);
-			hwi->setDesiredSteeringAngle(steering * 23.5f);
+			hwi->setDesiredVelocity(velocity);
+			hwi->setDesiredSteeringAngle(steering);
 
 			handled = true;
 			break;

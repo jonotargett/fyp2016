@@ -375,6 +375,8 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 		}
 	}
 
+	Log::i << "Sending steering: " << a << endl;
+
 	Packet* p = new Packet();
 
 	p->packetID = ID_SET_QUAD_STEERING;
