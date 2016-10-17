@@ -132,6 +132,8 @@ void Overlord::run() {
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
 	std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
 
+	bool hasDone = false;
+
 	while (!window->shouldQuit()) {
 
 		// event handling in here. this stuff runs continuously ---------------//
@@ -147,22 +149,29 @@ void Overlord::run() {
 		seconds = current - lastDataUpdate;
 		
 		/***********************************
-		timer for testing real quad bike actuators
+		timer for testing
 		************************************/
-		/*
+		
 		quadTimer = t2 - startTime;
 		double timeSinceStart = quadTimer.count();
-		if (timeSinceStart < 2) {
-			hwi->setDesiredGear(GEAR_NEUTRAL);
+		if (timeSinceStart > 16 && hasDone == false) {
+			Log::i << "doing a new path" << endl;
+			ns->renewPath();
+			ns->clearPath();
+			ns->clearSubdividedPath();
+			vp->drawPathToTexture();
+			ns->addPoint(Point(0, 4));
+			ns->addPoint(Point(0, 6));
+			ns->addPoint(Point(3, 6));
+			ns->addPoint(Point(3, -23));
+			ns->addPoint(Point(6, -23));
+			ns->addPoint(Point(6, 3));
+			ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
+			vp->drawPathToTexture();
+			ns->startPath();
+			hasDone = true;
 		}
-		if (timeSinceStart > 6 && timeSinceStart < 8) {
-			hwi->setDesiredThrottlePercentage(10);
-		}
-		if (timeSinceStart > 8) {
-			hwi->setDesiredThrottlePercentage(0);
-			hwi->setDesiredBrakePercentage(100);
-		}
-		*/
+		
 		/***********************************
 		end of testing
 		************************************/

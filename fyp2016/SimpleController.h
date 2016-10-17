@@ -14,23 +14,16 @@
 #endif
 
 
-/*enum NavState {
-	NAV_CRUISE,
-	NAV_TURNINBOUND,
-	NAV_LANDMINE_DETECTED,
-};*/
-
-
 class SimpleController :
 	public DriveController
 {
 private:
 	bool enabled;
 
-	unsigned int currentPathPoint;
+	unsigned int currentPathPointIndex;
 	bool landmineDetected;
 	int pathTravDir;
-	NavState navState;
+	bool wasInNavWaitingState;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 	std::chrono::time_point<std::chrono::high_resolution_clock> end;

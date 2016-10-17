@@ -177,7 +177,6 @@ void VirtualPlatform::drawPathToTexture() {
 }
 
 void VirtualPlatform::redrawSimulationTexture() {
-
 	simulationCanvas->setAsRenderTarget();
 
 	Point quadLoc = hw->getRealPosition();
@@ -190,6 +189,8 @@ void VirtualPlatform::redrawSimulationTexture() {
 	//simulationCanvas->setAsRenderTarget();
 
 	// copy path texture over to this one
+	//SDL_Rect pathDest = {(int)transform(Point(0, 0)).x - textureWidth / 2, (int)transform(Point(0, 0)).y - textureHeight / 2, textureWidth, textureHeight };
+	
 	SDL_RenderCopy(simulationCanvas->getRenderer(), pathCanvas->getTexture(), NULL, NULL);
 
 	// drawing crosshairs over the focus point

@@ -11,13 +11,6 @@
 #endif
 
 
-enum NavState {
-	NAV_CRUISE,
-	NAV_TURNINBOUND,
-	NAV_LANDMINE_DETECTED,
-	NAV_WAIT
-};
-
 class SimpleNavigator :
 	public NavigationSystem
 {
@@ -43,9 +36,12 @@ public:
 	// is the quad travelling in the forwards direction (mainly for defining turns)
 	// done by checking if the point is in front or behind of quad bike now.
 	//bool getIsForwards();
-	// does the point exist when the argument is added to the currentPathPoint
+	// does the point exist when the argument is added to the currentPathPointIndex
 	bool isNextPoint();
 	bool isConverging();
+
+	void renewPath();
+	NavState getState();
 
 	bool subdivide(Point quadPosition, float heading);
 	bool startPath();
@@ -68,7 +64,8 @@ private:
 	bool simpleTurn(Point heading, double turnAngle, int turnIndexPoint, Point previousLinearPoint);
 	bool nPointTurn(Point heading, double turnAngle, Point turnIndexPoint);
 
-	unsigned int currentPathPoint;
+	Point currentPathPoint;
+	unsigned int currentPathPointIndex;
 	unsigned int turnPoint;
 	unsigned int nextTurnPoint;
 	bool travelPathForwards;

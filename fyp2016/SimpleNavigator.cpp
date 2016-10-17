@@ -6,11 +6,13 @@ SimpleNavigator::SimpleNavigator()
 {
 	//isForwards = true;
 	travelPathForwards = true;
-	currentPathPoint = 0;
+	currentPathPointIndex = 0;
+	currentPathPoint = Point(0, 0);
 	navState = NAV_CRUISE;
 	nextTurnPoint = 0;
 	distanceToTurn = 0;
 	converging = true;
+
 
 	noTurnMaxRads = 15 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
@@ -54,6 +56,10 @@ bool SimpleNavigator::isConverging() {
 
 bool SimpleNavigator::updatePoint(Point position, float heading, float velocity) {
 
+	if (navState == NAV_WAIT) {
+		return false;
+	}
+
 	if (!isNextPoint() && !pathNavigationCompleted) {
 		Log::i << "No next point -> Path navigation complete." << endl;
 		pathNavigationCompleted = true;
@@ -70,8 +76,8 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 	// than look ahead distance
 	// if the distance gets smaller, we have a turn inbound. stop incrememting!
 
-	double distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
-	double distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
+	double distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPointIndex));
+	double distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPointIndex + increment));
 
 	// while we are cruising, and less than the look ahead distnace
 	while (navState == NAV_CRUISE && distanceNow < lookAheadDistance) {
@@ -79,15 +85,15 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 			// have already incremented pathPoint by now
 			return true;
 		}
-		currentPathPoint += increment;
-		distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPoint));
-		distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPoint + increment));
+		currentPathPointIndex += increment;
+		distanceNow = position.getDistanceTo(subdividedPath.at(currentPathPointIndex));
+		distanceNext = position.getDistanceTo(subdividedPath.at(currentPathPointIndex + increment));
 
 		if (distanceNow > distanceNext) {
 			// we have an n-point turn coming up
 			navState = NAV_TURNINBOUND;
 			distanceToTurn = distanceNow;
-			turnPoint = currentPathPoint;
+			turnPoint = currentPathPointIndex;
 			break;
 		}
 	}
@@ -120,29 +126,31 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 		nextTurnPoint = turnPoint;
 
 		do {
-			nowTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint));
-			nextTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPoint + increment));
+			nowTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPointIndex));
+			nextTurnDistance = subdividedPath.at(turnPoint).getDistanceTo(subdividedPath.at(currentPathPointIndex + increment));
 			if (nowTurnDistance > nextTurnDistance) {
 
 				// we have another turn coming up
 				navState = NAV_TURNINBOUND;
-				turnPoint = currentPathPoint;
-				distanceToTurn = position.getDistanceTo(subdividedPath.at(currentPathPoint));
+				turnPoint = currentPathPointIndex;
+				distanceToTurn = position.getDistanceTo(subdividedPath.at(currentPathPointIndex));
 				break;
 			}
 			if (!isNextPoint()) {
 				// there is no next turn point because theres no next point
 				break;
 			}
-			currentPathPoint += increment;
+			currentPathPointIndex += increment;
 		} while (nowTurnDistance < lookAheadDistance);
 	}
+
+	currentPathPoint = subdividedPath.at(currentPathPointIndex);
 
 }
 
 Point SimpleNavigator::getPoint() {
-	if (currentPathPoint < subdividedPath.size()) {
-		return subdividedPath.at(currentPathPoint);
+	if (currentPathPointIndex < subdividedPath.size()) {
+		return currentPathPoint;
 	}
 	else {
 		return Point(NULL, NULL);
@@ -156,12 +164,12 @@ Point SimpleNavigator::getPoint() {
 
 bool SimpleNavigator::isNextPoint() {
 	if (travelPathForwards) {
-		if (currentPathPoint + 1 >= subdividedPath.size() - 1) {
+		if (currentPathPointIndex + 1 >= subdividedPath.size() - 1) {
 			return false;
 		}
 	}
 	if (!travelPathForwards) {
-		if (currentPathPoint - 1 < 0) {
+		if (currentPathPointIndex - 1 < 0) {
 			return false;
 		}
 	}
@@ -184,8 +192,7 @@ void SimpleNavigator::addPoint(LatLng ll) {
 
 
 bool SimpleNavigator::startPath() {
-
-	updater = new std::thread(&SimpleNavigator::loop, this);
+	navState = NAV_CRUISE;
 	return true;
 }
 
@@ -195,6 +202,14 @@ std::vector<Point> SimpleNavigator::getSubdividedPath() {
 
 void SimpleNavigator::setBaseLocation(LatLng ll) {
 	baseLoc = ll;
+}
+
+void SimpleNavigator::renewPath() {
+	navState = NAV_WAIT;
+}
+
+NavState SimpleNavigator::getState() {
+	return navState;
 }
 
 /*
@@ -210,7 +225,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	//return true;
 
 	// reset the current path point for nav purposees
-	currentPathPoint = 0;
+	currentPathPointIndex = 0;
 	pathNavigationCompleted = false;
 	
 	// need to connect the quadbike to the path, if it isnt already.
@@ -230,8 +245,7 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	// figure out the turn angle
 	double distance = quadPosition.getDistanceTo(path.at(0));
 	double ang1 = heading;
-	double ang2 = atan2(path.at(0).y - quadPosition.y, path.at(0).x - quadPosition.x);
-	Log::i << ang1 * 180 / PI<< ", " << ang2 * 180/PI<< endl;
+	double ang2 = (PI/2) - atan2(path.at(0).y - quadPosition.y, path.at(0).x - quadPosition.x);
 
 	// positive is clockwise. turn angle from -pi to pi
 	double turnAngle = (ang2 - ang1);
@@ -241,7 +255,8 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	if (turnAngle > PI) {
 		turnAngle -= 2 * PI;
 	}
-	subdividedPath.push_back(quadPosition);
+
+	//subdividedPath.push_back(quadPosition);
 	if (abs(turnAngle) > 15 * PI / 180) {
 		nPointTurn(Point(sin(heading), cos(heading)), turnAngle, quadPosition);
 		path.insert(path.begin(), subdividedPath.back());

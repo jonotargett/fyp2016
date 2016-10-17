@@ -5,10 +5,9 @@ SimpleController::SimpleController()
 {
 	alive = true;
 	enabled = false;
-	navState = NAV_CRUISE;
 	pathTravDir = 1;
 	landmineDetected = false;
-	currentPathPoint = 0;
+	currentPathPointIndex = 0;
 }
 
 
@@ -38,6 +37,7 @@ bool SimpleController::initialise(HardwareInterface* h, NavigationSystem* nav) {
 	*/
 
 	updater = new std::thread(&SimpleController::updateLoop, this);
+	wasInNavWaitingState = true;
 
 	Log::d << "Auto-controller sub-thread started." << std::endl;
 
@@ -60,7 +60,6 @@ bool SimpleController::isAlive() {
 
 void SimpleController::landMineDetected() {
 	landmineDetected = true;
-	navState = NAV_LANDMINE_DETECTED;
 }
 
 bool SimpleController::updateLoop() {
@@ -92,8 +91,22 @@ void SimpleController::updateDynamics() {
 
 	Point quadPosition = hwi->getPosition();
 	double quadHeading = hwi->getAbsoluteHeading();
+	
+	if (ns->getState() == NAV_WAIT) {
+		hwi->setDesiredVelocity(0);
+		wasInNavWaitingState = true;
+		return;
+	}
+	if (wasInNavWaitingState) {
+		if (hwi->getVelocity() == 0) {
+			wasInNavWaitingState = false;
+		}
+		return;
+	}
+
 	ns->updatePoint(quadPosition, (float)quadHeading, hwi->getVelocity());
 	Point currentPoint = ns->getPoint();
+
 
 	double angleToPathPoint = -1 * atan2(currentPoint.y - quadPosition.y, currentPoint.x - quadPosition.x) + PI / 2;
 	angleToPathPoint = hwi->centreHeading(angleToPathPoint, 0);
@@ -119,14 +132,6 @@ void SimpleController::updateDynamics() {
 	if (!ns->isConverging()) {
 		desiredVelocity = 0;
 	}
-
-	// done by checking if point is in front or behid of quad bike now.
-	/*if (ns->getIsForwards()) {
-		hwi->setDesiredVelocity(desiredVelocity);
-	}
-	else {
-		hwi->setDesiredVelocity(-desiredVelocity);
-	}*/
 
 	//if point is behind the quad bike we need to reverse to get tehre
 	if (alpha > PI/2 || alpha < -PI/2) {
