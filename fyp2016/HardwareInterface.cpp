@@ -245,6 +245,10 @@ void HardwareInterface::stop() {
 	alive = false;
 }
 
+void HardwareInterface::setManualControl(bool b) {
+	manualControl = b;
+}
+
 /*
 void* UpdaterRunnable::run() {
 

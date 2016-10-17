@@ -272,7 +272,7 @@ void Overlord::handleEvents() {
 			float mag = p->data[1];
 			float throttle = (float) (sin(ang * PI/180.0) * mag);
 			float steering = (float) (cos(ang * PI / 180.0) * mag);
-			hwi->setDesiredThrottlePercentage(throttle * 20);
+			hwi->setDesiredVelocity(1.2f * mag);
 			hwi->setDesiredSteeringAngle(steering * 80);
 
 			handled = true;
@@ -280,10 +280,12 @@ void Overlord::handleEvents() {
 		}
 		case ID_JOYSTICK_HELD:
 			Log::d << "Action: joystick enabled" << endl;
+			hwi->setManualControl(true);
 			handled = true;
 			break;
 		case ID_JOYSTICK_RELEASED:
 			Log::d << "Action: joystick disabled" << endl;
+			hwi->setManualControl(false);
 			handled = true;
 			break;
 		case ID_MANUALCONTROL_ON:
@@ -293,7 +295,7 @@ void Overlord::handleEvents() {
 		case ID_BRAKE:
 			Log::d << "Action: brake" << endl;
 			//TODO(Jono) this needs to not be here
-			dc->setEnabled(!dc->isEnabled());
+			//dc->setEnabled(!dc->isEnabled());
 			handled = true;
 			break;
 		case ID_HANDBRAKE_OFF:

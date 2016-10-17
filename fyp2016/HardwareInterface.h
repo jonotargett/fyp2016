@@ -31,7 +31,7 @@ public:
 	HardwareInterface();
 	virtual ~HardwareInterface();
 	bool isAlive();
-
+	
 
 	/*
 	Obtain a link with the microcontroller over the serial link.
@@ -52,6 +52,7 @@ public:
 
 	void updateHardware(double time);
 	void resetKalmanState(Point position, double heading);
+	void setManualControl(bool b);
 
 	/*
 	Returns: the current value as stored in this class (the value read by quad bike sensors)
@@ -95,7 +96,7 @@ public:
 private:
 	
 	void updateKalmanFilter(double time);
-
+	
 	bool alive;
 	/*
 	variables holding sensor data, actuator data
@@ -158,7 +159,7 @@ protected:
 	bool gpsPositionLock;
 	bool imuHeadingLock;
 
-
+	bool manualControl;
 };
 
 /*
