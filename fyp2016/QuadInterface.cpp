@@ -76,6 +76,7 @@ bool QuadInterface::initialise() {
 	//serial.Close();
 	connected = true;
 
+
 	return true;
 }
 
@@ -148,7 +149,7 @@ bool QuadInterface::establishCOM(int portnum) {
 			}
 			else {
 
-				Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+				//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
 
 				if (ret[0] == ID_SOH) {
 					collectingPacket = true;
@@ -193,11 +194,13 @@ Packet* QuadInterface::processPacket() {
 	}
 	else {
 		Log::e << "Communications error: corrupted/invalid packet received" << endl;
+
+		Log::i << receivedBuffer.size() << " / " << p->length << " - " << p->packetID << endl;
 		delete p;
 		while (receivedBuffer.size() > 0) {
 			receivedBuffer.pop();
 		}
-		return false;
+		return NULL;
 	}
 
 	for (int i = 0; i < p->length; i++) {
@@ -220,6 +223,10 @@ Packet* QuadInterface::processPacket() {
 		p->data[i] = result;
 	}
 
+	while (receivedBuffer.size() > 0) {
+		receivedBuffer.pop();
+	}
+
 	//Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
 	//Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
 
@@ -235,88 +242,100 @@ void QuadInterface::setInitialQuadPosition(double longitude, double latitude) {
 
 
 bool QuadInterface::updateLoop() {
-	updateVelocityActuators();
 
-	//check for communications
-	int count = 0;
-	uint8_t* ret = new uint8_t[1];
-	Packet* rp = NULL;
-	bool finished = false;
 
-	if (serial.ReadDataWaiting() > 0) {
-		//read 1 byte at a time
-		count = serial.ReadData(ret, 1);
-		if (count != 1) {
-			Log::d << "Invalid COM read error" << endl;
-			serial.Close();
-			return false;
-		}
-		else {
+	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
 
-			//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+		updateVelocityActuators();
 
-			if (ret[0] == ID_SOH) {
-				collectingPacket = true;
-			}
-			else if (ret[0] == ID_ETB) {
-				collectingPacket = false;
-				rp = processPacket();
-				finished = true;
-			}
-			else if (collectingPacket) {
-				receivedBuffer.push(ret[0]);
-			}
-		}
-	}
+		//check for communications
+		int count = 0;
+		uint8_t* ret = new uint8_t[1];
+		Packet* rp = NULL;
+		bool finished = false;
 
-	//if we just received a finished packet
-	if (finished) {
-		switch (rp->packetID) {
-		case ID_QUAD_GEAR:
-			if (rp->data[0] == 1) {
-				setGear(GEAR_FORWARD);
-			}
-			else if (rp->data[0] == -1) {
-				setGear(GEAR_REVERSE);
+
+		if (serial.ReadDataWaiting() > 0) {
+			//read 1 byte at a time
+			count = serial.ReadData(ret, 1);
+			if (count != 1) {
+				Log::d << "Invalid COM read error" << endl;
+				serial.Close();
+				return false;
 			}
 			else {
-				setGear(GEAR_NEUTRAL);
-			}
-			break;
-		case ID_QUAD_BRAKE:
-			setBrakePercentage((double)rp->data[0]);
-			break;
-		case ID_QUAD_THROTTLE:
-			setThrottlePercentage((double)rp->data[0]);
-			break;
-		case ID_QUAD_STEERING:
-			setSteeringAngle((double)rp->data[0]);
-			break;
-		case ID_QUAD_GPS: 
-			{
-			Log::e << "received IMU packet" << endl;
 
-				double gpsLong = rp->data[0];
-				double gpsLat = rp->data[1];
-				double adjustedLong = gpsLong - 138.33;
-				double adjustedLat = gpsLat + 35.1;
-				setGpsPosition(Point(adjustedLong * 111312 * cos(gpsLat), adjustedLat * 111312));
+				//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+				if (collectingPacket) {
+					if (ret[0] == ID_ETB) {
+						collectingPacket = false;
+						rp = processPacket();
+						finished = true;
+					}
+					else {
+						receivedBuffer.push(ret[0]);
+					}
+				}
+				else if (ret[0] == ID_SOH) {
+					collectingPacket = true;
+				}
 			}
-			break;
-		case ID_QUAD_IMU:
-			setImuHeading(rp->data[0]);
-			break;
-		case ID_QUAD_SPEED:
-			setVelocity(rp->data[0]);
-			break;
-		case ID_IDLE:
-			//do something to check the timeout with the arduino
-			break;
-		default:
-			// do nothing?
-			break;
 		}
 
+		//if we just received a finished packet
+		if (finished && rp != NULL) {
+			switch (rp->packetID) {
+			case ID_QUAD_GEAR:
+				if (rp->data[0] == 1) {
+					setGear(GEAR_FORWARD);
+				}
+				else if (rp->data[0] == -1) {
+					setGear(GEAR_REVERSE);
+				}
+				else {
+					setGear(GEAR_NEUTRAL);
+				}
+				break;
+			case ID_QUAD_BRAKE:
+				setBrakePercentage((double)rp->data[0]);
+				break;
+			case ID_QUAD_THROTTLE:
+				setThrottlePercentage((double)rp->data[0]);
+				break;
+			case ID_QUAD_STEERING:
+				setSteeringAngle((double)rp->data[0]);
+				break;
+			case ID_QUAD_GPS: 
+				{
+				Log::e << "received GPS packet" << endl;
+
+					double gpsLong = rp->data[0];
+					double gpsLat = rp->data[1];
+					double adjustedLong = gpsLong - 138.33;
+					double adjustedLat = gpsLat + 35.1;
+					setGpsPosition(Point(adjustedLong * 111312 * cos(gpsLat), adjustedLat * 111312));
+				}
+				break;
+			case ID_QUAD_IMU:
+				Log::e << "received IMU packet" << endl;
+				setImuHeading(rp->data[0]);
+				break;
+			case ID_QUAD_SPEED:
+				Log::e << "received SPEED packet " << rp->data[0] << endl;
+				setVelocity(rp->data[0]);
+				break;
+			case ID_IDLE:
+				Log::d << "IDLE received properly" << endl;
+				break;
+			default:
+				Log::d << "unknown packet recieved" << endl;
+				break;
+			}
+
+		}
+
+	// no point blazing through this super fast
+	std::this_thread::sleep_for(std::chrono::microseconds(500));
 	}
 
 	return true;
