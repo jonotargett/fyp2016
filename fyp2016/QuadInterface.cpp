@@ -482,7 +482,13 @@ void QuadInterface::updateVelocityActuators() {
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 	double testThrottle = (1.4 - 0.25) / 0.05;
 
-	if (desiredVelocity == 0) {
+	if (desiredVelocity > 0) {
+		setDesiredThrottlePercentage(75);
+	}
+	if (desiredVelocity < 0) {
+		setDesiredThrottlePercentage(75);
+	}
+	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
 		setDesiredGear(GEAR_NEUTRAL);
 		setDesiredBrakePercentage(50);
@@ -552,5 +558,5 @@ void QuadInterface::updateVelocityActuators() {
 			//REMEMBER WE'RE IN REVERSE HERE
 			setDesiredThrottlePercentage(testThrottle);
 		}
-	}
+	}*/
 }
