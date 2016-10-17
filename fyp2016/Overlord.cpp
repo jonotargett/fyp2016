@@ -270,10 +270,12 @@ void Overlord::handleEvents() {
 			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
 			float ang = p->data[0];	// in degrees
 			float mag = p->data[1];
-			float throttle = (float) (sin(ang * PI/180.0) * mag);
+			float velocity = (float) (sin(ang * PI/180.0) * mag);
 			float steering = (float) (cos(ang * PI / 180.0) * mag);
+
+			Log::d << "Steering: " << steering << " / Velocity: " << velocity << endl;
 			hwi->setDesiredVelocity(1.2f * mag);
-			hwi->setDesiredSteeringAngle(steering * 80);
+			hwi->setDesiredSteeringAngle(steering * 23.5f);
 
 			handled = true;
 			break;
@@ -285,6 +287,8 @@ void Overlord::handleEvents() {
 			break;
 		case ID_JOYSTICK_RELEASED:
 			Log::d << "Action: joystick disabled" << endl;
+			hwi->setDesiredVelocity(0);
+			hwi->setDesiredSteeringAngle(0);
 			hwi->setManualControl(false);
 			handled = true;
 			break;

@@ -369,20 +369,25 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastSteering;
 
-	if (seconds.count() > 0.100) {
-		Packet* p = new Packet();
-
-		p->packetID = ID_SET_QUAD_STEERING;
-		p->length = 1;
-		p->data = new float[1];
-		p->data[0] = (float)a;
-
-		uint8_t* bytes = p->toBytes();
-
-		serial.SendData((char*)bytes, p->getByteLength());
-
-		lastSteering = current;
+	if (!manualControl) {
+		if (seconds.count() < 0.050) {
+			return;
+		}
 	}
+
+	Packet* p = new Packet();
+
+	p->packetID = ID_SET_QUAD_STEERING;
+	p->length = 1;
+	p->data = new float[1];
+	p->data[0] = (float)a;
+
+	uint8_t* bytes = p->toBytes();
+
+	serial.SendData((char*)bytes, p->getByteLength());
+
+	lastSteering = current;
+	
 }
 
 void QuadInterface::setDesiredThrottlePercentage(double t) {
