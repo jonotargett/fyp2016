@@ -149,6 +149,7 @@ void Overlord::run() {
 		/***********************************
 		timer for testing real quad bike actuators
 		************************************/
+		/*
 		quadTimer = t2 - startTime;
 		double timeSinceStart = quadTimer.count();
 		if (timeSinceStart < 2) {
@@ -161,6 +162,7 @@ void Overlord::run() {
 			hwi->setDesiredThrottlePercentage(0);
 			hwi->setDesiredBrakePercentage(100);
 		}
+		*/
 		/***********************************
 		end of testing
 		************************************/

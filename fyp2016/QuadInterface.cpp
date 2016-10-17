@@ -168,6 +168,11 @@ bool QuadInterface::establishCOM(int portnum) {
 		}
 	}
 
+	if (rp == NULL) {
+		Log::d << "Invalid handshake response received" << endl;
+		serial.Close();
+		return false;
+	}
 	if (rp->packetID != ID_IDLE) {
 		Log::d << "Invalid handshake response received" << endl;
 		serial.Close();
@@ -243,10 +248,22 @@ void QuadInterface::setInitialQuadPosition(double longitude, double latitude) {
 
 bool QuadInterface::updateLoop() {
 
+	std::chrono::time_point<std::chrono::high_resolution_clock> last;
+	std::chrono::time_point<std::chrono::high_resolution_clock> current;
+	std::chrono::duration<double> seconds;
 
 	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
 
-		updateVelocityActuators();
+
+		current = std::chrono::high_resolution_clock::now();
+		seconds = current - last;
+
+		if (seconds.count() > (1.0 / ACTUATORS_REFRESH_RATE)) {
+			last = current;
+			updateVelocityActuators();
+		}
+
+
 
 		//check for communications
 		int count = 0;
@@ -307,7 +324,7 @@ bool QuadInterface::updateLoop() {
 				break;
 			case ID_QUAD_GPS: 
 				{
-				Log::e << "received GPS packet" << endl;
+				//Log::e << "received GPS packet" << endl;
 
 					double gpsLong = rp->data[0];
 					double gpsLat = rp->data[1];
@@ -317,11 +334,11 @@ bool QuadInterface::updateLoop() {
 				}
 				break;
 			case ID_QUAD_IMU:
-				Log::e << "received IMU packet" << endl;
+				//Log::e << "received IMU packet" << endl;
 				setImuHeading(rp->data[0]);
 				break;
 			case ID_QUAD_SPEED:
-				Log::e << "received SPEED packet " << rp->data[0] << endl;
+				//Log::e << "received SPEED packet " << rp->data[0] << endl;
 				setVelocity(rp->data[0]);
 				break;
 			case ID_IDLE:
@@ -334,8 +351,6 @@ bool QuadInterface::updateLoop() {
 
 		}
 
-	// no point blazing through this super fast
-	std::this_thread::sleep_for(std::chrono::microseconds(500));
 	}
 
 	return true;
@@ -386,7 +401,6 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 		uint8_t* bytes = p->toBytes();
 
 		serial.SendData((char*)bytes, p->getByteLength());
-
 		lastThrottle = current;
 	}
 }
@@ -449,7 +463,7 @@ void QuadInterface::emergencyStop() {
 
 	uint8_t* bytes = p->toBytes();
 	serial.SendData((char*)bytes, p->getByteLength());
-
+	std::this_thread::sleep_for(std::chrono::microseconds(500));
 	delete bytes;
 	delete p;
 }
