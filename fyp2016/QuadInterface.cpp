@@ -22,6 +22,8 @@ QuadInterface::QuadInterface()
 	lastGear = current;
 	lastBrake = current;
 
+	setPosition(Point(0, 0));
+
 	desiredVelocity = 0;
 }
 
@@ -40,6 +42,8 @@ bool QuadInterface::initialise() {
 	comPort = COM_PORT;
 	comPortKnown = true;
 #endif
+
+	start();
 
 	Log::d << "Establishing COM link to hardware controller..." << endl;
 
@@ -251,7 +255,7 @@ bool QuadInterface::updateLoop() {
 	std::chrono::time_point<std::chrono::high_resolution_clock> last;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 	std::chrono::duration<double> seconds;
-
+	Log::i << "here" << endl;
 	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
 
 
@@ -260,9 +264,9 @@ bool QuadInterface::updateLoop() {
 
 		if (seconds.count() > (1.0 / ACTUATORS_REFRESH_RATE)) {
 			last = current;
-			if (!manualControl) {
-			updateVelocityActuators();
-			}
+			//if (!manualControl) {
+				updateVelocityActuators();
+			//}
 		}
 
 
@@ -482,14 +486,17 @@ void QuadInterface::updateVelocityActuators() {
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 	double testThrottle = (1.4 - 0.25) / 0.05;
 
-	
-
 	if (desiredVelocity > 0) {
-		setDesiredThrottlePercentage(75);
-		Log::i << "updating actuatros;als" << endl;
+		Log::i << "forwards" << endl;
+		setDesiredThrottlePercentage(75);		
 	}
 	if (desiredVelocity < 0) {
 		setDesiredThrottlePercentage(75);
+		Log::i << "reverse" << endl;
+	}
+	if (desiredVelocity == 0) {
+		setDesiredThrottlePercentage(0);
+		Log::i << "stopped" << endl;
 	}
 	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);

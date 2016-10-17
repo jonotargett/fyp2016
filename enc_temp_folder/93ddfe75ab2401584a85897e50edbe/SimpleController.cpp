@@ -90,7 +90,7 @@ void SimpleController::updateDynamics() {
 		hwi->setDesiredVelocity(0);
 		return;
 	}*/
-
+	Log::i << "updating" << endl;
 	Point quadPosition = hwi->getPosition();
 	double quadHeading = hwi->getAbsoluteHeading();
 	

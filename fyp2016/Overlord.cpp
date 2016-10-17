@@ -78,12 +78,12 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(20, 20));
 	ns->addPoint(Point(24, 24));*/
 
-	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
+	ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
-	dc->initialise(dhwi, ns);
+	dc->initialise(hwi, ns);
 	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
 	Log::i << "-> Starting feature detection system..." << endl;
@@ -152,7 +152,7 @@ void Overlord::run() {
 		timer for testing
 		************************************/
 		
-		quadTimer = t2 - startTime;
+		/*quadTimer = t2 - startTime;
 		double timeSinceStart = quadTimer.count();
 		if (timeSinceStart > 16 && hasDone == false) {
 			Log::i << "doing a new path" << endl;
