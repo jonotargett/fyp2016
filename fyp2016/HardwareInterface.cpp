@@ -112,7 +112,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	//////////////////////////////////
 
 	//////// POSITION/////////////////
-	/*z = Matrix<double>(2, 1);					// observation
+	z = Matrix<double>(2, 1);					// observation
 	Q = Matrix<double>(2, 2);					// uncertainty of sensor observation
 	K = Matrix<double>(3, 2);					// Kalman Gain
 	H = Matrix<double>(2, 3);					// Jacobian of h
@@ -179,7 +179,7 @@ void HardwareInterface::updateKalmanFilter(double time) {
 	mu = mu + K * (z.get(0,0) - mu.get(2, 0));
 	sigma = (I - (K*H))*sigma;
 
-	imuInitialHeading = imuHeading;*/
+	imuInitialHeading = imuHeading;
 
 
 	/////////////////////////////////

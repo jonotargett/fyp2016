@@ -4,6 +4,13 @@
 #include "Point.h"
 #include "LatLng.h"
 
+enum NavState {
+	NAV_CRUISE,
+	NAV_TURNINBOUND,
+	NAV_LANDMINE_DETECTED,
+	NAV_WAIT
+};
+
 class NavigationSystem
 {
 public:
@@ -17,6 +24,7 @@ public:
 	Returns:
 	*/
 	virtual void clearPath() = 0;
+	virtual void clearSubdividedPath() = 0;
 
 	/*
 	sets the position (in LatLng) of the relative calculations
@@ -33,6 +41,10 @@ public:
 	gets the current point to turn to
 	*/
 	virtual Point getPoint() = 0;
+
+	virtual NavState getState() = 0;
+
+	virtual void renewPath() = 0;
 
 	/*
 	adds the current point to the navigation path, appending to the end of the list
