@@ -455,7 +455,9 @@ void QuadInterface::emergencyStop() {
 }
 
 void QuadInterface::updateVelocityActuators() {
-	double throttlePercentageRequired = abs(desiredVelocity) * 5;
+
+	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
+	double testThrottle = (1.4 - 0.25) / 0.05;
 
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
@@ -491,7 +493,7 @@ void QuadInterface::updateVelocityActuators() {
 		// maybe add brakes in here later for a really large 
 		// difference in actual speed and desired speed
 		else {
-			setDesiredThrottlePercentage(throttlePercentageRequired);
+			setDesiredThrottlePercentage(testThrottle);
 		}
 	}
 	else if (desiredVelocity < 0) {
@@ -523,8 +525,9 @@ void QuadInterface::updateVelocityActuators() {
 		// maybe add brakes in here later for a really large
 		// difference in actual speed and desired speed
 		else {
+
 			//REMEMBER WE'RE IN REVERSE HERE
-			setDesiredThrottlePercentage(throttlePercentageRequired);
+			setDesiredThrottlePercentage(testThrottle);
 		}
 	}
 }

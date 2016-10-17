@@ -41,7 +41,7 @@ bool DummyHardware::initialise() {
 
 	// we KNOW the starting position and heading of the quad bike
 	realPosition = Point(0, 0);
-	realAbsoluteHeading = 0.0 * PI / 180;
+	realAbsoluteHeading = 70.0 * PI / 180;
 	
 	realVelocity = 0.0;
 	realSteeringAngle = 0.0;
@@ -265,7 +265,7 @@ void DummyHardware::updateActuators(double time) {
 
 	double steerChangeRate = 0.5;			// radians/second
 	double gearChangeRate = 1;				// second / gear change
-	double throttleChangeRate = 25;			// percentChange/second
+	double throttleChangeRate = 200;		// percentChange/second
 	double brakeChangeRate = 20;			// percentChange/second
 
 	// steering
@@ -323,6 +323,7 @@ void DummyHardware::setDesiredVelocity(double x) {
 void DummyHardware::updateVelocityActuators() {
 
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
+	double testThrottle = (1.4 - 0.25) / 0.05;
 
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
@@ -358,7 +359,7 @@ void DummyHardware::updateVelocityActuators() {
 		// maybe add brakes in here later for a really large 
 		// difference in actual speed and desired speed
 		else {
-			setDesiredThrottlePercentage(throttlePercentageRequired);
+			setDesiredThrottlePercentage(testThrottle);
 		}
 	}
 	else if (desiredVelocity < 0) {
@@ -392,7 +393,7 @@ void DummyHardware::updateVelocityActuators() {
 		else {
 			
 			//REMEMBER WE'RE IN REVERSE HERE
-			setDesiredThrottlePercentage(throttlePercentageRequired);
+			setDesiredThrottlePercentage(testThrottle);
 		}
 	}
 }
