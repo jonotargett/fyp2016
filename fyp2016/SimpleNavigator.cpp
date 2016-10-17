@@ -228,12 +228,13 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 	align the quad bike with the start of the path
 	*/
 	// figure out the turn angle
-	double ang1 = atan2(cos(heading), sin(heading));
-	double ang2 = atan2(quadPosition.y - path.at(0).y, quadPosition.x - path.at(0).x);
+	double distance = quadPosition.getDistanceTo(path.at(0));
+	double ang1 = heading;
+	double ang2 = atan2(path.at(0).y - quadPosition.y, path.at(0).x - quadPosition.x);
 	Log::i << ang1 * 180 / PI<< ", " << ang2 * 180/PI<< endl;
 
 	// positive is clockwise. turn angle from -pi to pi
-	double turnAngle = (ang1 - ang2);
+	double turnAngle = (ang2 - ang1);
 	if (turnAngle<0) {
 		turnAngle += 2 * PI;
 	}
@@ -241,11 +242,12 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		turnAngle -= 2 * PI;
 	}
 	subdividedPath.push_back(quadPosition);
-	nPointTurn(Point(sin(heading), cos(heading)), turnAngle, quadPosition);
-	path.insert(path.begin(), subdividedPath.back());
+	if (abs(turnAngle) > 15 * PI / 180) {
+		nPointTurn(Point(sin(heading), cos(heading)), turnAngle, quadPosition);
+		path.insert(path.begin(), subdividedPath.back());
+	}
 
 
-	
 	/*
 	for each line segment (each line between two 'ultimate' waypoints)
 	subdivide the straight line segment:
