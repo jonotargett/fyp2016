@@ -322,6 +322,19 @@ void DummyHardware::setDesiredVelocity(double x) {
 // handles gear changes as well
 void DummyHardware::updateVelocityActuators() {
 
+	/*if (desiredVelocity > 0) {
+		if (getGear() != GEAR_FORWARD)	setDesiredGear(GEAR_FORWARD);
+		setDesiredThrottlePercentage(20);
+	}
+	if (desiredVelocity < 0) {
+		if (getGear() != GEAR_REVERSE)	setDesiredGear(GEAR_REVERSE);
+		setDesiredThrottlePercentage(20);
+	}
+	if (desiredVelocity == 0) {
+		if (getGear() != GEAR_NEUTRAL)	setDesiredGear(GEAR_NEUTRAL);
+		setDesiredThrottlePercentage(0);
+	}*/
+
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 	double testThrottle = (1.4 - 0.25) / 0.05;
 

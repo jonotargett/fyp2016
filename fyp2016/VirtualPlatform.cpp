@@ -26,8 +26,8 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	textureWidth = w/2;
 	textureHeight = h/2;
 
-	pathCanvas->createBlank(textureWidth, textureHeight);
-	simulationCanvas->createBlank(textureWidth, textureHeight);
+	pathCanvas->createBlank(w, h);
+	simulationCanvas->createBlank(w, h);
 	graphCanvas->createBlank(textureWidth, textureHeight);
 
 	quadTexture = new SimpleTexture(r);
@@ -47,9 +47,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 45;
+	drawScale = 70;
 	focusX = 0;
-	focusY = 0;
+	focusY = 5;
 
 	return true;
 }
@@ -156,7 +156,7 @@ Draws path to texture for the given drawScale and focus point defined within the
 void VirtualPlatform::drawPathToTexture() {
 
 	pathCanvas->setAsRenderTarget();
-	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xDD, 0xFF, 0xDD, 0xFF);
 	SDL_RenderClear(pathCanvas->getRenderer());
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getSubdividedPath().size() - 1; i++) {

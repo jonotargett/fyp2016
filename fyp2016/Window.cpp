@@ -131,18 +131,26 @@ void Window::update(SDL_Texture* newImage, RenderPane pane) {
 	case PANE_TOPLEFT:
 		destination.x = 0;
 		destination.y = 0;
+		destination.w = windowWidth;
+		destination.h = windowHeight;
 		break;
 	case PANE_TOPRIGHT:
-		destination.x = windowWidth / 2;
-		destination.y = 0;
+		destination.w = 0.4 * windowWidth;
+		destination.h = 0.4 * windowHeight;
+		destination.x = windowWidth - destination.w;
+		destination.y = windowHeight - destination.h;
 		break;
 	case PANE_BOTTOMLEFT:
-		destination.x = 0;
-		destination.y = windowHeight / 2;
+		destination.w = 0.3 * windowWidth;
+		destination.h = 0.3 * windowHeight;
+		destination.x = windowWidth - destination.w;
+		destination.y = windowHeight - destination.h - 0.4 * windowHeight;
 		break;
 	case PANE_BOTTOMRIGHT:
-		destination.x = windowWidth / 2;
-		destination.y = windowHeight / 2;
+		destination.w = 0.3 * windowWidth;
+		destination.h = 0.3 * windowHeight;
+		destination.x = windowWidth - destination.w;
+		destination.y = windowHeight - destination.h - destination.h - 0.4 * windowHeight;
 		break;
 	default:
 		destination.w = w;

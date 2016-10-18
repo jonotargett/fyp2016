@@ -28,8 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	hwi = new QuadInterface();
-	//hwi = new DummyHardware();
+	//hwi = new QuadInterface();
+	hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
@@ -38,7 +38,7 @@ bool Overlord::initialise() {
 	ns->initialise();
 	ns->clearPath();
 	ns->addPoint(Point(0, 5));
-	ns->addPoint(Point(2, 10));
+	ns->addPoint(Point(6, 10));
 	ns->addPoint(Point(4, 9));
 	// realistic swathe example
 	/*ns->addPoint(Point(0, 1));
@@ -185,29 +185,24 @@ void Overlord::run() {
 			lastWindowUpdate = current;
 
 			t1 = std::chrono::high_resolution_clock::now();
-			vp->redrawGraphTexture();
-			window->update(vp->retrieveGraphImage(), PANE_TOPRIGHT);
-			t2 = std::chrono::high_resolution_clock::now();
-			seconds = t2 - t1;
-			//Log::i << "Graphs udpate: " << seconds.count() * 1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
-
-			
-			t1 = std::chrono::high_resolution_clock::now();
-			
 			vp->redrawSimulationTexture();						// render to texture
 			window->update(vp->retrieveSimulationImage(), PANE_TOPLEFT);	// render texture to window
 			t2 = std::chrono::high_resolution_clock::now();
 			seconds = t2 - t1;
 			//Log::i << "Redraw udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
 
-			
-
+			t1 = std::chrono::high_resolution_clock::now();
+			vp->redrawGraphTexture();
+			window->update(vp->retrieveGraphImage(), PANE_TOPRIGHT);
+			t2 = std::chrono::high_resolution_clock::now();
+			seconds = t2 - t1;
+			//Log::i << "Graphs udpate: " << seconds.count() * 1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
 
 			// this is STATIC ATM
 			
 			//fd->createImage(DISPLAY_RAW);
 			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
-
+			window->update(NULL, PANE_BOTTOMRIGHT);
 
 
 			window->present();

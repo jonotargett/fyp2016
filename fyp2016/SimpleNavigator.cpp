@@ -116,6 +116,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 	// is there another turn point after this?:
 	// if we are within turntolerance or are no longer converging, we have reached the turn point
 	if ((distanceNow < turnTolerance || converging == false) && navState == NAV_TURNINBOUND && velocity == 0) {
+		Log::i << "now" << endl;
 		converging = true;
 		//isForwards = !isForwards;
 		navState = NAV_CRUISE;
