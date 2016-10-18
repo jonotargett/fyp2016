@@ -15,6 +15,7 @@ enum ID : uint8_t {
 	ID_CANCEL = 0x18,		// transmission cancelled (throw away whats received, 
 							// urgent shit coming like an e-stop command)
 
+	ID_READY = 0x05,
 	ID_DEBUG = 0x40,
 	ID_SHOW_FD = 0x41,
 	ID_SHOW_VP = 0x42,

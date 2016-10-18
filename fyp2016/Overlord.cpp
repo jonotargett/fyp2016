@@ -37,6 +37,7 @@ bool Overlord::initialise() {
 	dhwi->initialise();
 	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
 
+	
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
 	ns->initialise();
@@ -113,7 +114,7 @@ void Overlord::run() {
 	std::chrono::duration<double> quadTimer;
 	
 	// display the window for the first time
-	window->showWindow(true);
+	//window->showWindow(true);
 	
 	// Feature detector stuff
 	fd->loadScan();

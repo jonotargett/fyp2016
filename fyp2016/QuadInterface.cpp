@@ -16,6 +16,7 @@ QuadInterface::QuadInterface()
 {
 	comPort = 1;
 	connected = false;
+	ready = false;
 	current = std::chrono::high_resolution_clock::now();
 	lastThrottle = current;
 	lastSteering = current;
@@ -43,7 +44,6 @@ bool QuadInterface::initialise() {
 	comPortKnown = true;
 #endif
 
-	start();
 
 	Log::d << "Establishing COM link to hardware controller..." << endl;
 
@@ -74,12 +74,13 @@ bool QuadInterface::initialise() {
 
 	Log::i << "Connection established on COM" << comPort << endl;
 
-	start();
+	
 
 	// leave the port open, normally. this was just here for debug purposes
 	//serial.Close();
 	connected = true;
-
+	ready = true;
+	start();
 
 	return true;
 }
@@ -153,7 +154,7 @@ bool QuadInterface::establishCOM(int portnum) {
 			}
 			else {
 
-				//Log::d << "got something... 0x" << std::hex << ret[0] << std::dec << endl;
+				//Log::d << "got something... 0x" << std::hex << (int)(ret[0]) << std::dec << endl;
 
 				if (ret[0] == ID_SOH) {
 					collectingPacket = true;
@@ -173,7 +174,7 @@ bool QuadInterface::establishCOM(int portnum) {
 	}
 
 	if (rp == NULL) {
-		Log::d << "Invalid handshake response received" << endl;
+		Log::d << "Packet not received" << endl;
 		serial.Close();
 		return false;
 	}
@@ -232,9 +233,9 @@ Packet* QuadInterface::processPacket() {
 		p->data[i] = result;
 	}
 
-	while (receivedBuffer.size() > 0) {
-		receivedBuffer.pop();
-	}
+	//while (receivedBuffer.size() > 0) {
+	//	receivedBuffer.pop();
+	//}
 
 	//Log::i << "PACKET RECEIVED: " << (int)p->packetID << " / " << (int)p->length << endl;
 	//Log::d << p->data[0] << "/" << p->data[1] << "/" << p->data[2] << "/" << p->data[3] << endl;
@@ -255,7 +256,7 @@ bool QuadInterface::updateLoop() {
 	std::chrono::time_point<std::chrono::high_resolution_clock> last;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 	std::chrono::duration<double> seconds;
-	Log::i << "here" << endl;
+
 	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
 
 
@@ -350,6 +351,10 @@ bool QuadInterface::updateLoop() {
 			case ID_IDLE:
 				Log::d << "IDLE received properly" << endl;
 				break;
+			case ID_READY:
+				ready = true;
+				Log::d << "QUAD is ready to receive" << endl;
+				break;
 			default:
 				Log::d << "unknown packet recieved" << endl;
 				break;
@@ -367,17 +372,21 @@ void QuadInterface::setDesiredVelocity(double v) {
 }
 
 void QuadInterface::setDesiredSteeringAngle(double a) {
-	if (!connected)
-		return;
-
+	
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastSteering;
 
 	//if (!manualControl) {
-		if (seconds.count() < 0.050) {
+		if (seconds.count() < 0.150) {
 			return;
 		}
 	//}
+
+		if (!connected || !ready) {
+			Log::e << "steering not ready" << endl;
+			lastSteering = current;
+			return;
+		}
 
 	Log::i << "Sending steering: " << a << endl;
 
@@ -393,17 +402,22 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	serial.SendData((char*)bytes, p->getByteLength());
 
 	lastSteering = current;
-	
+	ready = false;
 }
 
 void QuadInterface::setDesiredThrottlePercentage(double t) {
-	if (!connected)
-		return;
+	
 
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastThrottle;
 
 	if (seconds.count() > 0.100) {
+		if (!connected || !ready) {
+			Log::e << "throttle not ready" << endl;
+			lastThrottle = current;
+			return;
+		}
+
 		Packet* p = new Packet();
 
 		p->packetID = ID_SET_QUAD_THROTTLE;
@@ -416,12 +430,15 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 		serial.SendData((char*)bytes, p->getByteLength());
 		lastThrottle = current;
 	}
+	ready = false;
 }
 
 void QuadInterface::setDesiredBrakePercentage(double b) {
 
-	if (!connected)
+	if (!connected || !ready) {
+		Log::e << "not ready" << endl;
 		return;
+	}
 
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastBrake;
@@ -440,11 +457,14 @@ void QuadInterface::setDesiredBrakePercentage(double b) {
 
 		lastBrake = current;
 	}
+	ready = false;
 }
 
 void QuadInterface::setDesiredGear(Gear g) {
-	if (!connected)
-		return;	
+	if (!connected || !ready) {
+		Log::e << "not ready" << endl;
+		return;
+	}
 
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastGear;
@@ -468,6 +488,7 @@ void QuadInterface::setDesiredGear(Gear g) {
 		lastGear = current;
 		
 	}
+	ready = false;
 }
 
 void QuadInterface::emergencyStop() {
@@ -479,24 +500,25 @@ void QuadInterface::emergencyStop() {
 	std::this_thread::sleep_for(std::chrono::microseconds(500));
 	delete bytes;
 	delete p;
+	ready = false;
 }
 
 void QuadInterface::updateVelocityActuators() {
 
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
-	double testThrottle = (1.4 - 0.25) / 0.05;
+
 
 	if (desiredVelocity > 0) {
-		Log::i << "forwards" << endl;
+		//Log::i << "forwards" << endl;
 		setDesiredThrottlePercentage(75);		
 	}
 	if (desiredVelocity < 0) {
 		setDesiredThrottlePercentage(75);
-		Log::i << "reverse" << endl;
+		//Log::i << "reverse" << endl;
 	}
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
-		Log::i << "stopped" << endl;
+		//Log::i << "stopped" << endl;
 	}
 	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
