@@ -393,7 +393,7 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	serial.SendData((char*)bytes, p->getByteLength());
 
 	lastSteering = current;
-	
+	setSteeringAngle(a);
 }
 
 void QuadInterface::setDesiredThrottlePercentage(double t) {
@@ -415,6 +415,7 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 
 		serial.SendData((char*)bytes, p->getByteLength());
 		lastThrottle = current;
+		setThrottlePercentage(t);
 	}
 }
 
@@ -439,6 +440,7 @@ void QuadInterface::setDesiredBrakePercentage(double b) {
 		serial.SendData((char*)bytes, p->getByteLength());
 
 		lastBrake = current;
+		setBrakePercentage(b);
 	}
 }
 
@@ -466,7 +468,7 @@ void QuadInterface::setDesiredGear(Gear g) {
 
 
 		lastGear = current;
-		
+		setGear(g);
 	}
 }
 
@@ -487,16 +489,16 @@ void QuadInterface::updateVelocityActuators() {
 	double testThrottle = (1.4 - 0.25) / 0.05;
 
 	if (desiredVelocity > 0) {
-		Log::i << "forwards" << endl;
+		setDesiredGear(GEAR_FORWARD);
 		setDesiredThrottlePercentage(75);		
 	}
 	if (desiredVelocity < 0) {
+		setDesiredGear(GEAR_REVERSE);
 		setDesiredThrottlePercentage(75);
-		Log::i << "reverse" << endl;
 	}
 	if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
-		Log::i << "stopped" << endl;
+		setDesiredGear(GEAR_NEUTRAL);
 	}
 	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);

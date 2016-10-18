@@ -94,7 +94,10 @@ void SimpleController::updateDynamics() {
 	Point quadPosition = hwi->getPosition();
 	double quadHeading = hwi->getAbsoluteHeading();
 	
+	
+
 	if (ns->getState() == NAV_WAIT) {
+	
 		hwi->setDesiredVelocity(0);
 		wasInNavWaitingState = true;
 		return;
@@ -128,17 +131,18 @@ void SimpleController::updateDynamics() {
 	else {
 		desiredVelocity = hwi->getVelocity() / 1.2;
 	}
-	
+		
 	if (desiredVelocity > hwi->cruiseVelocity) desiredVelocity = hwi->cruiseVelocity;
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 2 * PI / 180) desiredVelocity = 0;
+
 	if (!ns->isConverging()) {
 		desiredVelocity = 0;
 	}
 
 	//if point is behind the quad bike we need to reverse to get tehre
 	if (alpha > PI/2 || alpha < -PI/2) {
-		desiredVelocity *= -1;
-		
+		desiredVelocity *= -1;	
 	}
+
 	hwi->setDesiredVelocity(desiredVelocity);
 }
