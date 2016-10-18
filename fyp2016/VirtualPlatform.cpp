@@ -11,7 +11,7 @@ VirtualPlatform::~VirtualPlatform()
 }
 
 bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, DriveController* dc, SDL_Renderer* r) {
-	hw = (DummyHardware*) hwi;
+	hw = hwi;
 	sc = (SimpleController*) dc;
 	ns = nav;
 
@@ -160,13 +160,16 @@ void VirtualPlatform::drawPathToTexture() {
 	SDL_RenderClear(pathCanvas->getRenderer());
 	// drawing the path in this for loop
 	for (int i = 0; i < (int)ns->getSubdividedPath().size() - 1; i++) {
-
 		Point loc1 = Point(ns->getSubdividedPath().at(i).x, ns->getSubdividedPath().at(i).y);
 		Point loc2 = Point(ns->getSubdividedPath().at(i + 1).x, ns->getSubdividedPath().at(i + 1).y);
+
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
 		Point loc1transf = transform(loc1);
 		Point loc2transf = transform(loc2);
+
+
+		//Log::i << loc1transf.x << ", " << loc1transf.y << endl;
 
 		SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
 		SDL_RenderDrawLine(pathCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);

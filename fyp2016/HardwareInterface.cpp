@@ -280,6 +280,16 @@ void HardwareInterface::setDesiredBrakePercentage(double x) {}
 void HardwareInterface::setDesiredGear(Gear x) {}
 void HardwareInterface::updateVelocityActuators() {}
 
+Point HardwareInterface::getRealPosition() { return Point(NULL, NULL); }
+double HardwareInterface::getRealAbsoluteHeading() { return NULL; }
+double HardwareInterface::getRealVelocity() { return NULL; }
+double HardwareInterface::getRealSteeringAngle() { return NULL; }
+double HardwareInterface::getRealThrottlePercentage() { return NULL; }
+int HardwareInterface::getRealGear() { return NULL; }
+double HardwareInterface::getRealBrakePercentage() { return NULL; }
+Point HardwareInterface::getKinematicPosition() { return Point(NULL, NULL); }
+double HardwareInterface::getKinematicHeading() { return NULL; }
+
 
 /*********************************************************************************/
 // GETTERS AND SETTERS FOR HW VARIABLES FOR THREAD SAFETY

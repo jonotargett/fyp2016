@@ -29,14 +29,9 @@ bool Overlord::initialise() {
 
 	Log::i << "-> Initialising hardware interface..." << endl;
 	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
-
-	Log::i << "-> Initialising dummy hardware interface..." << endl;
-	dhwi = new DummyHardware();
-	dhwi->initialise();
-	Log::i << "-> DUMMY HARDWARE INTERFACE DONE" << endl << endl;
-
 	
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
@@ -89,7 +84,7 @@ bool Overlord::initialise() {
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
-	vp->initialise(dhwi, ns, dc, window->getRenderer());
+	vp->initialise(hwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
 
@@ -161,7 +156,7 @@ void Overlord::run() {
 			ns->addPoint(Point(3, -23));
 			ns->addPoint(Point(6, -23));
 			ns->addPoint(Point(6, 3));
-			ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
+			ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
 			vp->drawPathToTexture();
 			ns->startPath();
 			hasDone = true;
@@ -317,7 +312,7 @@ void Overlord::handleEvents() {
 			break;
 		case ID_REQ_QUAD_SPEED:
 		{
-			float speed = (float)dhwi->getVelocity();
+			float speed = (float)hwi->getVelocity();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_SPEED;
@@ -330,7 +325,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_HEADING:
 		{
-			float head = (float) dhwi->getAbsoluteHeading();
+			float head = (float) hwi->getAbsoluteHeading();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_HEADING;
@@ -343,7 +338,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_POSITION:
 		{
-			Point pos = dhwi->getPosition();
+			Point pos = hwi->getPosition();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_POSITION;
@@ -383,7 +378,7 @@ void Overlord::handleEvents() {
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
-			ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
+			ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
 			//vp->drawPathToTexture();
 			handled = true;
 			break;

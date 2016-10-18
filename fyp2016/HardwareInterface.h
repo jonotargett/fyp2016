@@ -47,6 +47,16 @@ public:
 	*/
 	virtual bool updateLoop() = 0;
 
+	virtual Point getRealPosition();
+	virtual double getRealAbsoluteHeading();
+	virtual double getRealVelocity();
+	virtual double getRealSteeringAngle();
+	virtual double getRealThrottlePercentage();
+	virtual int getRealGear();
+	virtual double getRealBrakePercentage();
+	virtual Point getKinematicPosition();
+	virtual double getKinematicHeading();
+
 	bool start();
 	void stop();
 

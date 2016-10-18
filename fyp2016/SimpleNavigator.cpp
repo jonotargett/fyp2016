@@ -261,6 +261,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		nPointTurn(Point(sin(heading), cos(heading)), turnAngle, quadPosition);
 		path.insert(path.begin(), subdividedPath.back());
 	}
+	else {
+		path.insert(path.begin(), quadPosition);
+	}
 
 
 	/*

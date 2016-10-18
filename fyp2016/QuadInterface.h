@@ -12,7 +12,7 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 
 */
 
-//#define COM_PORT 6			// if COM port is known
+#define COM_PORT 6			// if COM port is known
 #define MAX_COM_SEARCH 10		// search between COM1 and COMx
 #define SEARCH_INTERVAL 1000	// time to wait between checking successive COM ports
 #define BAUD_RATE 9600
@@ -44,6 +44,17 @@ public:
 	void setInitialQuadPosition(double, double);
 
 	void emergencyStop();
+
+	// for virtual platform visualisation, it simply returns the calculated value, not the real value
+	virtual Point getRealPosition();
+	virtual double getRealAbsoluteHeading();
+	virtual double getRealVelocity();
+	virtual double getRealSteeringAngle();
+	virtual double getRealThrottlePercentage();
+	virtual int getRealGear();
+	virtual double getRealBrakePercentage();
+	virtual Point getKinematicPosition();
+	virtual double getKinematicHeading();
 
 private:
 	Packet* processPacket();

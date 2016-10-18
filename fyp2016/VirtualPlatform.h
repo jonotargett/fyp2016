@@ -28,7 +28,7 @@ public:
 	void drawPathToTexture();
 
 private:
-	DummyHardware* hw;
+	HardwareInterface* hw;
 	NavigationSystem* ns;
 	SimpleController* sc;
 	SimpleTexture* pathCanvas;
