@@ -177,6 +177,7 @@ void Overlord::run() {
 		end of testing
 		************************************/
 		
+		//Log::i << hwi->getPosition().x << ", " << hwi->getPosition().y << ", " << hwi->getAbsoluteHeading() << endl;
 		
 		if (seconds.count() > (1.0 / (double)DATA_REFRESH_RATE)) {
 			lastDataUpdate = current;
