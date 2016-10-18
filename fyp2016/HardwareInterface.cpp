@@ -38,7 +38,7 @@ bool HardwareInterface::getImuStabilised() {
 
 void HardwareInterface::updateHardware(double time) {
 	//need to make sure imu has stabilised
-	if (!imuStable) {
+	/*if (!imuStable) {
 		if (imuInitialHeading - imuHeading == 0) {
 			imuStable = true;
 		}
@@ -46,7 +46,7 @@ void HardwareInterface::updateHardware(double time) {
 		Log::d << "Waiting for IMU to stabilise..." << endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		return;
-	}
+	}*/
 	updateKalmanFilter(time);
 }
 

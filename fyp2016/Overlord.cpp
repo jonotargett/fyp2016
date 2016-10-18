@@ -42,15 +42,9 @@ bool Overlord::initialise() {
 	ns = new SimpleNavigator();
 	ns->initialise();
 	ns->clearPath();
-	ns->addPoint(Point(3, 3));
-	ns->addPoint(Point(3, 6));
+	ns->addPoint(Point(0, 5));
+	ns->addPoint(Point(2, 10));
 	ns->addPoint(Point(4, 9));
-	ns->addPoint(Point(6, 11));
-	ns->addPoint(Point(9, 12));
-	ns->addPoint(Point(9, 14));
-	ns->addPoint(Point(7, 14));
-	ns->addPoint(Point(4, 13));
-	ns->addPoint(Point(-8, 2));
 	// realistic swathe example
 	/*ns->addPoint(Point(0, 1));
 	ns->addPoint(Point(0, 3));
@@ -114,7 +108,7 @@ void Overlord::run() {
 	std::chrono::duration<double> quadTimer;
 	
 	// display the window for the first time
-	//window->showWindow(true);
+	window->showWindow(true);
 	
 	// Feature detector stuff
 	fd->loadScan();

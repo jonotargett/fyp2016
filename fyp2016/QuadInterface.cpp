@@ -267,6 +267,7 @@ bool QuadInterface::updateLoop() {
 			last = current;
 			//if (!manualControl) {
 				updateVelocityActuators();
+				updateHardware(seconds.count());
 			//}
 		}
 
@@ -353,7 +354,7 @@ bool QuadInterface::updateLoop() {
 				break;
 			case ID_READY:
 				ready = true;
-				Log::d << "QUAD is ready to receive" << endl;
+				//Log::d << "QUAD is ready to receive" << endl;
 				break;
 			default:
 				Log::d << "unknown packet recieved" << endl;
@@ -372,6 +373,9 @@ void QuadInterface::setDesiredVelocity(double v) {
 }
 
 void QuadInterface::setDesiredSteeringAngle(double a) {
+	// takes in radians
+	// convert to degrees:
+	a = a * 180 / PI;
 	
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastSteering;
@@ -383,7 +387,7 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	//}
 
 		if (!connected || !ready) {
-			Log::e << "steering not ready" << endl;
+			//Log::e << "steering not ready" << endl;
 			lastSteering = current;
 			return;
 		}
@@ -401,6 +405,8 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 
 	serial.SendData((char*)bytes, p->getByteLength());
 
+	setSteeringAngle(a * PI/180);
+
 	lastSteering = current;
 	ready = false;
 }
@@ -413,10 +419,12 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 
 	if (seconds.count() > 0.100) {
 		if (!connected || !ready) {
-			Log::e << "throttle not ready" << endl;
+			//Log::e << "throttle not ready" << endl;
 			lastThrottle = current;
 			return;
 		}
+
+		Log::i << "Sending throttle: " << t << endl;
 
 		Packet* p = new Packet();
 
@@ -426,6 +434,7 @@ void QuadInterface::setDesiredThrottlePercentage(double t) {
 		p->data[0] = (float)t;
 
 		uint8_t* bytes = p->toBytes();
+		setThrottlePercentage(t);
 
 		serial.SendData((char*)bytes, p->getByteLength());
 		lastThrottle = current;
@@ -444,6 +453,8 @@ void QuadInterface::setDesiredBrakePercentage(double b) {
 	seconds = current - lastBrake;
 
 	if (seconds.count() > 0.100) {
+		
+
 		Packet* p = new Packet();
 
 		p->packetID = ID_SET_QUAD_BRAKE;
@@ -454,6 +465,8 @@ void QuadInterface::setDesiredBrakePercentage(double b) {
 		uint8_t* bytes = p->toBytes();
 
 		serial.SendData((char*)bytes, p->getByteLength());
+
+		setBrakePercentage(b);
 
 		lastBrake = current;
 	}
@@ -470,6 +483,8 @@ void QuadInterface::setDesiredGear(Gear g) {
 	seconds = current - lastGear;
 
 	if (seconds.count() > 0.100) {
+		Log::i << "sending Gear: " << g << endl;
+
 		Packet* p = new Packet();
 
 		p->packetID = ID_SET_QUAD_GEAR;
@@ -480,6 +495,8 @@ void QuadInterface::setDesiredGear(Gear g) {
 		uint8_t* bytes = p->toBytes();
 
 		serial.SendData((char*)bytes, p->getByteLength());
+
+		setGear(g);
 
 		delete bytes;
 		delete p;
@@ -510,13 +527,16 @@ void QuadInterface::updateVelocityActuators() {
 
 	if (desiredVelocity > 0) {
 		//Log::i << "forwards" << endl;
-		setDesiredThrottlePercentage(75);		
+		if (getGear() != GEAR_FORWARD)	setDesiredGear(GEAR_FORWARD);
+		setDesiredThrottlePercentage(50);		
 	}
 	if (desiredVelocity < 0) {
-		setDesiredThrottlePercentage(75);
+		if (getGear() != GEAR_REVERSE)	setDesiredGear(GEAR_REVERSE);
+		setDesiredThrottlePercentage(0);
 		//Log::i << "reverse" << endl;
 	}
 	if (desiredVelocity == 0) {
+		if (getGear() != GEAR_NEUTRAL)	setDesiredGear(GEAR_NEUTRAL);
 		setDesiredThrottlePercentage(0);
 		//Log::i << "stopped" << endl;
 	}

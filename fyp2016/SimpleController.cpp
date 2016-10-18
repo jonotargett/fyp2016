@@ -108,7 +108,7 @@ void SimpleController::updateDynamics() {
 		}
 		return;
 	}
-
+	//Log::i << quadPosition.x << ", " << quadPosition.y << endl;
 	ns->updatePoint(quadPosition, (float)quadHeading, hwi->getVelocity());
 	Point currentPoint = ns->getPoint();
 
@@ -131,6 +131,7 @@ void SimpleController::updateDynamics() {
 	else {
 		desiredVelocity = hwi->getVelocity() / 1.2;
 	}
+	
 		
 	if (desiredVelocity > hwi->cruiseVelocity) desiredVelocity = hwi->cruiseVelocity;
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 2 * PI / 180) desiredVelocity = 0;
