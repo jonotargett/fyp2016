@@ -16,8 +16,8 @@ SimpleNavigator::SimpleNavigator()
 
 	noTurnMaxRads = 15 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
-	distanceBetweenWaypoints = 0.5;			// meters
-	distanceBetweenTurnWaypoints = 0.2;
+	distanceBetweenWaypoints = 0.25;			// meters
+	distanceBetweenTurnWaypoints = 0.25;
 	minTurnRadius = 3.25;		// min turn radius of the quad bike
 
 }
@@ -350,9 +350,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		}
 		curPoint = subdividedPath.at(subdividedPath.size() - 1);	// start the next line segment from the very last point in the path.
 	}
-	/*for (unsigned int i = 0; i < subdividedPath.size(); i++) {
+	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
 		Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
-	}*/
+	}
 
 	Log::d << "Path subdivision completed" << endl;
 	return true;

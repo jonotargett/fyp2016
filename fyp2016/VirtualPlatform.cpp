@@ -47,9 +47,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 70;
+	drawScale = 50;
 	focusX = 0;
-	focusY = 5;
+	focusY = 9;
 
 	return true;
 }

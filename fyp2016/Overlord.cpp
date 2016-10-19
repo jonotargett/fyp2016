@@ -28,8 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	hwi = new QuadInterface();
-	//hwi = new DummyHardware();
+	//hwi = new QuadInterface();
+	hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
