@@ -28,8 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	//hwi = new QuadInterface();
-	hwi = new DummyHardware();
+	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
@@ -116,7 +116,6 @@ void Overlord::run() {
 	showvp = true;
 	vp->redrawGraphTexture();
 	vp->drawPathToTexture();
-	dc->setEnabled(true);				// uncomment this line when not connected to tablet
 	
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
@@ -167,7 +166,8 @@ void Overlord::run() {
 		************************************/
 		
 		//Log::i << hwi->getPosition().x << ", " << hwi->getPosition().y << ", " << hwi->getAbsoluteHeading() << endl;
-		
+		//Log::i << hwi->getVelocity() << endl;
+
 		if (seconds.count() > (1.0 / (double)DATA_REFRESH_RATE)) {
 			lastDataUpdate = current;
 
@@ -207,7 +207,7 @@ void Overlord::run() {
 
 			window->present();
 
-			
+			dc->setEnabled(true);
 
 
 		}

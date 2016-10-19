@@ -69,9 +69,9 @@ bool SimpleController::updateLoop() {
 		end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> seconds = end - start;
 
-		//if (enabled) {
+		if (enabled) {
 			updateDynamics();
-		//}
+		}
 
 		start = end;
 

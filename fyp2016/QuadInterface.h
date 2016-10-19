@@ -12,11 +12,11 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 
 */
 
-#define COM_PORT 6			// if COM port is known
+#define COM_PORT 5			// if COM port is known
 #define MAX_COM_SEARCH 10		// search between COM1 and COMx
 #define SEARCH_INTERVAL 1000	// time to wait between checking successive COM ports
 #define BAUD_RATE 9600
-#define COM_TIMEOUT 1000			// maximum wait time before severing COM 
+#define COM_TIMEOUT 1000			// maximum wait time before severing COM
 #define ACTUATORS_REFRESH_RATE 500	// ms between pulses
 
 
@@ -60,10 +60,12 @@ private:
 	Packet* processPacket();
 	bool establishCOM(int);
 	void updateVelocityActuators();
+	void sendDesiredSteeringAngle();
 	bool connected;
 	bool ready;
 
 	double desiredVelocity;
+	float desiredSteeringAngle;
 	double initialLongitude;
 	double initialLatitude;
 
