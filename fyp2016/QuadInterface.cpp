@@ -257,20 +257,19 @@ bool QuadInterface::updateLoop() {
 	std::chrono::time_point<std::chrono::high_resolution_clock> last;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 	std::chrono::duration<double> seconds;
+	
 
 	while (isAlive()) { // loop continuously at REFRESH_RATE for constant speeds across machines
-
 
 		current = std::chrono::high_resolution_clock::now();
 		seconds = current - last;
 
 		if (seconds.count() > (1.0 / ACTUATORS_REFRESH_RATE)) {
 			last = current;
-			if (ready) {
-				updateVelocityActuators();
-				sendDesiredSteeringAngle();
-			}
+			updateVelocityActuators();
 			updateHardware(seconds.count());
+			sendQueueItem();
+			
 		}
 
 
@@ -368,17 +367,122 @@ bool QuadInterface::updateLoop() {
 	return true;
 }
 
+void QuadInterface::sendQueueItem() {
+	if (!ready) {
+		return;
+	}
+	if (queueList.size() > 0) {
+
+		if (!connected) {
+			Log::e << "Not connected" << endl;
+			return;
+		}
+
+		queueList.erase(queueList.begin());
+
+		current = std::chrono::high_resolution_clock::now();
+
+		Packet* p = new Packet();
+		ready = false;
+		switch (queueList.at(0)) {
+		case Q_THROTTLE:
+			seconds = current - lastThrottle;
+			if (seconds.count() > 0.100) {
+				Log::i << "Sending throttle: " << requestedThrottlePercentage << endl;
+
+				p->packetID = ID_SET_QUAD_THROTTLE;
+				p->length = 1;
+				p->data = new float[1];
+				p->data[0] = (float)requestedThrottlePercentage;
+				uint8_t* bytes = p->toBytes();
+				serial.SendData((char*)bytes, p->getByteLength());
+				delete bytes;
+				setThrottlePercentage(requestedThrottlePercentage);
+
+				lastThrottle = current;
+			}
+			break;
+		case Q_BRAKES:
+			seconds = current - lastBrake;
+			if (seconds.count() > 0.100) {
+				Log::i << "Sending brakes: " << requestedBrakePercentage << endl;
+
+				p->packetID = ID_SET_QUAD_BRAKE;
+				p->length = 1;
+				p->data = new float[1];
+				p->data[0] = (float)requestedBrakePercentage;
+				uint8_t* bytes = p->toBytes();
+				serial.SendData((char*)bytes, p->getByteLength());
+				delete bytes;
+				setBrakePercentage(requestedBrakePercentage);
+
+				lastBrake = current;
+			}
+
+			break;
+		case Q_STEERING:
+			seconds = current - lastSteering;
+			if (seconds.count() > 0.100) {
+				Log::i << "Sending steering: " << requestedSteeringAngle * 180 / PI << endl;
+
+				p->packetID = ID_SET_QUAD_STEERING;
+				p->length = 1;
+				p->data = new float[1];
+				// takes in degrees, convert to degrees:
+				p->data[0] = (float)(requestedSteeringAngle * 180 / PI);
+				uint8_t* bytes = p->toBytes();
+				serial.SendData((char*)bytes, p->getByteLength());
+				delete bytes;
+				setSteeringAngle(requestedSteeringAngle);
+
+				lastSteering = current;
+			}
+			break;
+		case Q_GEARS:
+			seconds = current - lastGear;
+			if (seconds.count() > 0.100) {
+				Log::i << "sending Gear: " << requestedGear << endl;
+
+				p->packetID = ID_SET_QUAD_GEAR;
+				p->length = 1;
+				p->data = new float[1];
+				p->data[0] = (float)requestedGear;
+				uint8_t* bytes = p->toBytes();
+				serial.SendData((char*)bytes, p->getByteLength());
+				delete bytes;
+				setGear(requestedGear);
+
+				lastGear = current;
+			}
+			break;
+		default:
+			break;
+		}
+		
+		delete p;
+	}
+}
+
+void QuadInterface::addQueueItem(queueItems x) {
+	for (int i = 0; i < queueList.size(); i++) {
+		if (queueList.at(i) == x) {
+			return;
+		}
+	}
+	queueList.push_back(x);
+}
+
 void QuadInterface::setDesiredVelocity(double v) {
 	desiredVelocity = v;
 }
 
 void QuadInterface::setDesiredSteeringAngle(double a) {
-	desiredSteeringAngle = a;
+	requestedSteeringAngle = a;
+	addQueueItem(Q_STEERING);
 }
 
-void QuadInterface::sendDesiredSteeringAngle() {
+/*void QuadInterface::sendDesiredSteeringAngle() {
 	
-
 	current = std::chrono::high_resolution_clock::now();
 	seconds = current - lastSteering;
 
@@ -394,7 +498,7 @@ void QuadInterface::sendDesiredSteeringAngle() {
 		return;
 	}
 
-	Log::i << "Sending steering: " << desiredSteeringAngle * 180 / PI << endl;
+	Log::i << "Sending steering: " << requestedSteeringAngle * 180 / PI << endl;
 
 	Packet* p = new Packet();
 
@@ -402,13 +506,13 @@ void QuadInterface::sendDesiredSteeringAngle() {
 	p->length = 1;
 	p->data = new float[1];
 	// takes in degrees, convert to degrees:
-	p->data[0] = (float) (desiredSteeringAngle * 180 / PI);
+	p->data[0] = (float) (requestedSteeringAngle * 180 / PI);
 
 	uint8_t* bytes = p->toBytes();
 
 	serial.SendData((char*)bytes, p->getByteLength());
 
-	setSteeringAngle(desiredSteeringAngle);
+	setSteeringAngle(requestedSteeringAngle);
 
 	lastSteering = current;
 	ready = false;
@@ -511,9 +615,9 @@ void QuadInterface::setDesiredGear(Gear g) {
 	}
 
 }
-
+*/
 void QuadInterface::emergencyStop() {
-	Packet* p = new Packet();
+/*	Packet* p = new Packet();
 	p->packetID = ID_EMERGENCY_STOP;
 
 	uint8_t* bytes = p->toBytes();
@@ -521,7 +625,7 @@ void QuadInterface::emergencyStop() {
 	std::this_thread::sleep_for(std::chrono::microseconds(500));
 	delete bytes;
 	delete p;
-	ready = false;
+	ready = false;*/
 }
 
 void QuadInterface::updateVelocityActuators() {
@@ -531,17 +635,23 @@ void QuadInterface::updateVelocityActuators() {
 
 	if (desiredVelocity > 0) {
 		//Log::i << "forwards" << endl;
-		if (getGear() != GEAR_FORWARD)	setDesiredGear(GEAR_FORWARD);
-		setDesiredThrottlePercentage(50);		
+		if (getGear() != GEAR_FORWARD)	requestedGear = GEAR_FORWARD;
+		requestedThrottlePercentage = 50;
+		addQueueItem(Q_GEARS);
+		addQueueItem(Q_THROTTLE);
 	}
 	if (desiredVelocity < 0) {
-		if (getGear() != GEAR_REVERSE)	setDesiredGear(GEAR_REVERSE);
-		setDesiredThrottlePercentage(0);
+		if (getGear() != GEAR_REVERSE)	requestedGear = GEAR_REVERSE;
+		requestedThrottlePercentage = 50;
+		addQueueItem(Q_GEARS);
+		addQueueItem(Q_THROTTLE);
 		//Log::i << "reverse" << endl;
 	}
 	if (desiredVelocity == 0) {
-		if (getGear() != GEAR_NEUTRAL)	setDesiredGear(GEAR_NEUTRAL);
-		setDesiredThrottlePercentage(0);
+		if (getGear() != GEAR_NEUTRAL)	requestedGear = GEAR_NEUTRAL;
+		requestedThrottlePercentage = 0;
+		addQueueItem(Q_GEARS);
+		addQueueItem(Q_THROTTLE);
 		//Log::i << "stopped" << endl;
 	}
 	/*if (desiredVelocity == 0) {

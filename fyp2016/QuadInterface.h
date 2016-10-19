@@ -26,6 +26,12 @@ THIS IS WHERE THE ACTUAL HARDWARE INTERFACE STUFF BELONGS.
 #include "Serial.h"
 #include "Packet.h"
 
+enum queueItems {
+	Q_THROTTLE,
+	Q_BRAKES,
+	Q_STEERING,
+	Q_GEARS
+};
 
 class QuadInterface :
 	public HardwareInterface
@@ -38,9 +44,9 @@ public:
 
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);
-	void setDesiredThrottlePercentage(double);
-	void setDesiredBrakePercentage(double);
-	void setDesiredGear(Gear);
+	//void setDesiredThrottlePercentage(double);
+	//void setDesiredBrakePercentage(double);
+	//void setDesiredGear(Gear);
 	void setInitialQuadPosition(double, double);
 
 	void emergencyStop();
@@ -60,12 +66,17 @@ private:
 	Packet* processPacket();
 	bool establishCOM(int);
 	void updateVelocityActuators();
-	void sendDesiredSteeringAngle();
+	void sendQueueItem();
+	void addQueueItem(queueItems);
 	bool connected;
 	bool ready;
 
 	double desiredVelocity;
-	float desiredSteeringAngle;
+	float requestedSteeringAngle;
+	float requestedBrakePercentage;
+	Gear requestedGear;
+	float requestedThrottlePercentage;
+
 	double initialLongitude;
 	double initialLatitude;
 
@@ -73,6 +84,8 @@ private:
 	int comPort;
 	std::queue<uint8_t> receivedBuffer;
 	bool collectingPacket;
+
+	std::vector<queueItems> queueList;
 	
 	std::chrono::duration<double> seconds;
 	std::chrono::time_point<std::chrono::high_resolution_clock> current;
