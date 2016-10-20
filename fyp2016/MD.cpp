@@ -40,8 +40,6 @@ bool MD::initialise() {
 
 void MD::start() {
 
-	//std::thread* thread = new std::thread(run, this);
-
 	updater = new std::thread(&MD::acquisitionLoop, this);
 
 	Log::d << "Communiation sub-thread started." << std::endl;

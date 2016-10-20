@@ -10,6 +10,7 @@
 #include "Bscan.h"
 #include "HardwareInterface.h"
 #include "GPR.h"
+#include "MD.h"
 
 enum Visual {
 	DISPLAY_RAW,
@@ -40,6 +41,7 @@ private:
 
 	HardwareInterface* hwi;
 	GPR* gpr;
+	MD* md;
 
 	SDL_Renderer* renderer;
 	SDL_Texture* texture;

@@ -20,6 +20,7 @@ bool FeatureDetector::initialise() {
 	bool success;
 
 	gpr = new GPR();
+	md = new MD();
 
 	success = gpr->initialise();
 	if (!success) return false;
@@ -27,6 +28,11 @@ bool FeatureDetector::initialise() {
 
 	scan = gpr->getBscan(GPR_DIFFERENTIAL);
 	//scan = gpr->getBscan(GPR_CHANNEL_1);
+
+	success = md->initialise();
+	if (!success) return false;
+
+
 
 	return true;
 }
