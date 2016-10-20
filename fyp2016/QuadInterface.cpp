@@ -349,10 +349,10 @@ bool QuadInterface::updateLoop() {
 				//Log::e << "received SPEED packet " << rp->data[0] << endl;
 				switch (getGear()) {
 				case GEAR_FORWARD:
-					setVelocity(rp->data[0]);
+					setVelocity(-1 * rp->data[0]);
 					break;
 				case GEAR_REVERSE:
-					setVelocity(-1 * rp->data[0]);
+					setVelocity(rp->data[0]);
 					break;
 				default:
 					setVelocity(0);
