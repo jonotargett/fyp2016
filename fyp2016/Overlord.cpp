@@ -28,8 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	//hwi = new QuadInterface();
-	hwi = new DummyHardware();
+	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
@@ -133,6 +133,10 @@ void Overlord::run() {
 
 	std::chrono::duration<double> seconds;
 	std::chrono::duration<double> quadTimer;
+
+	// metal detector dummy image
+	SimpleTexture* mdtexture = new SimpleTexture(window->getRenderer());
+	mdtexture->loadImage("metalDetectorOutput.png");
 	
 	// display the window for the first time
 	window->showWindow(true);
@@ -234,7 +238,7 @@ void Overlord::run() {
 			
 			//fd->createImage(DISPLAY_RAW);
 			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
-			window->update(NULL, PANE_BOTTOMRIGHT);
+			window->update(mdtexture->getTexture(), PANE_BOTTOMRIGHT);
 
 
 			window->present();
