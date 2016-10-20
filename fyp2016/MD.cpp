@@ -90,7 +90,7 @@ bool MD::acquisitionLoop() {
 
 
 
-StreamData* MD::getFrame(unsigned int index = 0) {
+StreamData* MD::getFrame(unsigned int index) {
 	if (index >= frames.size()) {
 		Log::e << "Requested frame is outside of bounds of array" << endl;
 		return NULL;
