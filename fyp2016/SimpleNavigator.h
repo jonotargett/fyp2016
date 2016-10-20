@@ -74,6 +74,7 @@ private:
 	bool pathNavigationCompleted;
 	double distanceToTurn;
 	bool converging;
+	double initialDistanceToTurn;
 
 	double simpleTurnMaxAngleRad;
 	double noTurnMaxRads;

@@ -14,6 +14,11 @@ HardwareInterface::HardwareInterface()
 	imuHeadingLock = false;
 
 	imuStable = false;
+
+	setThrottlePercentage(0);
+	setBrakePercentage(0);
+	setGear(GEAR_NEUTRAL);
+	setSteeringAngle(0);
 	
 	position = Point();
 	gpsPrevPosition = Point();
@@ -355,7 +360,7 @@ void HardwareInterface::setVelocity(double x) {
 		//wait
 	}
 	velocityLock = true;
-	if (getGear() == GEAR_NEUTRAL && getThrottlePercentage() == 0 && getBrakePercentage() > 30) {
+	if (getThrottlePercentage() == 0 && getBrakePercentage() > 30) {
 		x = 0;
 	}
 

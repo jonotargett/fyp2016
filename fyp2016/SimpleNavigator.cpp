@@ -14,7 +14,7 @@ SimpleNavigator::SimpleNavigator()
 	converging = true;
 
 
-	noTurnMaxRads = 15 * PI / 180;
+	noTurnMaxRads = 0 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
 	distanceBetweenWaypoints = 0.25;			// meters
 	distanceBetweenTurnWaypoints = 0.25;
@@ -93,6 +93,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 			// we have an n-point turn coming up
 			navState = NAV_TURNINBOUND;
 			distanceToTurn = distanceNow;
+			initialDistanceToTurn = distanceNow;
 			turnPoint = currentPathPointIndex;
 			break;
 		}
@@ -103,7 +104,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 		converging = true;
 	}
 	if (navState == NAV_TURNINBOUND) {
-		if (distanceNow > distanceToTurn) {
+		if (distanceNow > distanceToTurn && distanceNow < initialDistanceToTurn / 2) {
 			converging = false;
 		}
 		else {
@@ -135,6 +136,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 				navState = NAV_TURNINBOUND;
 				turnPoint = currentPathPointIndex;
 				distanceToTurn = position.getDistanceTo(subdividedPath.at(currentPathPointIndex));
+				initialDistanceToTurn = distanceToTurn;
 				break;
 			}
 			if (!isNextPoint()) {
@@ -350,9 +352,9 @@ bool SimpleNavigator::subdivide(Point quadPosition, float heading) {
 		}
 		curPoint = subdividedPath.at(subdividedPath.size() - 1);	// start the next line segment from the very last point in the path.
 	}
-	for (unsigned int i = 0; i < subdividedPath.size(); i++) {
-		Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
-	}
+	//for (unsigned int i = 0; i < subdividedPath.size(); i++) {
+	//	Log::i << subdividedPath.at(i).x << ", " << subdividedPath.at(i).y << endl;
+	//}
 
 	Log::d << "Path subdivision completed" << endl;
 	return true;

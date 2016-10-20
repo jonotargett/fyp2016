@@ -347,7 +347,16 @@ bool QuadInterface::updateLoop() {
 				break;
 			case ID_QUAD_SPEED:
 				//Log::e << "received SPEED packet " << rp->data[0] << endl;
-				setVelocity(rp->data[0]);
+				switch (getGear()) {
+				case GEAR_FORWARD:
+					setVelocity(rp->data[0]);
+					break;
+				case GEAR_REVERSE:
+					setVelocity(-1 * rp->data[0]);
+					break;
+				default:
+					setVelocity(0);
+				}
 				break;
 			case ID_IDLE:
 				Log::d << "IDLE received properly" << endl;
@@ -377,8 +386,6 @@ void QuadInterface::sendQueueItem() {
 			Log::e << "Not connected" << endl;
 			return;
 		}
-
-		queueList.erase(queueList.begin());
 
 		current = std::chrono::high_resolution_clock::now();
 
@@ -458,7 +465,7 @@ void QuadInterface::sendQueueItem() {
 		default:
 			break;
 		}
-		
+		queueList.erase(queueList.begin());
 		delete p;
 	}
 }
@@ -481,141 +488,6 @@ void QuadInterface::setDesiredSteeringAngle(double a) {
 	addQueueItem(Q_STEERING);
 }
 
-/*void QuadInterface::sendDesiredSteeringAngle() {
-	
-	current = std::chrono::high_resolution_clock::now();
-	seconds = current - lastSteering;
-
-	//if (!manualControl) {
-	if (seconds.count() < 0.150) {
-		return;
-	}
-	//}
-
-	if (!connected) {
-		Log::e << "steering not connected" << endl;
-		lastSteering = current;
-		return;
-	}
-
-	Log::i << "Sending steering: " << requestedSteeringAngle * 180 / PI << endl;
-
-	Packet* p = new Packet();
-
-	p->packetID = ID_SET_QUAD_STEERING;
-	p->length = 1;
-	p->data = new float[1];
-	// takes in degrees, convert to degrees:
-	p->data[0] = (float) (requestedSteeringAngle * 180 / PI);
-
-	uint8_t* bytes = p->toBytes();
-
-	serial.SendData((char*)bytes, p->getByteLength());
-
-	setSteeringAngle(requestedSteeringAngle);
-
-	lastSteering = current;
-	ready = false;
-}
-
-void QuadInterface::setDesiredThrottlePercentage(double t) {
-	
-
-	current = std::chrono::high_resolution_clock::now();
-	seconds = current - lastThrottle;
-
-	if (seconds.count() > 0.100) {
-		if (!connected) {
-			Log::e << "throttle not connected" << endl;
-			lastThrottle = current;
-			return;
-		}
-
-		Log::i << "Sending throttle: " << t << endl;
-
-		Packet* p = new Packet();
-
-		p->packetID = ID_SET_QUAD_THROTTLE;
-		p->length = 1;
-		p->data = new float[1];
-		p->data[0] = (float)t;
-
-		uint8_t* bytes = p->toBytes();
-		setThrottlePercentage(t);
-
-		serial.SendData((char*)bytes, p->getByteLength());
-		lastThrottle = current;
-		ready = false;
-	}
-
-}
-
-void QuadInterface::setDesiredBrakePercentage(double b) {
-
-	current = std::chrono::high_resolution_clock::now();
-	seconds = current - lastBrake;
-
-	if (seconds.count() > 0.100) {
-		if (!connected) {
-			Log::e << "Brake not connected" << endl;
-			return;
-		}
-
-		Packet* p = new Packet();
-
-		p->packetID = ID_SET_QUAD_BRAKE;
-		p->length = 1;
-		p->data = new float[1];
-		p->data[0] = (float)b;
-
-		uint8_t* bytes = p->toBytes();
-
-		serial.SendData((char*)bytes, p->getByteLength());
-
-		setBrakePercentage(b);
-
-		lastBrake = current;
-		ready = false;
-	}
-
-}
-
-void QuadInterface::setDesiredGear(Gear g) {
-	if (!connected) {
-		Log::e << "Gear not connected" << endl;
-		return;
-	}
-
-	current = std::chrono::high_resolution_clock::now();
-	seconds = current - lastGear;
-
-	if (seconds.count() > 0.100) {
-		Log::i << "sending Gear: " << g << endl;
-
-		Packet* p = new Packet();
-
-		p->packetID = ID_SET_QUAD_GEAR;
-		p->length = 1;
-		p->data = new float[1];
-		p->data[0] = (float)g;
-
-		uint8_t* bytes = p->toBytes();
-
-		serial.SendData((char*)bytes, p->getByteLength());
-
-		setGear(g);
-
-		delete bytes;
-		delete p;
-
-		ready = false;
-
-		lastGear = current;
-		
-	}
-
-}
-*/
 void QuadInterface::emergencyStop() {
 /*	Packet* p = new Packet();
 	p->packetID = ID_EMERGENCY_STOP;
@@ -634,25 +506,30 @@ void QuadInterface::updateVelocityActuators() {
 
 
 	if (desiredVelocity > 0) {
-		//Log::i << "forwards" << endl;
-		if (getGear() != GEAR_FORWARD)	requestedGear = GEAR_FORWARD;
-		requestedThrottlePercentage = 50;
-		addQueueItem(Q_GEARS);
+		if (getGear() != GEAR_FORWARD) {
+			requestedGear = GEAR_FORWARD;
+			addQueueItem(Q_GEARS);
+		}
+		if (desiredVelocity >= 0.6) requestedThrottlePercentage = 50;
+		if (desiredVelocity < 0.6) requestedThrottlePercentage = 0;
 		addQueueItem(Q_THROTTLE);
 	}
 	if (desiredVelocity < 0) {
-		if (getGear() != GEAR_REVERSE)	requestedGear = GEAR_REVERSE;
-		requestedThrottlePercentage = 50;
-		addQueueItem(Q_GEARS);
+		if (getGear() != GEAR_REVERSE) {
+			requestedGear = GEAR_REVERSE;
+			addQueueItem(Q_GEARS);
+		}
+		if (desiredVelocity <= -0.6) requestedThrottlePercentage = 50;
+		if (desiredVelocity > 0.6) requestedThrottlePercentage = 0;
 		addQueueItem(Q_THROTTLE);
-		//Log::i << "reverse" << endl;
 	}
 	if (desiredVelocity == 0) {
-		if (getGear() != GEAR_NEUTRAL)	requestedGear = GEAR_NEUTRAL;
+		if (getGear() != GEAR_NEUTRAL) {
+			requestedGear = GEAR_NEUTRAL;
+			addQueueItem(Q_GEARS);
+		}
 		requestedThrottlePercentage = 0;
-		addQueueItem(Q_GEARS);
 		addQueueItem(Q_THROTTLE);
-		//Log::i << "stopped" << endl;
 	}
 	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
@@ -736,3 +613,148 @@ int QuadInterface::getRealGear() { return getGear(); }
 double QuadInterface::getRealBrakePercentage() { return getBrakePercentage(); }
 Point QuadInterface::getKinematicPosition() { return getPosition(); }
 double QuadInterface::getKinematicHeading() { return getAbsoluteHeading(); }
+
+
+
+
+
+/*****************************
+old comms with quad bike, uses a switch statement and queue now
+***************************/
+
+
+/*void QuadInterface::sendDesiredSteeringAngle() {
+
+current = std::chrono::high_resolution_clock::now();
+seconds = current - lastSteering;
+
+//if (!manualControl) {
+if (seconds.count() < 0.150) {
+return;
+}
+//}
+
+if (!connected) {
+Log::e << "steering not connected" << endl;
+lastSteering = current;
+return;
+}
+
+Log::i << "Sending steering: " << requestedSteeringAngle * 180 / PI << endl;
+
+Packet* p = new Packet();
+
+p->packetID = ID_SET_QUAD_STEERING;
+p->length = 1;
+p->data = new float[1];
+// takes in degrees, convert to degrees:
+p->data[0] = (float) (requestedSteeringAngle * 180 / PI);
+
+uint8_t* bytes = p->toBytes();
+
+serial.SendData((char*)bytes, p->getByteLength());
+
+setSteeringAngle(requestedSteeringAngle);
+
+lastSteering = current;
+ready = false;
+}
+
+void QuadInterface::setDesiredThrottlePercentage(double t) {
+
+
+current = std::chrono::high_resolution_clock::now();
+seconds = current - lastThrottle;
+
+if (seconds.count() > 0.100) {
+if (!connected) {
+Log::e << "throttle not connected" << endl;
+lastThrottle = current;
+return;
+}
+
+Log::i << "Sending throttle: " << t << endl;
+
+Packet* p = new Packet();
+
+p->packetID = ID_SET_QUAD_THROTTLE;
+p->length = 1;
+p->data = new float[1];
+p->data[0] = (float)t;
+
+uint8_t* bytes = p->toBytes();
+setThrottlePercentage(t);
+
+serial.SendData((char*)bytes, p->getByteLength());
+lastThrottle = current;
+ready = false;
+}
+
+}
+
+void QuadInterface::setDesiredBrakePercentage(double b) {
+
+current = std::chrono::high_resolution_clock::now();
+seconds = current - lastBrake;
+
+if (seconds.count() > 0.100) {
+if (!connected) {
+Log::e << "Brake not connected" << endl;
+return;
+}
+
+Packet* p = new Packet();
+
+p->packetID = ID_SET_QUAD_BRAKE;
+p->length = 1;
+p->data = new float[1];
+p->data[0] = (float)b;
+
+uint8_t* bytes = p->toBytes();
+
+serial.SendData((char*)bytes, p->getByteLength());
+
+setBrakePercentage(b);
+
+lastBrake = current;
+ready = false;
+}
+
+}
+
+void QuadInterface::setDesiredGear(Gear g) {
+if (!connected) {
+Log::e << "Gear not connected" << endl;
+return;
+}
+
+current = std::chrono::high_resolution_clock::now();
+seconds = current - lastGear;
+
+if (seconds.count() > 0.100) {
+Log::i << "sending Gear: " << g << endl;
+
+Packet* p = new Packet();
+
+p->packetID = ID_SET_QUAD_GEAR;
+p->length = 1;
+p->data = new float[1];
+p->data[0] = (float)g;
+
+uint8_t* bytes = p->toBytes();
+
+serial.SendData((char*)bytes, p->getByteLength());
+
+setGear(g);
+
+delete bytes;
+delete p;
+
+ready = false;
+
+lastGear = current;
+
+}
+
+}
+*/

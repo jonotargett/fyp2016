@@ -28,8 +28,8 @@ bool Overlord::initialise() {
 	Log::i << "-> COMMUNICATIONS DONE" << endl << endl;
 
 	Log::i << "-> Initialising hardware interface..." << endl;
-	//hwi = new QuadInterface();
-	hwi = new DummyHardware();
+	hwi = new QuadInterface();
+	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
 	
@@ -38,8 +38,8 @@ bool Overlord::initialise() {
 	ns->initialise();
 	ns->clearPath();
 	ns->addPoint(Point(0, 5));
-	ns->addPoint(Point(6, 10));
-	ns->addPoint(Point(4, 9));
+	ns->addPoint(Point(3, 8));
+	ns->addPoint(Point(6, 9));
 	// realistic swathe example
 	/*ns->addPoint(Point(0, 1));
 	ns->addPoint(Point(0, 3));
