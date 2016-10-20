@@ -80,6 +80,8 @@ private:
 	double initialLongitude;
 	double initialLatitude;
 
+	int travelDirection;
+
 	CSerial serial;
 	int comPort;
 	std::queue<uint8_t> receivedBuffer;

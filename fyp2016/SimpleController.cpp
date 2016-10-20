@@ -126,15 +126,19 @@ void SimpleController::updateDynamics() {
 
 	double desiredVelocity;
 	if (ns->isNextPoint()) {
-		desiredVelocity = distance * 1.8;
+		desiredVelocity = distance;
 	}
 	else {
-		desiredVelocity = hwi->getVelocity() / 1.2;
+		desiredVelocity = 0;
 	}
 
 	// for real quadinterface hardware only:
-	if (desiredVelocity > 0) desiredVelocity = hwi->cruiseVelocity;
-	if (desiredVelocity < 0) desiredVelocity = -hwi->cruiseVelocity;
+	if (desiredVelocity > 1.3) desiredVelocity = 1.3;
+	if (desiredVelocity < -1.3) desiredVelocity = 1.3;
+	if (desiredVelocity > 0 && desiredVelocity < 1.3)
+		desiredVelocity = 0;
+	if (desiredVelocity < 0 && desiredVelocity > -1.3)
+		desiredVelocity = 0;
 
 	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 5 * PI / 180 && desiredVelocity != 0) desiredVelocity = 0.5;
 

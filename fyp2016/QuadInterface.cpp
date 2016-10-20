@@ -40,6 +40,8 @@ bool QuadInterface::initialise() {
 	bool comPortKnown = false;
 	bool success = false;
 
+	travelDirection = 0;
+
 #ifdef COM_PORT
 	comPort = COM_PORT;
 	comPortKnown = true;
@@ -349,13 +351,15 @@ bool QuadInterface::updateLoop() {
 				//Log::e << "received SPEED packet " << rp->data[0] << endl;
 				switch (getGear()) {
 				case GEAR_FORWARD:
-					setVelocity(-1 * rp->data[0]);
+					setVelocity(-1 * rp->data[0] * 1.05);
+					travelDirection = -1;
 					break;
 				case GEAR_REVERSE:
-					setVelocity(rp->data[0]);
+					setVelocity(rp->data[0] * 1.05);
+					travelDirection = 1;
 					break;
 				default:
-					setVelocity(0);
+					setVelocity(travelDirection * rp->data[0] * 1.05);
 				}
 				break;
 			case ID_IDLE:
@@ -510,7 +514,7 @@ void QuadInterface::updateVelocityActuators() {
 			requestedGear = GEAR_REVERSE;
 			addQueueItem(Q_GEARS);
 		}
-		if (desiredVelocity >= 0.6) requestedThrottlePercentage = 73;
+		if (desiredVelocity >= 0.6) requestedThrottlePercentage = 12;
 		if (desiredVelocity < 0.6) requestedThrottlePercentage = 0;
 		addQueueItem(Q_THROTTLE);
 	}
@@ -519,7 +523,7 @@ void QuadInterface::updateVelocityActuators() {
 			requestedGear = GEAR_FORWARD;
 			addQueueItem(Q_GEARS);
 		}
-		if (desiredVelocity <= -0.6) requestedThrottlePercentage = 73;
+		if (desiredVelocity <= -0.6) requestedThrottlePercentage = 12;
 		if (desiredVelocity > -0.6) requestedThrottlePercentage = 0;
 		addQueueItem(Q_THROTTLE);
 	}

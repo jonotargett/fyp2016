@@ -38,7 +38,7 @@ bool Overlord::initialise() {
 	ns->initialise();
 	ns->clearPath();
 	// test 1: 0deg
-	ns->addPoint(Point(0, 7));
+	//ns->addPoint(Point(0, 4));
 
 	// test 2: 20deg
 	//ns->addPoint(Point(0, 3.5));
@@ -46,15 +46,14 @@ bool Overlord::initialise() {
 
 	// test 3: 40deg
 	//ns->addPoint(Point(0, 3.5));
-	//ns->addPoint(Point(2.24, 5.68));
-
+	//ns->addPoint(Point(2, 6));
 	// test 4: 65deg
 	//ns->addPoint(Point(0, 3.5));
 	//ns->addPoint(Point(3.17, 4.45));
 
-	// test 5: 90deg
-	//ns->addPoint(Point(0, 3.5));
-	//ns->addPoint(Point(3.5, 3.5));
+	//test 5: 90deg
+	ns->addPoint(Point(0, 3.5));
+	ns->addPoint(Point(3.5, 3.5));
 
 	// test 6: 120deg
 	//ns->addPoint(Point(0, 3.5));

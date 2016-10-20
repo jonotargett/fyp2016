@@ -360,7 +360,7 @@ void HardwareInterface::setVelocity(double x) {
 		//wait
 	}
 	velocityLock = true;
-	if (getThrottlePercentage() == 0 && getBrakePercentage() > 30) {
+	if (getThrottlePercentage() == 0 && getBrakePercentage() > 50 && x < 0.15) {
 		x = 0;
 	}
 
