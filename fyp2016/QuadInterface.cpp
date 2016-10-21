@@ -507,8 +507,6 @@ void QuadInterface::emergencyStop() {
 void QuadInterface::updateVelocityActuators() {
 
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
-
-
 	if (desiredVelocity > 0) {
 		if (getGear() != GEAR_REVERSE) {
 			requestedGear = GEAR_REVERSE;
@@ -535,6 +533,33 @@ void QuadInterface::updateVelocityActuators() {
 		requestedThrottlePercentage = 0;
 		addQueueItem(Q_THROTTLE);
 	}
+
+	/*if (desiredVelocity > 0) {
+		if (getGear() != GEAR_REVERSE) {
+			requestedGear = GEAR_REVERSE;
+			addQueueItem(Q_GEARS);
+		}
+		if (desiredVelocity >= 0.6) requestedThrottlePercentage = 12;
+		if (desiredVelocity < 0.6) requestedThrottlePercentage = 0;
+		addQueueItem(Q_THROTTLE);
+	}
+	if (desiredVelocity < 0) {
+		if (getGear() != GEAR_FORWARD) {
+			requestedGear = GEAR_FORWARD;
+			addQueueItem(Q_GEARS);
+		}
+		if (desiredVelocity <= -0.6) requestedThrottlePercentage = 12;
+		if (desiredVelocity > -0.6) requestedThrottlePercentage = 0;
+		addQueueItem(Q_THROTTLE);
+	}
+	if (desiredVelocity == 0) {
+		if (getGear() != GEAR_NEUTRAL) {
+			requestedGear = GEAR_NEUTRAL;
+			addQueueItem(Q_GEARS);
+		}
+		requestedThrottlePercentage = 0;
+		addQueueItem(Q_THROTTLE);
+	}*/
 	/*if (desiredVelocity == 0) {
 		setDesiredThrottlePercentage(0);
 		setDesiredGear(GEAR_NEUTRAL);
