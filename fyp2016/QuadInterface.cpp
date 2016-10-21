@@ -512,8 +512,7 @@ void QuadInterface::updateVelocityActuators() {
 			requestedGear = GEAR_REVERSE;
 			addQueueItem(Q_GEARS);
 		}
-		if (desiredVelocity >= 0.6) requestedThrottlePercentage = 12;
-		if (desiredVelocity < 0.6) requestedThrottlePercentage = 0;
+		requestedThrottlePercentage = 100 / 1.2 * abs(desiredVelocity);
 		addQueueItem(Q_THROTTLE);
 	}
 	if (desiredVelocity < 0) {
@@ -521,8 +520,7 @@ void QuadInterface::updateVelocityActuators() {
 			requestedGear = GEAR_FORWARD;
 			addQueueItem(Q_GEARS);
 		}
-		if (desiredVelocity <= -0.6) requestedThrottlePercentage = 12;
-		if (desiredVelocity > -0.6) requestedThrottlePercentage = 0;
+		requestedThrottlePercentage = 100 / 1.2 * abs(desiredVelocity);
 		addQueueItem(Q_THROTTLE);
 	}
 	if (desiredVelocity == 0) {
