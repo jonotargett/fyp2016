@@ -8,6 +8,7 @@ SimpleController::SimpleController()
 	pathTravDir = 1;
 	landmineDetected = false;
 	currentPathPointIndex = 0;
+	manualControl = false;
 }
 
 
@@ -42,6 +43,13 @@ bool SimpleController::initialise(HardwareInterface* h, NavigationSystem* nav) {
 	Log::d << "Auto-controller sub-thread started." << std::endl;
 
 	return true;
+}
+
+void SimpleController::enableManualControl() {
+	manualControl = true;
+}
+void SimpleController::disableManualControl() {
+	manualControl = false;
 }
 
 void SimpleController::setEnabled(bool b) {
@@ -83,7 +91,9 @@ bool SimpleController::updateLoop() {
 
 void SimpleController::updateDynamics() {
 	
-	
+	if (manualControl) {
+		return;
+	}
 
 	/*if (!hwi->getImuStabilised()) {
 	hwi->setDesiredSteeringAngle(0);
@@ -131,16 +141,6 @@ void SimpleController::updateDynamics() {
 	else {
 		desiredVelocity = 0;
 	}
-
-	// for real quadinterface hardware only:
-	if (desiredVelocity > 1.3) desiredVelocity = 1.3;
-	if (desiredVelocity < -1.3) desiredVelocity = 1.3;
-	if (desiredVelocity > 0 && desiredVelocity < 1.3)
-		desiredVelocity = 0;
-	if (desiredVelocity < 0 && desiredVelocity > -1.3)
-		desiredVelocity = 0;
-
-	if (abs(hwi->getSteeringAngle() - steerAngleReq) > 5 * PI / 180 && desiredVelocity != 0) desiredVelocity = 0.5;
 
 	if (!ns->isConverging()) {
 		desiredVelocity = 0;

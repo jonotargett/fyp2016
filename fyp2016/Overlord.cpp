@@ -29,9 +29,13 @@ bool Overlord::initialise() {
 
 	Log::i << "-> Initialising hardware interface..." << endl;
 	hwi = new QuadInterface();
-	//hwi = new DummyHardware();
 	hwi->initialise();
 	Log::i << "-> HARDWARE INTERFACE DONE" << endl << endl;
+
+	Log::i << "-> Initialising dummuy hardware..." << endl;
+	dhwi = new DummyHardware();
+	dhwi->initialise();
+	Log::i << "-> DUMMY HARDWARE DONE" << endl << endl;
 	
 	Log::i << "-> Initialising navigation system..." << endl;
 	ns = new SimpleNavigator();
@@ -99,23 +103,23 @@ bool Overlord::initialise() {
 	ns->addPoint(Point(20, 20));
 	ns->addPoint(Point(24, 24));*/
 
-	ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
+	ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 	Log::i << "-> NAVIGATION SYSTEM DONE" << endl << endl;
 	
 	Log::i << "-> Initialising drive controller..." << endl;
 	dc = new SimpleController();
-	dc->initialise(hwi, ns);
+	dc->initialise(dhwi, ns);
 	Log::i << "-> DRIVE CONTROLLER DONE" << endl << endl;
 
 	Log::i << "-> Starting feature detection system..." << endl;
-	fd = new FeatureDetector(hwi, window->getRenderer());
+	fd = new FeatureDetector(dhwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
 	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
 	vp = new VirtualPlatform();
-	vp->initialise(hwi, ns, dc, window->getRenderer());
+	vp->initialise(dhwi, ns, dc, window->getRenderer());
 	Log::i << "-> VIRTUAL PLATFORM DONE" << endl << endl;
 	
 
@@ -173,29 +177,12 @@ void Overlord::run() {
 		seconds = current - lastDataUpdate;
 		
 		/***********************************
-		timer for testing
+		send dummy hardware stuff to quadbike
 		************************************/
-		
-		/*quadTimer = t2 - startTime;
-		double timeSinceStart = quadTimer.count();
-		if (timeSinceStart > 16 && hasDone == false) {
-			Log::i << "doing a new path" << endl;
-			ns->renewPath();
-			ns->clearPath();
-			ns->clearSubdividedPath();
-			vp->drawPathToTexture();
-			ns->addPoint(Point(0, 4));
-			ns->addPoint(Point(0, 6));
-			ns->addPoint(Point(3, 6));
-			ns->addPoint(Point(3, -23));
-			ns->addPoint(Point(6, -23));
-			ns->addPoint(Point(6, 3));
-			ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
-			vp->drawPathToTexture();
-			ns->startPath();
-			hasDone = true;
-		}
-		
+		//hwi->setDesiredGear(dhwi->getRealGear());
+		hwi->setDesiredThrottlePercentage(dhwi->getRealThrottlePercentage());
+		hwi->setDesiredSteeringAngle(dhwi->getRealSteeringAngle());
+		hwi->setDesiredBrakePercentage(dhwi->getRealBrakePercentage());
 		/***********************************
 		end of testing
 		************************************/
@@ -298,28 +285,29 @@ void Overlord::handleEvents() {
 			break;
 		case ID_MANUALJOYSTICK: {
 			//Log::d << "Joystick: " << p->data[0] << "degrees, magnitude " << p->data[1] << endl;
+			dc->enableManualControl();
 			float ang = p->data[0];	// in degrees
 			float mag = p->data[1];
 			float velocity = (float) (sin(ang * PI/180.0) * mag) * 1.2f;
-			float steering = (float) (cos(ang * PI / 180.0) * mag) * 23.5f;
+			float steering = (float) (cos(ang * PI / 180.0) * mag) * -23.5f;
 
 			Log::d << "Steering: " << steering << " / Velocity: " << velocity << endl;
-			hwi->setDesiredVelocity(velocity);
-			hwi->setDesiredSteeringAngle(steering);
+			dhwi->setDesiredVelocity(velocity);
+			dhwi->setDesiredSteeringAngle(steering);
 
 			handled = true;
 			break;
 		}
 		case ID_JOYSTICK_HELD:
 			Log::d << "Action: joystick enabled" << endl;
-			hwi->setManualControl(true);
+			dc->enableManualControl();
 			handled = true;
 			break;
 		case ID_JOYSTICK_RELEASED:
 			Log::d << "Action: joystick disabled" << endl;
-			hwi->setDesiredVelocity(0);
-			hwi->setDesiredSteeringAngle(0);
-			hwi->setManualControl(false);
+			dc->disableManualControl();
+			dhwi->setDesiredVelocity(0);
+			dhwi->setDesiredSteeringAngle(0);
 			handled = true;
 			break;
 		case ID_MANUALCONTROL_ON:
@@ -408,7 +396,7 @@ void Overlord::handleEvents() {
 				Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 				//Log::i << "\t Lat/Lng: " << std::setprecision(10) << p->data[i] << "E " << p->data[i + 1] << "N" << endl;
 			}
-			ns->subdivide(hwi->getPosition(), (float)hwi->getAbsoluteHeading());
+			ns->subdivide(dhwi->getPosition(), (float)dhwi->getAbsoluteHeading());
 			//vp->drawPathToTexture();
 			handled = true;
 			break;

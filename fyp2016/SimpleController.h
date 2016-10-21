@@ -25,6 +25,8 @@ private:
 	int pathTravDir;
 	bool wasInNavWaitingState;
 
+	bool manualControl;
+
 	std::chrono::time_point<std::chrono::high_resolution_clock> start;
 	std::chrono::time_point<std::chrono::high_resolution_clock> end;
 
@@ -38,6 +40,9 @@ public:
 	SimpleController();
 	~SimpleController();
 	bool isAlive();
+
+	void enableManualControl();
+	void disableManualControl();
 
 	bool initialise(HardwareInterface*, NavigationSystem*);
 	void setEnabled(bool);

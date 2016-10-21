@@ -21,6 +21,9 @@ public:
 	virtual bool isEnabled() = 0;
 	virtual void updateDynamics() = 0;
 
+	virtual void enableManualControl() = 0;
+	virtual void disableManualControl() = 0;
+
 	HardwareInterface* hwi;
 	NavigationSystem* ns;
 
