@@ -31,7 +31,11 @@ public:
 	HardwareInterface();
 	virtual ~HardwareInterface();
 	bool isAlive();
-	
+	double desiredSteeringAngle;
+	double desiredVelocity;
+	double desiredThrottlePercentage;
+	Gear desiredGear;
+	double desiredBrakePercentage;
 
 	/*
 	Obtain a link with the microcontroller over the serial link.
