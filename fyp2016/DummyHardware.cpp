@@ -454,7 +454,7 @@ double DummyHardware::getRealThrottlePercentage() {
 	return realThrottlePercentage;
 }
 
-int DummyHardware::getRealGear() {
+Gear DummyHardware::getRealGear() {
 	return realGear;
 }
 

@@ -290,7 +290,7 @@ double HardwareInterface::getRealAbsoluteHeading() { return NULL; }
 double HardwareInterface::getRealVelocity() { return NULL; }
 double HardwareInterface::getRealSteeringAngle() { return NULL; }
 double HardwareInterface::getRealThrottlePercentage() { return NULL; }
-int HardwareInterface::getRealGear() { return NULL; }
+Gear HardwareInterface::getRealGear() { return GEAR_NULL; }
 double HardwareInterface::getRealBrakePercentage() { return NULL; }
 Point HardwareInterface::getKinematicPosition() { return Point(NULL, NULL); }
 double HardwareInterface::getKinematicHeading() { return NULL; }

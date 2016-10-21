@@ -38,7 +38,7 @@ public:
 	double getRealVelocity();
 	double getRealSteeringAngle();
 	double getRealThrottlePercentage();
-	int getRealGear();
+	Gear getRealGear();
 	double getRealBrakePercentage();
 
 	Point getKinematicPosition();

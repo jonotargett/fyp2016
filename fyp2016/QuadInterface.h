@@ -57,7 +57,7 @@ public:
 	virtual double getRealVelocity();
 	virtual double getRealSteeringAngle();
 	virtual double getRealThrottlePercentage();
-	virtual int getRealGear();
+	virtual Gear getRealGear();
 	virtual double getRealBrakePercentage();
 	virtual Point getKinematicPosition();
 	virtual double getKinematicHeading();

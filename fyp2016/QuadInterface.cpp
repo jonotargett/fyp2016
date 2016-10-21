@@ -641,7 +641,7 @@ double QuadInterface::getRealAbsoluteHeading() { return getAbsoluteHeading(); }
 double QuadInterface::getRealVelocity() { return getVelocity(); }
 double QuadInterface::getRealSteeringAngle() { return getSteeringAngle(); }
 double QuadInterface::getRealThrottlePercentage() { return getThrottlePercentage(); }
-int QuadInterface::getRealGear() { return getGear(); }
+Gear QuadInterface::getRealGear() { return getGear(); }
 double QuadInterface::getRealBrakePercentage() { return getBrakePercentage(); }
 Point QuadInterface::getKinematicPosition() { return getPosition(); }
 double QuadInterface::getKinematicHeading() { return getAbsoluteHeading(); }

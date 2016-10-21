@@ -104,7 +104,7 @@ bool SimpleNavigator::updatePoint(Point position, float heading, float velocity)
 		converging = true;
 	}
 	if (navState == NAV_TURNINBOUND) {
-		if (distanceNow > distanceToTurn && distanceNow < initialDistanceToTurn / 2) {
+		if (distanceNow > distanceToTurn) {
 			converging = false;
 		}
 		else {
