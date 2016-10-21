@@ -268,8 +268,13 @@ bool QuadInterface::updateLoop() {
 
 		if (seconds.count() > (1.0 / ACTUATORS_REFRESH_RATE)) {
 			last = current;
+
+			
 			updateVelocityActuators();
-			updateHardware(seconds.count());
+			
+			if (!manualControl) {
+				updateHardware(seconds.count());
+			}
 			sendQueueItem();
 			
 		}

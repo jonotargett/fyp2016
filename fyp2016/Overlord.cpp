@@ -151,6 +151,8 @@ void Overlord::run() {
 	showvp = true;
 	vp->redrawGraphTexture();
 	vp->drawPathToTexture();
+
+	dc->setEnabled(false);
 	
 	std::chrono::time_point<std::chrono::high_resolution_clock> t1;
 	std::chrono::time_point<std::chrono::high_resolution_clock> t2;
@@ -312,14 +314,12 @@ void Overlord::handleEvents() {
 		}
 		case ID_JOYSTICK_HELD:
 			Log::d << "Action: joystick enabled" << endl;
-			hwi->setManualControl(true);
+			dc->setEnabled(false);
 			handled = true;
 			break;
 		case ID_JOYSTICK_RELEASED:
 			Log::d << "Action: joystick disabled" << endl;
-			hwi->setDesiredVelocity(0);
-			hwi->setDesiredSteeringAngle(0);
-			hwi->setManualControl(false);
+			dc->setEnabled(true);
 			handled = true;
 			break;
 		case ID_MANUALCONTROL_ON:
