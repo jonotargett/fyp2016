@@ -179,10 +179,10 @@ void Overlord::run() {
 		/***********************************
 		send dummy hardware stuff to quadbike
 		************************************/
-		hwi->setDesiredGear(dhwi->desiredGear);
-		hwi->setDesiredThrottlePercentage(dhwi->desiredThrottlePercentage);
-		hwi->setDesiredSteeringAngle(dhwi->desiredSteeringAngle);
-		hwi->setDesiredBrakePercentage(dhwi->desiredBrakePercentage);
+		hwi->setDesiredGear(dhwi->getRealGear());
+		hwi->setDesiredThrottlePercentage(dhwi->getRealThrottlePercentage());
+		hwi->setDesiredSteeringAngle(dhwi->getRealSteeringAngle());
+		hwi->setDesiredBrakePercentage(dhwi->getRealBrakePercentage());
 		/***********************************
 		end of testing
 		************************************/
@@ -288,19 +288,22 @@ void Overlord::handleEvents() {
 			dc->enableManualControl();
 			float ang = p->data[0];	// in degrees
 			float mag = p->data[1];
-			float x = mag * cos(ang * PI/180);
-			float y = mag * sin(ang * PI/180);
-			Log::d << "x: " << x << " y: " << y << endl;
-			if (y > 0.1) {
-				dhwi->setDesiredVelocity(y);
+			float steerAng = ang - 90;
+			if (steerAng < -180) steerAng += 360;
+			if (steerAng > 180) steerAng -= 180;
+			steerAng /= 3.75;
+			if (steerAng > 24) {
+				steerAng = -steerAng + 48;
 			}
-			else if (y < -0.1) {
-				dhwi->setDesiredVelocity(y);
+			if (steerAng < -24) {
+				steerAng = -steerAng - 48;
 			}
-			else {
-				dhwi->setDesiredVelocity(0);
-			}
-			dhwi->setDesiredSteeringAngle(-x * 24 * PI/180);
+			float velocity = (float) (sin(ang * PI/180.0) * mag) * 1.2f;
+			float steering = (float) (steerAng * PI/180);
+
+			Log::d << "Steering: " << steering * 180/PI << " / Velocity: " << velocity << endl;
+			dhwi->setDesiredVelocity(velocity);
+			dhwi->setDesiredSteeringAngle(steering);
 
 			handled = true;
 			break;

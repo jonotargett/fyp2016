@@ -264,7 +264,7 @@ void DummyHardware::updateActuators(double time) {
 	// fake a slow merge towards actuator positions
 
 	double steerChangeRate = 0.5;			// radians/second
-	double gearChangeRate = 2;				// second / gear change
+	double gearChangeRate = 1;				// second / gear change
 	double throttleChangeRate = 200;		// percentChange/second
 	double brakeChangeRate = 20;			// percentChange/second
 

@@ -270,7 +270,7 @@ bool QuadInterface::updateLoop() {
 			last = current;
 
 			
-			//updateVelocityActuators();
+			updateVelocityActuators();
 			
 			if (!manualControl) {
 				updateHardware(seconds.count());
@@ -383,19 +383,6 @@ bool QuadInterface::updateLoop() {
 
 	}
 	return true;
-}
-
-void QuadInterface::setDesiredThrottlePercentage(double x) {
-	requestedThrottlePercentage = x;
-	addQueueItem(Q_THROTTLE);
-}
-void QuadInterface::setDesiredBrakePercentage(double x) {
-	requestedBrakePercentage = x;
-	addQueueItem(Q_BRAKES);
-}
-void QuadInterface::setDesiredGear(Gear x) {
-	requestedGear = x;
-	addQueueItem(Q_GEARS);
 }
 
 void QuadInterface::sendQueueItem() {
@@ -523,6 +510,7 @@ void QuadInterface::emergencyStop() {
 }
 
 void QuadInterface::updateVelocityActuators() {
+
 	double throttlePercentageRequired = (abs(desiredVelocity) - 0.25) / 0.05;
 	if (desiredVelocity > 0) {
 		if (getGear() != GEAR_REVERSE) {

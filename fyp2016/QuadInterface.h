@@ -44,9 +44,9 @@ public:
 
 	void setDesiredVelocity(double);
 	void setDesiredSteeringAngle(double);
-	void setDesiredThrottlePercentage(double);
-	void setDesiredBrakePercentage(double);
-	void setDesiredGear(Gear);
+	//void setDesiredThrottlePercentage(double);
+	//void setDesiredBrakePercentage(double);
+	//void setDesiredGear(Gear);
 	void setInitialQuadPosition(double, double);
 
 	void emergencyStop();

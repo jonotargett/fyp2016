@@ -76,7 +76,11 @@ private:
 	Point oldPositionAtGpsUpdate;
 
 	// desired actuator positions/states
-
+	double desiredSteeringAngle;
+	double desiredVelocity;
+	double desiredThrottlePercentage;
+	Gear desiredGear;
+	double desiredBrakePercentage;
 
 	double gearTimer;
 
