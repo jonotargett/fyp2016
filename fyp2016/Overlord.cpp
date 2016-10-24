@@ -142,6 +142,7 @@ void Overlord::run() {
 
 	std::chrono::duration<double> seconds;
 	std::chrono::duration<double> quadTimer;
+	bool newPathDone = false;
 
 	// metal detector dummy image
 	SimpleTexture* mdtexture = new SimpleTexture(window->getRenderer());
@@ -181,6 +182,21 @@ void Overlord::run() {
 
 		current = std::chrono::high_resolution_clock::now();
 		seconds = current - lastDataUpdate;
+		quadTimer = current - startTime;
+
+		if (quadTimer.count() > 5 && newPathDone == false) {
+			ns->renewPath();
+			ns->clearPath();
+			ns->clearSubdividedPath();
+			ns->addPoint(Point(0, 0));
+			ns->addPoint(Point(20, 0));
+			ns->addPoint(Point(20, 20));
+			ns->addPoint(Point(24, 24));
+			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
+			vp->drawPathToTexture();
+			ns->startPath();
+			newPathDone = true;
+		}
 		
 		/***********************************
 		send dummy hardware stuff to quadbike
