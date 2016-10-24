@@ -55,7 +55,7 @@ public:
 	/*
 	returns the navigation path
 	*/
-	virtual std::vector<Point> getSubdividedPath() = 0;
+	virtual std::vector<Point>* getSubdividedPath() = 0;
 	
 	/*
 	Prepares the list of points into a path that can be followed by the actual vehicle.

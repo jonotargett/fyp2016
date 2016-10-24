@@ -26,7 +26,9 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 	textureWidth = w/2;
 	textureHeight = h/2;
 
-	pathCanvas->createBlank(w, h);
+	pathCanvas->createBlank(w*2, h*2);
+	pathTextureHeight = h;
+	pathTextureWidth = w;
 	simulationCanvas->createBlank(w, h);
 	graphCanvas->createBlank(textureWidth, textureHeight);
 
@@ -47,9 +49,14 @@ bool VirtualPlatform::initialise(HardwareInterface* hwi, NavigationSystem* nav, 
 
 	setupFont();
 
-	drawScale = 50;
+	drawScale = 70;
 	focusX = 0;
 	focusY = 9;
+
+	xmin = 0;
+	xmax = 0;
+	ymin = 0;
+	ymax = 0;
 
 	return true;
 }
@@ -59,8 +66,8 @@ void VirtualPlatform::update() {
 	steerGraph->post(hw->getRealSteeringAngle() * 180 / PI);
 	gearGraph->post(hw->getRealGear());
 	throttleGraph->post(round(hw->getRealThrottlePercentage()));
-	//focusX = hw->getRealPosition().x;
-	//focusY = hw->getRealPosition().y;
+	focusX = hw->getRealPosition().x;
+	focusY = hw->getRealPosition().y;
 }
 
 
@@ -154,47 +161,65 @@ void VirtualPlatform::redrawGraphTexture() {
 Draws path to texture for the given drawScale and focus point defined within the function.
 */
 void VirtualPlatform::drawPathToTexture() {
+	xmin = ns->getSubdividedPath()->at(0).x;
+	xmax = ns->getSubdividedPath()->at(0).x;
+	ymin = ns->getSubdividedPath()->at(0).y;
+	ymax = ns->getSubdividedPath()->at(0).y;
+	for (int i = 0; i < ns->getSubdividedPath()->size(); i++) {
+		xmin = std::min(xmin, ns->getSubdividedPath()->at(i).x);
+		xmax = std::max(xmax, ns->getSubdividedPath()->at(i).x);
+		ymin = std::min(ymin, ns->getSubdividedPath()->at(i).y);
+		ymax = std::max(ymax, ns->getSubdividedPath()->at(i).y);
+	}
 
+	double width = xmax - xmin;
+	double height = ymax - ymin;
+
+	pathTextureWidth = (int)ceil(width * drawScale);
+	pathTextureHeight = (int)ceil(height * drawScale);
+
+	pathCanvas->createBlank(pathTextureWidth, pathTextureHeight);
 	pathCanvas->setAsRenderTarget();
 	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xDD, 0xFF, 0xDD, 0xFF);
 	SDL_RenderClear(pathCanvas->getRenderer());
+	
 	// drawing the path in this for loop
-	for (int i = 0; i < (int)ns->getSubdividedPath().size() - 1; i++) {
-		Point loc1 = Point(ns->getSubdividedPath().at(i).x, ns->getSubdividedPath().at(i).y);
-		Point loc2 = Point(ns->getSubdividedPath().at(i + 1).x, ns->getSubdividedPath().at(i + 1).y);
-
+	for (int i = 0; i < (int)ns->getSubdividedPath()->size() - 1; i++) {
+		Point loc1 = Point(-xmin + ns->getSubdividedPath()->at(i).x, ymin + height - ns->getSubdividedPath()->at(i).y);
+		Point loc2 = Point(-xmin + ns->getSubdividedPath()->at(i + 1).x, ymin + height - ns->getSubdividedPath()->at(i + 1).y);
 
 		// transformed (x,y) locations for drawing to screen (scale, computers inverted y coordinate, and focus point)
-		Point loc1transf = transform(loc1);
-		Point loc2transf = transform(loc2);
-
-
-		//Log::i << loc1transf.x << ", " << loc1transf.y << endl;
+		Point loc1transf = loc1 * drawScale;
+		Point loc2transf = loc2 * drawScale;
 
 		SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xCC, 0xCC, 0x00, 0xFF);
 		SDL_RenderDrawLine(pathCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y, (int)loc2transf.x, (int)loc2transf.y);
 		SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0x00, 0x00, 0x00, 0xFF);
 		SDL_RenderDrawPoint(pathCanvas->getRenderer(), (int)loc1transf.x, (int)loc1transf.y);
 	}
+
 	SDL_SetRenderTarget(pathCanvas->getRenderer(), NULL);
 }
 
 void VirtualPlatform::redrawSimulationTexture() {
 	simulationCanvas->setAsRenderTarget();
+	SDL_SetRenderDrawColor(pathCanvas->getRenderer(), 0xDD, 0xFF, 0xDD, 0xFF);
+	SDL_RenderClear(simulationCanvas->getRenderer());
 
 	Point quadLoc = hw->getRealPosition();
 	double heading = hw->getRealAbsoluteHeading();
 	double kalmanHeading = hw->getKalmanHeading();
 	double steerAngle = hw->getRealSteeringAngle();
-	
+
 	//SDL_SetRenderTarget(simulationCanvas->getRenderer(), NULL);
 	//drawPathToTexture();
 	//simulationCanvas->setAsRenderTarget();
 
 	// copy path texture over to this one
-	//SDL_Rect pathDest = {(int)transform(Point(0, 0)).x - textureWidth / 2, (int)transform(Point(0, 0)).y - textureHeight / 2, textureWidth, textureHeight };
-	
-	SDL_RenderCopy(simulationCanvas->getRenderer(), pathCanvas->getTexture(), NULL, NULL);
+	SDL_Rect pathDest = {transform(Point(xmin, ymin)).x, transform(Point(xmin, ymin)).y - pathTextureHeight, pathTextureWidth, pathTextureHeight };
+	SDL_RenderCopy(simulationCanvas->getRenderer(), pathCanvas->getTexture(), NULL, &pathDest);
+	//t.x = p.x * drawScale - focusX*drawScale + (0.6*textureWidth);
+	//t.y = p.y * drawScale * -1 + textureHeight + focusY*drawScale;// +textureHeight / 2;
 
 	// drawing crosshairs over the focus point
 	//SDL_SetRenderDrawColor(simulationCanvas->getRenderer(), 0x88, 0x88, 0x88, 0xFF);
@@ -315,8 +340,10 @@ void VirtualPlatform::redrawSimulationTexture() {
 Point VirtualPlatform::transform(Point p) {
 	//transformed(x, y) locations for scale, computers inverted y coordinate, and focus point
 	Point t;
-	t.x = p.x * drawScale - focusX*drawScale + textureWidth / 2;
-	t.y = p.y * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
+	//t.x = p.x * drawScale - focusX*drawScale + textureWidth / 2;
+	//t.y = p.y * drawScale * -1 + textureHeight + focusY*drawScale - textureHeight / 2;
+	t.x = p.x * drawScale - focusX*drawScale + (0.6*textureWidth);
+	t.y = p.y * drawScale * -1 + textureHeight + focusY*drawScale;// +textureHeight / 2;
 	return t;
 }
 

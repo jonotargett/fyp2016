@@ -116,6 +116,21 @@ void Window::clearWindow(RenderPane pane) {
 	
 }
 
+void Window::update(SDL_Texture* newImage, Point loc) {
+	if (newImage == NULL)
+		return;
+
+	int w, h;
+	SDL_QueryTexture(newImage, NULL, NULL, &w, &h);
+	SDL_Rect destination;
+	destination.x = (int)loc.x;
+	destination.y = (int)loc.y;
+	destination.w = w;
+	destination.h = h;
+
+	SDL_SetRenderTarget(renderer, NULL);
+	SDL_RenderCopy(renderer, newImage, NULL, &destination);
+}
 
 void Window::update(SDL_Texture* newImage, RenderPane pane) {
 
@@ -166,7 +181,7 @@ void Window::update(SDL_Texture* newImage, RenderPane pane) {
 	SDL_RenderCopy(renderer, newImage, NULL, &destination);
 	//SDL_RenderPresent(renderer);
 
-	Log::d << "Window frame changed." << std::endl;
+	//Log::d << "Window frame changed." << std::endl;
 }
 
 

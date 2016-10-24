@@ -49,6 +49,13 @@ private:
 
 	int textureWidth;
 	int textureHeight;
+	int pathTextureWidth;
+	int pathTextureHeight;
+
+	double xmin;
+	double xmax;
+	double ymin;
+	double ymax;
 
 	double drawScale = 0.2;
 	double focusX = 0;

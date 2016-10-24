@@ -263,7 +263,7 @@ void DummyHardware::updateActuators(double time) {
 	// all actuator update logic goes here (not needed for real quad bike)
 	// fake a slow merge towards actuator positions
 
-	double steerChangeRate = 0.5;			// radians/second
+	double steerChangeRate = 0.6;			// radians/second
 	double gearChangeRate = 1;				// second / gear change
 	double throttleChangeRate = 200;		// percentChange/second
 	double brakeChangeRate = 20;			// percentChange/second

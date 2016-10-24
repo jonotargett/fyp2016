@@ -41,6 +41,12 @@ bool Overlord::initialise() {
 	ns = new SimpleNavigator();
 	ns->initialise();
 	ns->clearPath();
+
+	ns->addPoint(Point(0, 3.5));
+	ns->addPoint(Point(3.5, 3.5));
+	ns->addPoint(Point(1, -4));
+	ns->addPoint(Point(-2, -4));
+
 	// test 1: 0deg
 	//ns->addPoint(Point(0, 4));
 
@@ -56,8 +62,8 @@ bool Overlord::initialise() {
 	//ns->addPoint(Point(3.17, 4.45));
 
 	//test 5: 90deg
-	ns->addPoint(Point(0, 3.5));
-	ns->addPoint(Point(3.5, 3.5));
+	//ns->addPoint(Point(0, 3.5));
+	//ns->addPoint(Point(3.5, 3.5));
 
 	// test 6: 120deg
 	//ns->addPoint(Point(0, 3.5));

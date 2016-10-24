@@ -25,7 +25,7 @@ public:
 
 	void setBaseLocation(LatLng);
 	void setPath(std::vector<Point>);
-	std::vector<Point> getSubdividedPath();
+	std::vector<Point>* getSubdividedPath();
 	void addPoint(Point);
 	void addPoint(LatLng);
 

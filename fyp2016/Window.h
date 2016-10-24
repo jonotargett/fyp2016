@@ -7,6 +7,7 @@
 
 #include "Bscan.h"
 #include "SimpleTexture.h"
+#include "Point.h"
 
 enum RenderPane {
 	PANE_TOPLEFT,
@@ -30,6 +31,7 @@ public:
 
 	void handleEvents();
 	void update(SDL_Texture*, RenderPane);
+	void update(SDL_Texture*, Point);
 	void present();
 	SDL_Renderer* getRenderer();
 
