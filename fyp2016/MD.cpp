@@ -204,8 +204,10 @@ void MD::updateMDImage() {
 			float x = frame->channel[j].freq[0].p;// *(float)(m / 10000.0f);
 			float y = frame->channel[j].freq[0].q;// *(float)(m / 10000.0f);
 
-			pVal = x;
-			pVal = y;
+			if (sqrt((x*x) + (y*y)) > getMagnitude()){
+				pVal = x;
+				pVal = y;
+			}
 
 			x /= 10000000;
 			y /= 10000000;
