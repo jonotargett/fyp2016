@@ -167,7 +167,9 @@ Frame* MD::getFrame(unsigned int index) {
 }
 
 
-
+float MD::getMagnitude() {
+	return sqrt((pVal * pVal) + (qVal * qVal));
+}
 
 
 void MD::updateMDImage() {
@@ -201,6 +203,9 @@ void MD::updateMDImage() {
 		for (int j = 0; j < 3; j++) {
 			float x = frame->channel[j].freq[0].p;// *(float)(m / 10000.0f);
 			float y = frame->channel[j].freq[0].q;// *(float)(m / 10000.0f);
+
+			pVal = x;
+			pVal = y;
 
 			x /= 10000000;
 			y /= 10000000;

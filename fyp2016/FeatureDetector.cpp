@@ -39,6 +39,15 @@ bool FeatureDetector::initialise() {
 	return true;
 }
 
+bool FeatureDetector::isLandmineDetected() {
+	if (md->getMagnitude() > 100000) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 bool FeatureDetector::runScan() {
 	bool received = false;
 

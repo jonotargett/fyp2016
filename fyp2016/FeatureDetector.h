@@ -26,6 +26,8 @@ public:
 	bool initialise();
 	bool loadScan();
 
+	bool isLandmineDetected();
+
 	bool runScan();
 
 	//debug programs

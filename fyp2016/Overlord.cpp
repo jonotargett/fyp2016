@@ -210,6 +210,10 @@ void Overlord::run() {
 			
 			newPathDone = true;
 		}
+
+		if (fd->isLandmineDetected()) {
+			dc->setlandMineDetected(true);
+		}
 		
 		/***********************************
 		send dummy hardware stuff to quadbike

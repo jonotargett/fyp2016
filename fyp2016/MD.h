@@ -99,6 +99,7 @@ public:
 
 	bool initialise();
 	Frame* getFrame(unsigned int = 0);
+	float getMagnitude();
 
 	SDL_Texture* retrieveMDImage();
 	void updateMDImage();
@@ -115,6 +116,9 @@ private:
 	std::vector<Frame*> frames;
 	SDL_Texture* mdTexture;
 	SDL_Renderer* renderer;
+
+	float pVal;
+	float qVal;
 
 	std::thread* updater;
 
