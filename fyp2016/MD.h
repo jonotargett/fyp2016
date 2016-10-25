@@ -2,6 +2,8 @@
 //#pragma pack(1)		IS CAUSING A MASSIVE HEAP CORRUPTION
 
 
+#include <algorithm>
+
 #include <thread>
 #include <chrono>
 #include <vector>
@@ -75,8 +77,8 @@ struct StreamData
 
 
 struct Signal {
-	uint32_t p;
-	uint32_t q;
+	int p;
+	int q;
 };
 
 struct Channel {
@@ -105,6 +107,9 @@ private:
 	const int socket;
 	IPaddress ip;
 	TCPsocket server;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> last;
+	std::chrono::time_point<std::chrono::high_resolution_clock> current;
 
 	bool alive;
 	std::vector<Frame*> frames;
