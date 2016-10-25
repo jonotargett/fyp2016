@@ -24,6 +24,9 @@ public:
 	virtual void enableManualControl() = 0;
 	virtual void disableManualControl() = 0;
 
+	virtual bool getlandMineDetected() = 0;
+	virtual void setlandMineDetected(bool) = 0;
+
 	HardwareInterface* hwi;
 	NavigationSystem* ns;
 

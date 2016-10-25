@@ -191,6 +191,7 @@ bool QuadInterface::establishCOM(int portnum) {
 	return true;
 }
 
+void QuadInterface::resetPositions() {}
 
 Packet* QuadInterface::processPacket() {
 	Packet* p = new Packet();

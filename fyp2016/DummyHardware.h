@@ -41,6 +41,8 @@ public:
 	Gear getRealGear();
 	double getRealBrakePercentage();
 
+	void resetPositions();
+
 	Point getKinematicPosition();
 	double getKinematicHeading();
 

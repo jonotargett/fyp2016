@@ -21,7 +21,6 @@ private:
 	bool enabled;
 
 	unsigned int currentPathPointIndex;
-	bool landmineDetected;
 	int pathTravDir;
 	bool wasInNavWaitingState;
 
@@ -32,6 +31,7 @@ private:
 
 	std::thread* updater;
 	bool alive;
+	bool landMineDetected;
 
 	HardwareInterface* hwi;
 	SimpleNavigator* ns;
@@ -48,7 +48,8 @@ public:
 	void setEnabled(bool);
 	bool isEnabled();
 	void updateDynamics();
-	void landMineDetected();
+	bool getlandMineDetected();
+	void setlandMineDetected(bool);
 
 	int timer;
 

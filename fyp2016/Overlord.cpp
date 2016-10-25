@@ -120,7 +120,7 @@ bool Overlord::initialise() {
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(dhwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
-	fd->initialise();
+	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
@@ -152,8 +152,8 @@ void Overlord::run() {
 	window->showWindow(true);
 	
 	// Feature detector stuff
-	fd->loadScan();
-	fd->createImage(DISPLAY_KERNEL);
+	//fd->loadScan();
+	//fd->createImage(DISPLAY_KERNEL);
 	//fd->runScan();
 	//fd->createImage(DISPLAY_RAW);
 	//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
@@ -184,8 +184,9 @@ void Overlord::run() {
 		seconds = current - lastDataUpdate;
 		quadTimer = current - startTime;
 
-		if (quadTimer.count() > 5 && newPathDone == false) {
-			ns->renewPath();
+		if (quadTimer.count() > 10 && newPathDone == false) {
+			// to do a new path
+			/*ns->renewPath();
 			ns->clearPath();
 			ns->clearSubdividedPath();
 			ns->addPoint(Point(0, 0));
@@ -195,6 +196,18 @@ void Overlord::run() {
 			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
 			vp->drawPathToTexture();
 			ns->startPath();
+			*/
+
+			// when we detect a landmine
+			//dc->setlandMineDetected(true);
+
+
+			// when we press resume on the tablet:
+			// dc->setlandMineDetected(false);
+
+			// when we press reset position on tablet:
+			//dhwi->resetPositions();
+			
 			newPathDone = true;
 		}
 		
@@ -245,9 +258,9 @@ void Overlord::run() {
 			// this is STATIC ATM
 			
 			//fd->createImage(DISPLAY_RAW);
-			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
+			//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 			//window->update(mdtexture->getTexture(), PANE_BOTTOMRIGHT);
-			window->update(fd->retrieveMDImage(), PANE_BOTTOMRIGHT);
+			//window->update(fd->retrieveMDImage(), PANE_BOTTOMRIGHT);
 
 			window->present();
 

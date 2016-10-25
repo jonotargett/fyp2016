@@ -47,6 +47,8 @@ public:
 	*/
 	virtual bool updateLoop() = 0;
 
+	virtual void resetPositions() = 0;
+
 	virtual Point getRealPosition();
 	virtual double getRealAbsoluteHeading();
 	virtual double getRealVelocity();
@@ -63,6 +65,7 @@ public:
 	void updateHardware(double time);
 	void resetKalmanState(Point position, double heading);
 	void setManualControl(bool b);
+	void setAllPositions(Point, double);
 
 	/*
 	Returns: the current value as stored in this class (the value read by quad bike sensors)

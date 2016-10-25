@@ -197,6 +197,14 @@ void HardwareInterface::updateKalmanFilter(double time) {
 
 }
 
+void HardwareInterface::setAllPositions(Point p, double h) {
+	setPosition(p);
+	mu.put(0, 0, p.x);
+	mu.put(1, 0, p.y);
+	mu.put(2, 0, h);
+
+}
+
 double HardwareInterface::centreHeading(double h, double centre) {
 	double heading = h;
 	while (heading > centre + PI) heading -= 2 * PI;

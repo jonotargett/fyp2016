@@ -49,6 +49,8 @@ public:
 	//void setDesiredGear(Gear);
 	void setInitialQuadPosition(double, double);
 
+	virtual void resetPositions();
+
 	void emergencyStop();
 
 	// for virtual platform visualisation, it simply returns the calculated value, not the real value

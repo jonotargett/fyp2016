@@ -90,6 +90,13 @@ bool DummyHardware::initialise() {
 	return true;
 }
 
+
+void DummyHardware::resetPositions() {
+	setAllPositions(realPosition, realAbsoluteHeading);
+	kinematicPosition = realPosition;
+	kinematicHeading = realAbsoluteHeading;
+}
+
 void DummyHardware::update(double time) { // gets refreshed at 50Hz as defined by REFRESH_RATE
 
 	// was for writing things to a file for error visualisation

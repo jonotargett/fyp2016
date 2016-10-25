@@ -6,7 +6,7 @@ SimpleController::SimpleController()
 	alive = true;
 	enabled = false;
 	pathTravDir = 1;
-	landmineDetected = false;
+	landMineDetected = false;
 	currentPathPointIndex = 0;
 	manualControl = false;
 }
@@ -66,10 +66,6 @@ bool SimpleController::isAlive() {
 	return alive;
 }
 
-void SimpleController::landMineDetected() {
-	landmineDetected = true;
-}
-
 bool SimpleController::updateLoop() {
 	while (isAlive()) {
 		// access the discrete time interval between consective exections
@@ -89,9 +85,21 @@ bool SimpleController::updateLoop() {
 	return true;
 }
 
+bool SimpleController::getlandMineDetected() {
+	return landMineDetected;
+}
+
+void SimpleController::setlandMineDetected(bool val) {
+	landMineDetected = val;
+}
+
 void SimpleController::updateDynamics() {
 	
 	if (manualControl) {
+		return;
+	}
+	if (landMineDetected) {
+		hwi->setDesiredVelocity(0);
 		return;
 	}
 
