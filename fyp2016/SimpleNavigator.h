@@ -23,7 +23,7 @@ public:
 	void clearPath();
 	void clearSubdividedPath();
 
-	void setBaseLocation(LatLng);
+	void setBaseLocation(Point);
 	void setPath(std::vector<Point>);
 	std::vector<Point>* getSubdividedPath();
 	void addPoint(Point);
@@ -42,6 +42,7 @@ public:
 
 	void renewPath();
 	NavState getState();
+	void addLatLongPoints(std::vector<Point>);
 
 	bool subdivide(Point quadPosition, float heading);
 	bool startPath();
@@ -71,6 +72,7 @@ private:
 	bool travelPathForwards;
 	//bool isForwards;
 	NavState navState;
+	Point baseLocation;
 	bool pathNavigationCompleted;
 	double distanceToTurn;
 	bool converging;

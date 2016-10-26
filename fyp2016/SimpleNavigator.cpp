@@ -13,6 +13,7 @@ SimpleNavigator::SimpleNavigator()
 	distanceToTurn = 0;
 	converging = true;
 
+	baseLocation = Point(0, 0);
 
 	noTurnMaxRads = 0 * PI / 180;
 	simpleTurnMaxAngleRad = 40 * PI / 180;
@@ -52,6 +53,36 @@ void SimpleNavigator::setPath(std::vector<Point>) {
 
 bool SimpleNavigator::isConverging() {
 	return converging;
+}
+
+void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
+
+	std::vector<Point> degreesRelativeList;
+	std::vector<Point> cartesianList;
+
+	// get degrees relative to the quad bike initial position
+	for (int i = 0; i < gpsList.size(); i++) {
+		degreesRelativeList.push_back(gpsList.at(i) - baseLocation);
+	}
+
+	// latitude is y
+	// longitude is x
+	// one degree latitude = 111,319.9m
+	// one degree longitude = 111,319.9 cos (latitude)
+	// convert degrees to meters
+	for (int i = 0; i < degreesRelativeList.size(); i++) {
+		Point cartesianPoint = Point(0, 0);
+		cartesianPoint.x = degreesRelativeList.at(i).x * 111319.9 * cos(baseLocation.y);
+		cartesianPoint.y = degreesRelativeList.at(i).y * 111319.9;
+		cartesianList.push_back(cartesianPoint);
+	}
+	
+	// add to path
+	clearPath();
+	for (int i = 0; i < cartesianList.size(); i++) {
+		addPoint(cartesianList.at(i));
+	}
+
 }
 
 bool SimpleNavigator::updatePoint(Point position, float heading, float velocity) {
@@ -202,8 +233,8 @@ std::vector<Point>* SimpleNavigator::getSubdividedPath() {
 	return &subdividedPath;
 }
 
-void SimpleNavigator::setBaseLocation(LatLng ll) {
-	baseLoc = ll;
+void SimpleNavigator::setBaseLocation(Point longlat) {
+	baseLocation = longlat;
 }
 
 void SimpleNavigator::renewPath() {

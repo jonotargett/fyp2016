@@ -32,6 +32,9 @@ enum ID : uint8_t {
 	ID_NAV_PATH = 0x62,					// doubles array [lat, lon]
 	ID_NAV_ZONE = 0x63,					// doubles array [lat, lon]
 	ID_NAV_BASELOC = 0x64,
+	ID_NAV_GENERATE = 0x65,
+	ID_AUTO_NAV_ON = 0x66,
+	ID_AUTO_NAV_OFF = 0x77,
 
 	ID_SET_QUAD_THROTTLE = 0x70,
 	ID_SET_QUAD_STEERING = 0x71,

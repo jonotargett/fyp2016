@@ -25,12 +25,13 @@ public:
 	*/
 	virtual void clearPath() = 0;
 	virtual void clearSubdividedPath() = 0;
+	virtual void addLatLongPoints(std::vector<Point>) = 0;
 
 	/*
 	sets the position (in LatLng) of the relative calculations
 	so that everything else can be transformed to metres
 	*/
-	virtual void setBaseLocation(LatLng) = 0;
+	virtual void setBaseLocation(Point) = 0;
 
 	/*
 	sets the navigation path to be this list of points, in the order given

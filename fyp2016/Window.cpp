@@ -96,12 +96,12 @@ void Window::showWindow(bool b) {
 
 	if (visible) {
 		SDL_ShowWindow(window);
+		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 		Log::d << "window made visible" << endl;
 	}
 	else {
 		SDL_HideWindow(window);
 		Log::d << "window hidden" << endl;
-
 	}
 }
 

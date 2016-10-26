@@ -43,10 +43,10 @@ bool Overlord::initialise() {
 	ns->clearPath();
 
 	ns->addPoint(Point(0, 3.5));
-	ns->addPoint(Point(3.5, 3.5));
-	ns->addPoint(Point(1, -4));
-	ns->addPoint(Point(-2, -4));
-
+	ns->addPoint(Point(1, 10));
+	ns->addPoint(Point(3, 20));
+	ns->addPoint(Point(5, 25));
+	ns->addPoint(Point(70, 200));
 	// test 1: 0deg
 	//ns->addPoint(Point(0, 4));
 
@@ -120,7 +120,7 @@ bool Overlord::initialise() {
 	Log::i << "-> Starting feature detection system..." << endl;
 	fd = new FeatureDetector(dhwi, window->getRenderer());
 	// just comment this line if the GPR isnt plugged in
-	fd->initialise();
+	//fd->initialise();
 	Log::i << "-> FEATURE DETECTOR DONE" << endl << endl;
 	
 	Log::i << "-> Starting virtual platform display..." << endl;
@@ -152,8 +152,8 @@ void Overlord::run() {
 	window->showWindow(true);
 	
 	// Feature detector stuff
-	fd->loadScan();
-	fd->createImage(DISPLAY_KERNEL);
+	//fd->loadScan();
+	//fd->createImage(DISPLAY_KERNEL);
 	//fd->runScan();
 	//fd->createImage(DISPLAY_RAW);
 	//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
@@ -211,9 +211,9 @@ void Overlord::run() {
 			newPathDone = true;
 		}
 
-		if (fd->isLandmineDetected()) {
-			dc->setlandMineDetected(true);
-		}
+		//if (fd->isLandmineDetected()) {
+		//	dc->setlandMineDetected(true);
+		//}
 		
 		/***********************************
 		send dummy hardware stuff to quadbike
@@ -262,9 +262,9 @@ void Overlord::run() {
 			// this is STATIC ATM
 			
 			//fd->createImage(DISPLAY_RAW);
-			window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
+			//window->update(fd->retrieveImage(), PANE_BOTTOMLEFT);
 			//window->update(mdtexture->getTexture(), PANE_BOTTOMRIGHT);
-			window->update(fd->retrieveMDImage(), PANE_BOTTOMRIGHT);
+			//window->update(fd->retrieveMDImage(), PANE_BOTTOMRIGHT);
 
 			window->present();
 
@@ -306,6 +306,54 @@ void Overlord::handleEvents() {
 			break;
 		case ID_CLEAR_NAV_POINTS:
 			Log::d << "Action: clear navigation points" << endl;
+			ns->renewPath();
+			ns->clearPath();
+			ns->clearSubdividedPath();
+			handled = true;
+			break;
+		case ID_NAV_POINTS:
+			Log::d << "Action: added lat lon nav pointst" << endl;
+
+			// jononav jono stuff here, want to call ns->addLatLongPoints(std::vector<Points> thePathList);
+			// latitude is y
+			// longitude is x
+			//ns->addLatLongPoints(std::vector<Points> thePathList);
+
+			handled = true;
+			break;
+		case ID_NAV_BASELOC:
+			Log::d << "Action: setting quad base location" << endl;
+			
+			// jononav jono put your stuff here, want the setBaseLocation(Point(long, lat)) function to be called.
+
+			//ns->setBaseLocation(Point(long, lat));
+			handled = true;
+			break;
+		case ID_NAV_GENERATE:
+			Log::d << "Action: generating subdivided path" << endl;
+			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
+
+			// jononav the subdivide code has been called (above), you need to send back ID_READY here
+
+			// jononav at some point the following two functions need to be called, 
+			// first to draw the new path to the path texture
+			// and second to tell the navigation system to actually start the path again
+			// ns->startPath(); might belong in ID_AUTO_NAV_ON but i dont think so, they are kinda different
+			// if AUTO_NAV_OFF has been called, and ns->startPath() has been called, it wont go
+			// until AUTO_NAV_ON has been sent through still.
+			vp->drawPathToTexture();
+			ns->startPath();
+
+			handled = true;
+			break;
+		case ID_AUTO_NAV_ON:
+			Log::d << "Action: auto navigation on" << endl;
+			dc->setEnabled(true);
+			handled = true;
+			break;
+		case ID_AUTO_NAV_OFF:
+			Log::d << "Action: auto navigation off" << endl;
+			dc->setEnabled(false);
 			handled = true;
 			break;
 		case ID_SHOW_FD:
