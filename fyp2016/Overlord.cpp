@@ -329,13 +329,18 @@ void Overlord::handleEvents() {
 			//ns->setBaseLocation(Point(long, lat));
 			handled = true;
 			break;
+		case ID_QUAD_RESETPOS:
+			Log::d << "Action: resetting quad bike positions" << endl;
+			dhwi->resetPositions();
+			handled = true;
+			break;
 		case ID_NAV_GENERATE:
 			Log::d << "Action: generating subdivided path" << endl;
 			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
 
 			// jononav the subdivide code has been called (above), you need to send back ID_READY here
 
-			// jononav at some point the following two functions need to be called, 
+			// jononav at some point the following two functions need to be called, drawPathToTexture and startPath
 			// first to draw the new path to the path texture
 			// and second to tell the navigation system to actually start the path again
 			// ns->startPath(); might belong in ID_AUTO_NAV_ON but i dont think so, they are kinda different
@@ -343,7 +348,8 @@ void Overlord::handleEvents() {
 			// until AUTO_NAV_ON has been sent through still.
 			vp->drawPathToTexture();
 			ns->startPath();
-
+			
+			dhwi->resetPositions();
 			handled = true;
 			break;
 		case ID_AUTO_NAV_ON:
