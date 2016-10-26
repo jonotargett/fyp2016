@@ -321,16 +321,43 @@ void Overlord::handleEvents() {
 			ns->clearSubdividedPath();
 			handled = true;
 			break;
-		case ID_NAV_POINTS:
-			Log::d << "Action: added lat lon nav pointst" << endl;
+		case ID_NAV_POINTS: {
+				Log::d << "Action: added lat lon nav points" << endl;
 
-			// jononav jono stuff here, want to call ns->addLatLongPoints(std::vector<Points> thePathList);
-			// latitude is y
-			// longitude is x
-			//ns->addLatLongPoints(std::vector<Points> thePathList);
+				// jononav jono stuff here, want to call ns->addLatLongPoints(std::vector<Points> thePathList);
+				// latitude is y
+				// longitude is x
 
-			handled = true;
-			break;
+				union u_tag {
+					float f[2];
+					double dval;
+				} u;
+
+				std::vector<Point> pathList;
+
+				for (int i = 0; i < p->length; i += 4) {
+					u.f[0] = p->data[i + 0];
+					u.f[1] = p->data[i + 1];
+
+					double lat = u.dval;
+
+					u.f[0] = p->data[i + 2];
+					u.f[1] = p->data[i + 3];
+
+					double lon = u.dval;
+
+					//ns->addPoint(LatLng(lat, lon));
+					pathList.push_back(Point(lon, lat));
+
+					Log::i << "\t Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
+				}
+
+
+				ns->addLatLongPoints(pathList);
+
+				handled = true;
+				break;
+		}
 		case ID_NAV_BASELOC:
 			Log::d << "Action: setting quad base location" << endl;
 			
@@ -344,11 +371,15 @@ void Overlord::handleEvents() {
 			dhwi->resetPositions();
 			handled = true;
 			break;
-		case ID_NAV_GENERATE:
+		case ID_NAV_GENERATE: {
 			Log::d << "Action: generating subdivided path" << endl;
 			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
 
 			// jononav the subdivide code has been called (above), you need to send back ID_READY here
+			Packet* op = new Packet();
+			op->packetID = ID_READY;
+			op->length = 0;
+			comms->send(op);
 
 			// jononav at some point the following two functions need to be called, drawPathToTexture and startPath
 			// first to draw the new path to the path texture
@@ -358,10 +389,11 @@ void Overlord::handleEvents() {
 			// until AUTO_NAV_ON has been sent through still.
 			vp->drawPathToTexture();
 			ns->startPath();
-			
+
 			dhwi->resetPositions();
 			handled = true;
 			break;
+		}
 		case ID_AUTO_NAV_ON:
 			Log::d << "Action: auto navigation on" << endl;
 			dc->setEnabled(true);
