@@ -56,7 +56,7 @@ bool SimpleNavigator::isConverging() {
 }
 
 void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
-
+	/*
 	std::vector<Point> degreesRelativeList;
 	std::vector<Point> cartesianList;
 
@@ -86,6 +86,28 @@ void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
 		addPoint(cartesianList.at(i));
 		//Log::i << cartesianList.at(i).x << ", " << cartesianList.at(i).y << endl;
 	}
+
+	HARRY THESE CALCULATIONS ARE SO BADLY WRONG
+
+	*/
+
+	double bLat = baseLocation.y;
+	double bLon = baseLocation.x;
+
+	double r_earth = 6378000.0;
+
+	LatLng bl = LatLng(bLat, bLon);
+
+	for (int i = 0; i < gpsList.size(); i++) {
+		LatLng p = LatLng(gpsList.at(i).y, gpsList.at(i).x);
+
+		Point np = p.relativeFrom(bl);
+		Log::i << np.x << ", " << np.y << endl;
+		addPoint(np);
+	}
+	
+
+	
 
 }
 

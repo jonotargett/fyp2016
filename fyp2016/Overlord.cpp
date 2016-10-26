@@ -248,6 +248,13 @@ void Overlord::run() {
 			seconds = t2 - t1;
 			//Log::i << "VP udpate: " << seconds.count()*1000 << " ms. Freq " << 1.0 / seconds.count() << endl;
 			
+			if (!comms->isConnected()) {
+				dhwi->emergencyStop();
+				dhwi->setDesiredVelocity(0);
+				dc->setEnabled(false);
+				hwi->emergencyStop();
+				//Log::e << "comms not connected! closing immediately!" << endl;
+			}
 		}
 
 		seconds = current - lastWindowUpdate;
@@ -278,7 +285,7 @@ void Overlord::run() {
 
 			window->present();
 
-			dc->setEnabled(true);
+			//dc->setEnabled(true);
 
 
 		}
@@ -306,6 +313,12 @@ void Overlord::handleEvents() {
 		switch (p->packetID) {
 		case ID_EMERGENCY_STOP:
 			Log::e << "Action: EMERGENCY STOP" << endl;
+			dhwi->emergencyStop();
+			dhwi->setDesiredVelocity(0);
+			dc->setEnabled(false);
+			ns->renewPath();
+			ns->clearPath();
+			ns->clearSubdividedPath();
 			hwi->emergencyStop();
 			handled = true;
 			break;
@@ -358,14 +371,31 @@ void Overlord::handleEvents() {
 				handled = true;
 				break;
 		}
-		case ID_NAV_BASELOC:
+		case ID_NAV_BASELOC: {
 			Log::d << "Action: setting quad base location" << endl;
-			
+
+			union u_tag {
+				float f[2];
+				double dval;
+			} u;
+
+			u.f[0] = p->data[0];
+			u.f[1] = p->data[1];
+
+			double lat = u.dval;
+
+			u.f[0] = p->data[2];
+			u.f[1] = p->data[3];
+
+			double lon = u.dval;
+
+			Log::i << "\t Baseloc Lat/Lng: " << std::setprecision(16) << lat << "E " << lon << "N " << endl;
 			// jononav jono put your stuff here, want the setBaseLocation(Point(long, lat)) function to be called.
 
-			//ns->setBaseLocation(Point(long, lat));
+			ns->setBaseLocation(Point(lon, lat));
 			handled = true;
 			break;
+		}
 		case ID_QUAD_RESETPOS:
 			Log::d << "Action: resetting quad bike positions" << endl;
 			dhwi->resetPositions();
@@ -376,10 +406,7 @@ void Overlord::handleEvents() {
 			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
 
 			// jononav the subdivide code has been called (above), you need to send back ID_READY here
-			Packet* op = new Packet();
-			op->packetID = ID_READY;
-			op->length = 0;
-			comms->send(op);
+
 
 			// jononav at some point the following two functions need to be called, drawPathToTexture and startPath
 			// first to draw the new path to the path texture
@@ -391,9 +418,17 @@ void Overlord::handleEvents() {
 			ns->startPath();
 
 			dhwi->resetPositions();
+
+			Packet* op = new Packet();
+			op->packetID = ID_READY;
+			op->length = 0;
+			comms->send(op);
+		}
+
 			handled = true;
 			break;
-		}
+			Log::e << "this line should never be reached" << endl;
+		
 		case ID_AUTO_NAV_ON:
 			Log::d << "Action: auto navigation on" << endl;
 			dc->setEnabled(true);
@@ -402,6 +437,7 @@ void Overlord::handleEvents() {
 		case ID_AUTO_NAV_OFF:
 			Log::d << "Action: auto navigation off" << endl;
 			dc->setEnabled(false);
+			dhwi->setDesiredVelocity(0.0);
 			handled = true;
 			break;
 		case ID_SHOW_FD:
@@ -475,7 +511,7 @@ void Overlord::handleEvents() {
 			break;
 		case ID_REQ_QUAD_SPEED:
 		{
-			float speed = (float)hwi->getVelocity();
+			float speed = (float)dhwi->getVelocity();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_SPEED;
@@ -488,7 +524,7 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_HEADING:
 		{
-			float head = (float) hwi->getAbsoluteHeading();
+			float head = (float) dhwi->getAbsoluteHeading();
 			//Log::d << "Request: quad speed " << speed << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_HEADING;
@@ -501,8 +537,8 @@ void Overlord::handleEvents() {
 		}
 		case ID_REQ_QUAD_POSITION:
 		{
-			Point pos = hwi->getPosition();
-			//Log::d << "Request: quad speed " << speed << endl;
+			Point pos = dhwi->getPosition();
+			//Log::d << "Request: quad speed " << pos.x << "/" << pos.y << endl;
 			Packet* op = new Packet();
 			op->packetID = ID_QUAD_POSITION;
 			op->length = 2;

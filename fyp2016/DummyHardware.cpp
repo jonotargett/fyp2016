@@ -470,5 +470,7 @@ double DummyHardware::getRealBrakePercentage() {
 }
 
 void DummyHardware::emergencyStop() {
-
+	setDesiredThrottlePercentage(0);
+	setDesiredBrake(100);
+	setDesiredGear(GEAR_NEUTRAL);
 }

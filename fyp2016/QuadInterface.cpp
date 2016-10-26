@@ -508,6 +508,7 @@ void QuadInterface::emergencyStop() {
 	delete bytes;
 	delete p;
 	ready = false;*/
+	requestedThrottlePercentage = 0;
 }
 
 void QuadInterface::updateVelocityActuators() {

@@ -10,8 +10,8 @@ Window::Window()
 	// * 80 for  1280 x 720
 	// * 100 for 1600 x 900
 	// * 120 for 1920 x 1080
-	windowWidth = 16 * 80;
-	windowHeight = 9 * 80;
+	windowWidth = 16 * 120;
+	windowHeight = 9 * 120;
 
 	quit = false;
 
@@ -96,7 +96,7 @@ void Window::showWindow(bool b) {
 
 	if (visible) {
 		SDL_ShowWindow(window);
-		//SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		Log::d << "window made visible" << endl;
 	}
 	else {

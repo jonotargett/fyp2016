@@ -10,7 +10,7 @@ struct LatLng
 {
 public:
 	LatLng();
-	LatLng(double, double);
+	LatLng(double latitude, double longitude);
 	~LatLng();
 
 	double latitude;
