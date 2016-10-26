@@ -63,6 +63,7 @@ void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
 	// get degrees relative to the quad bike initial position
 	for (int i = 0; i < gpsList.size(); i++) {
 		degreesRelativeList.push_back(gpsList.at(i) - baseLocation);
+		//Log::i << degreesRelativeList.at(i).x << ", " << degreesRelativeList.at(i).y << endl;
 	}
 
 	// latitude is y
@@ -72,7 +73,9 @@ void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
 	// convert degrees to meters
 	for (int i = 0; i < degreesRelativeList.size(); i++) {
 		Point cartesianPoint = Point(0, 0);
-		cartesianPoint.x = degreesRelativeList.at(i).x * 111319.9 * cos(baseLocation.y);
+		Log::i << degreesRelativeList.at(i).x << ", ";
+		cartesianPoint.x = degreesRelativeList.at(i).x * 111319.9 * cos(baseLocation.y * PI/180);
+		Log::i << cartesianPoint.x << endl;
 		cartesianPoint.y = degreesRelativeList.at(i).y * 111319.9;
 		cartesianList.push_back(cartesianPoint);
 	}
@@ -81,6 +84,7 @@ void SimpleNavigator::addLatLongPoints(std::vector<Point> gpsList) {
 	clearPath();
 	for (int i = 0; i < cartesianList.size(); i++) {
 		addPoint(cartesianList.at(i));
+		//Log::i << cartesianList.at(i).x << ", " << cartesianList.at(i).y << endl;
 	}
 
 }

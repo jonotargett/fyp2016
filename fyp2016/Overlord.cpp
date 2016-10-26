@@ -184,30 +184,40 @@ void Overlord::run() {
 		seconds = current - lastDataUpdate;
 		quadTimer = current - startTime;
 
-		if (quadTimer.count() > 10 && newPathDone == false) {
-			// to do a new path
-			/*ns->renewPath();
+		if (quadTimer.count() > 4 && newPathDone == false) {
+			// jononav as a test you can uncomment the following block:
+			// this changes the path after 4 seconds.
+			/*ns->setBaseLocation(Point(138.581942, -35.014698));
+			Log::i << "setbase" << endl;
+
+			ns->renewPath();
+			Log::i << "renew" << endl;
+
 			ns->clearPath();
+			Log::i << "clear" << endl;
+
 			ns->clearSubdividedPath();
-			ns->addPoint(Point(0, 0));
-			ns->addPoint(Point(20, 0));
-			ns->addPoint(Point(20, 20));
-			ns->addPoint(Point(24, 24));
+			Log::i << "clearsub" << endl;
+
+			std::vector<Point> lassa;
+			lassa.push_back(Point(138.581936, -35.014590));
+			lassa.push_back(Point(138.581878, -35.014548));
+			lassa.push_back(Point(138.581847, -35.014668));
+			lassa.push_back(Point(138.582059, -35.014719));
+			ns->addLatLongPoints(lassa);
+			Log::i << "addlatlong" << endl;
+
 			ns->subdivide(dhwi->getRealPosition(), dhwi->getRealAbsoluteHeading());
+			Log::i << "subdivide" << endl;
+
 			vp->drawPathToTexture();
+			Log::i << "drawpath" << endl;
+
 			ns->startPath();
-			*/
+			Log::i << "startpath" << endl;
 
-			// when we detect a landmine
-			//dc->setlandMineDetected(true);
-
-
-			// when we press resume on the tablet:
-			// dc->setlandMineDetected(false);
-
-			// when we press reset position on tablet:
-			//dhwi->resetPositions();
-			
+			dhwi->resetPositions();*/
+		
 			newPathDone = true;
 		}
 
